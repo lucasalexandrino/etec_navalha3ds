@@ -3,93 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Agenda da Barbearia</title>
-  <link rel="stylesheet" href="css/estilo.css" />
+  <title>Navalha — Barbearia Moderna</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
   <header class="topo">
-    <h1>Navalha — Agenda</h1>
-    <nav class="papeis" role="tablist">
-      <button type="button" class="papel ativo" data-papel="cliente" role="tab" aria-selected="true">Cliente</button>
-      <button type="button" class="papel" data-papel="barbeiro" role="tab" aria-selected="false">Barbeiro</button>
+    <h1><i data-lucide="scissors"></i> NAVALHA</h1>
+    <nav class="papeis">
+      <button type="button" class="papel ativo" data-papel="cliente"><i data-lucide="user" style="width:16px"></i> Cliente</button>
+      <button type="button" class="papel" data-papel="barbeiro"><i data-lucide="briefcase" style="width:16px"></i> Barbeiro</button>
     </nav>
   </header>
 
   <main>
-    <!-- CLIENTE -->
-    <section id="painel-cliente" class="painel ativo" aria-label="Área do cliente">
-      <div class="grid-cliente">
+    <!-- PAINEL CLIENTE -->
+    <section id="painel-cliente" class="painel ativo">
+      <div class="grid">
         <div class="card">
-          <h2>Calendário</h2>
+          <h2><i data-lucide="calendar"></i> Escolha a Data</h2>
           <div class="cal-nav">
-            <button type="button" id="cal-mes-ant" aria-label="Mês anterior">◀</button>
+            <button type="button" id="cal-mes-ant"><i data-lucide="chevron-left"></i></button>
             <span id="cal-titulo-mes"></span>
-            <button type="button" id="cal-prox-mes" aria-label="Próximo mês">▶</button>
+            <button type="button" id="cal-prox-mes"><i data-lucide="chevron-right"></i></button>
           </div>
           <div class="cal-semanas">
-            <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+            <span>DOM</span><span>SEG</span><span>TER</span><span>QUA</span><span>QUI</span><span>SEX</span><span>SÁB</span>
           </div>
           <div id="cal-grade" class="cal-grade"></div>
         </div>
 
         <div class="card">
-          <h2>Novo agendamento</h2>
+          <h2><i data-lucide="plus-circle"></i> Novo Agendamento</h2>
           <form id="form-agendamento" class="form" novalidate>
-            <label>
-              Nome
-              <input type="text" id="ag-nome" name="nome" autocomplete="name" />
-            </label>
-            <label>
-              WhatsApp
-              <input type="tel" id="ag-whatsapp" name="whatsapp" inputmode="numeric" />
-            </label>
-            <label>
-              Serviço
-              <select id="ag-servico" name="servico"></select>
-            </label>
-            <label>
-              Data
-              <input type="date" id="ag-data" name="data" />
-            </label>
-            <label>
-              Horário
-              <input type="time" id="ag-hora" name="hora" />
-            </label>
-            <button type="submit" class="btn-prim">Confirmar agendamento</button>
+            <label>Nome Completo <input type="text" id="ag-nome" required /><span class="error-msg">Nome é obrigatório</span></label>
+            <label>WhatsApp <input type="tel" id="ag-whatsapp" placeholder="(00) 00000-0000" required /><span class="error-msg">Número inválido</span></label>
+            <label>Serviço <select id="ag-servico" required><option value="">Selecione...</option></select><span class="error-msg">Escolha um serviço</span></label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <label>Data Selecionada <input type="date" id="ag-data" readonly required /><span class="error-msg">Selecione no calendário</span></label>
+              <label>Horário <input type="time" id="ag-hora" required /><span class="error-msg">Horário obrigatório</span></label>
+            </div>
+            <button type="submit" class="btn-prim">Confirmar Agendamento</button>
           </form>
         </div>
       </div>
     </section>
 
-    <!-- BARBEIRO -->
-    <section id="painel-barbeiro" class="painel" aria-label="Área do barbeiro" hidden>
-      <div class="grid-barbeiro">
+    <!-- PAINEL BARBEIRO -->
+    <section id="painel-barbeiro" class="painel">
+      <div class="grid">
         <div class="card">
-          <h2>Cadastrar serviço</h2>
+          <h2><i data-lucide="settings"></i> Gerenciar Serviços</h2>
           <form id="form-servico" class="form" novalidate>
-            <label>
-              Nome do serviço
-              <input type="text" id="sv-nome" />
-            </label>
-            <button type="submit" class="btn-prim">Adicionar</button>
+            <label>Nome do Serviço <input type="text" id="sv-nome" placeholder="Ex: Corte Navalhado" required /><span class="error-msg">O nome é obrigatório</span></label>
+            <button type="submit" class="btn-prim">Adicionar Serviço</button>
           </form>
-          <h3 class="subtitulo">Serviços cadastrados</h3>
           <ul id="lista-servicos" class="lista-servicos"></ul>
         </div>
 
-        <div class="card card-largo">
-          <h2>Agendamentos</h2>
+        <div class="card">
+          <h2><i data-lucide="list"></i> Agenda de Hoje</h2>
           <div class="tabela-wrap">
             <table class="tabela-ag">
-              <thead>
-                <tr>
-                  <th>Data / hora</th>
-                  <th>Cliente</th>
-                  <th>WhatsApp</th>
-                  <th>Serviço</th>
-                  <th></th>
-                </tr>
-              </thead>
+              <thead><tr><th>Horário</th><th>Cliente</th><th>Serviço</th><th>Ações</th></tr></thead>
               <tbody id="tbody-agendamentos"></tbody>
             </table>
           </div>
@@ -98,6 +81,9 @@
     </section>
   </main>
 
-  <script src="js/app.js"></script>
+  <div id="toast-container"></div>
+
+  <!-- Custom JS -->
+  <script src="js/script.js"></script>
 </body>
 </html>
