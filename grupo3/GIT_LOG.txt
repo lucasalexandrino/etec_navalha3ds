@@ -1,0 +1,14 @@
+db68112 | docs: adicionar histórico estruturado de commits | Navalha Dev | 4 seconds ago
+4ef8f28 | docs: guia de uso e documentação do projeto | Navalha Dev | 35 seconds ago
+5c4d0ab | style: tema dark premium com paleta âmbar/ouro | Navalha Dev | 39 seconds ago
+0048041 | feat: página de gerenciamento de serviços (CRUD) | Navalha Dev | 44 seconds ago
+a753e34 | feat: painel administrativo com visão geral | Navalha Dev | 49 seconds ago
+1bfac4c | feat: painel do barbeiro com agenda | Navalha Dev | 53 seconds ago
+3a9f848 | feat: painel do cliente com agendamentos | Navalha Dev | 57 seconds ago
+8d1b079 | feat: interface de agendamento passo a passo | Navalha Dev | 62 seconds ago
+a9af51f | feat: página inicial com apresentação da barbearia | Navalha Dev | 67 seconds ago
+051369b | feat: validações de regras de negócio e testes | Navalha Dev | 72 seconds ago
+5d2b9bf | feat: tRPC routers com autenticação e autorização | Navalha Dev | 76 seconds ago
+3c0a388 | feat: database helpers e query functions | Navalha Dev | 80 seconds ago
+edb0c36 | feat: database schema com tabelas de agendamento | Navalha Dev | 85 seconds ago
+8653195 | Initial project bootstrap | Manus | 12 minutes ago

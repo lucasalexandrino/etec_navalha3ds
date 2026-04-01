@@ -1,0 +1,18 @@
+* db68112 (HEAD -> main) docs: adicionar histórico estruturado de commits
+* 4ef8f28 docs: guia de uso e documentação do projeto
+* 5c4d0ab style: tema dark premium com paleta âmbar/ouro
+* 0048041 feat: página de gerenciamento de serviços (CRUD)
+* a753e34 feat: painel administrativo com visão geral
+* 1bfac4c feat: painel do barbeiro com agenda
+* 3a9f848 feat: painel do cliente com agendamentos
+* 8d1b079 feat: interface de agendamento passo a passo
+* a9af51f feat: página inicial com apresentação da barbearia
+* 051369b feat: validações de regras de negócio e testes
+* 5d2b9bf feat: tRPC routers com autenticação e autorização
+* 3c0a388 feat: database helpers e query functions
+* edb0c36 feat: database schema com tabelas de agendamento
+| * d80a5da (origin/main) Checkpoint: Sistema web completo de agendamento para Navalha Barbearia:
+| * 4e36e19 Checkpoint: Sistema web completo de agendamento para barbearia com todas as funcionalidades principais: - Schema de banco de dados com validação de conflitos - Autenticação com Manus OAuth e 3 perfis (Cliente, Barbeiro, Admin) - Interface de agendamento passo a passo com validações - Painéis para cliente (agendamentos/histórico), barbeiro (agenda diária/semanal) e admin (gestão) - CRUD completo de serviços com validações - Validações de regras de negócio (conflitos, antecedência, horário funcionamento) - Testes unitários para validações (9 testes passando) - Design premium responsivo com tema dark e paleta âmbar/ouro - Documentação de uso completa (GUIA_USO.md) - Dev server rodando em https://3000-iqurj8qhhspi04r4owcjd-97f63163.us1.manus.computer
+| * ccf3c2f Checkpoint: Sistema web completo de agendamento para barbearia com: - Schema de banco de dados com usuários, serviços, agendamentos, profissionais e horários - Autenticação com Manus OAuth e perfis diferenciados (Cliente, Barbeiro, Admin) - Página inicial com apresentação da barbearia - Interface de agendamento passo a passo (serviço → profissional → data/hora → confirmação) - Painel do cliente com visualização de agendamentos e histórico - Painel do barbeiro com agenda diária e semanal - Painel administrativo com gestão de serviços e profissionais - Validações de conflitos de horários e regras de negócio - Design premium responsivo com tema dark por padrão - Paleta de cores em tons de âmbar/ouro para identidade de barbearia premium
+|/  
+* 8653195 Initial project bootstrap
