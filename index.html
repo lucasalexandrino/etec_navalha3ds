@@ -4,20 +4,142 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Agenda da Barbearia</title>
-  <link rel="stylesheet" href="css/estilo.css" />
+  <link rel="stylesheet" href="css/estilos.css" />
 </head>
 <body>
   <header class="topo">
-    <h1>Navalha — Agenda</h1>
-    <nav class="papeis" role="tablist">
-      <button type="button" class="papel ativo" data-papel="cliente" role="tab" aria-selected="true">Cliente</button>
-      <button type="button" class="papel" data-papel="barbeiro" role="tab" aria-selected="false">Barbeiro</button>
+    <div class="topo-marca">
+      <button type="button" class="topo-logo-btn" id="btn-logo-inicio" aria-label="Ir para a página inicial" title="Página inicial">
+        <img class="logo" src="img/Logo_Navalha.png" alt="Barbearia Navalha" decoding="async" />
+      </button>
+    </div>
+
+    <nav class="topo-servicos" aria-label="Serviços oferecidos">
+      <ul class="topo-servicos-lista">
+        <li>
+          <a class="topo-servico-pill" href="servicos/corte.html" target="_blank" rel="noopener noreferrer" title="Corte de cabelo e acabamento">Corte</a>
+        </li>
+        <li>
+          <a class="topo-servico-pill" href="servicos/hidratacao.html" target="_blank" rel="noopener noreferrer" title="Hidratação e tratamento dos fios">Hidratação</a>
+        </li>
+        <li>
+          <a class="topo-servico-pill" href="servicos/limpeza-pele.html" target="_blank" rel="noopener noreferrer" title="Limpeza de pele facial masculina">Limpeza de pele</a>
+        </li>
+        <li>
+          <a class="topo-servico-pill" href="servicos/barba.html" target="_blank" rel="noopener noreferrer" title="Barba: desenho e acabamento">Barba</a>
+        </li>
+      </ul>
     </nav>
+
+    <div class="topo-direita">
+      <div id="topo-visitante" class="topo-visitante">
+        <button type="button" class="btn-prim btn-compacto" id="btn-ir-cadastro">Cadastro</button>
+        <button type="button" class="btn-sec btn-compacto" id="btn-ir-login-cliente">Entrar</button>
+        <button type="button" class="btn-barbeiro btn-compacto" id="btn-ir-login-barbeiro">Barbeiro</button>
+      </div>
+      <div id="topo-acoes" class="topo-acoes hidden">
+        <span id="topo-saudacao" class="topo-saudacao" aria-live="polite"></span>
+        <button type="button" id="btn-logout" class="btn-sec btn-compacto">Sair</button>
+      </div>
+    </div>
   </header>
 
   <main>
-    <!-- CLIENTE -->
-    <section id="painel-cliente" class="painel ativo" aria-label="Área do cliente">
+    <!-- TELA INICIAL (visitante) -->
+    <section id="tela-entrada" class="tela tela-ativa" aria-label="Página inicial">
+      <p class="entrada-lead">
+        Confira uma prévia dos horários livres abaixo. Para <strong>agendar</strong>, use <strong>Cadastro</strong> ou
+        <strong>Entrar</strong> no canto superior direito. Endereço, contato e funcionamento estão no rodapé.
+      </p>
+
+      <div class="card card-horarios-livres">
+        <h2>Horários disponíveis (próximos dias)</h2>
+        <p class="muted-small">Slots de 30 minutos ainda sem agendamento. Atualizado em tempo real neste navegador.</p>
+        <ul id="lista-horarios-livres" class="lista-horarios-livres" aria-live="polite"></ul>
+        <p id="lista-horarios-vazio" class="muted-small hidden">Nenhum horário livre encontrado nos próximos dias — tente outro período ou fale conosco.</p>
+      </div>
+
+      <p class="aviso-demo">
+        Uso educativo: login e senhas são simulados no navegador (localStorage). Em produção real a autenticação seria no servidor.
+      </p>
+    </section>
+
+    <!-- CADASTRO CLIENTE -->
+    <section id="tela-cadastro" class="tela" hidden aria-label="Cadastro de cliente">
+      <div class="card card-form-centro">
+        <h2>Criar conta</h2>
+        <p class="muted-small">Preencha os dados para poder agendar horários.</p>
+        <form id="form-cadastro" class="form" novalidate>
+          <label>
+            Nome completo
+            <input type="text" id="cd-nome" name="nome" autocomplete="name" required maxlength="120" />
+          </label>
+          <label>
+            E-mail (será seu login)
+            <input type="email" id="cd-email" name="email" autocomplete="email" required maxlength="120" />
+          </label>
+          <label>
+            WhatsApp
+            <input type="tel" id="cd-whatsapp" name="whatsapp" inputmode="numeric" autocomplete="tel" required maxlength="20" />
+          </label>
+          <label>
+            Senha
+            <input type="password" id="cd-senha" name="senha" autocomplete="new-password" required minlength="4" maxlength="72" />
+          </label>
+          <label>
+            Confirmar senha
+            <input type="password" id="cd-senha2" name="senha2" autocomplete="new-password" required minlength="4" maxlength="72" />
+          </label>
+          <p id="cadastro-erro" class="msg-erro hidden" role="alert"></p>
+          <button type="submit" class="btn-prim">Cadastrar e entrar</button>
+          <button type="button" class="btn-link" id="btn-voltar-cadastro">← Voltar ao início</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- LOGIN CLIENTE -->
+    <section id="tela-login-cliente" class="tela" hidden aria-label="Login de cliente">
+      <div class="card card-form-centro">
+        <h2>Entrar — cliente</h2>
+        <form id="form-login-cliente" class="form" novalidate>
+          <label>
+            E-mail
+            <input type="email" id="lc-email" name="email" autocomplete="username" required />
+          </label>
+          <label>
+            Senha
+            <input type="password" id="lc-senha" name="senha" autocomplete="current-password" required />
+          </label>
+          <p id="login-cliente-erro" class="msg-erro hidden" role="alert"></p>
+          <button type="submit" class="btn-prim">Entrar</button>
+          <button type="button" class="btn-link" id="btn-voltar-login-cliente">← Voltar ao início</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- LOGIN BARBEIRO -->
+    <section id="tela-login-barbeiro" class="tela" hidden aria-label="Login do barbeiro">
+      <div class="card card-form-centro">
+        <h2>Área restrita — barbeiro</h2>
+        <p class="muted-small">Cancelar agendamentos e gerir serviços exige login. Usuário e senha padrão de demonstração: <code>barbeiro</code> / <code>navalha</code></p>
+        <form id="form-login-barbeiro" class="form" novalidate>
+          <label>
+            Usuário
+            <input type="text" id="lb-usuario" name="usuario" autocomplete="username" required />
+          </label>
+          <label>
+            Senha
+            <input type="password" id="lb-senha" name="senha" autocomplete="current-password" required />
+          </label>
+          <p id="login-barbeiro-erro" class="msg-erro hidden" role="alert"></p>
+          <button type="submit" class="btn-prim">Entrar na área do barbeiro</button>
+          <button type="button" class="btn-link" id="btn-voltar-login-barbeiro">← Voltar ao início</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- CLIENTE (após login) -->
+    <section id="painel-cliente" class="painel" aria-label="Área do cliente" hidden>
       <div class="grid-cliente">
         <div class="card">
           <h2>Calendário</h2>
@@ -34,6 +156,7 @@
 
         <div class="card">
           <h2>Novo agendamento</h2>
+          <p class="muted-small">Dados da sua conta (pode ajustar o WhatsApp se precisar).</p>
           <form id="form-agendamento" class="form" novalidate>
             <label>
               Nome
@@ -53,15 +176,16 @@
             </label>
             <label>
               Horário
-              <input type="time" id="ag-hora" name="hora" />
+              <input type="time" id="ag-hora" name="hora" step="1800" />
             </label>
+            <p id="agendamento-erro" class="msg-erro hidden" role="alert"></p>
             <button type="submit" class="btn-prim">Confirmar agendamento</button>
           </form>
         </div>
       </div>
     </section>
 
-    <!-- BARBEIRO -->
+    <!-- BARBEIRO (após login) -->
     <section id="painel-barbeiro" class="painel" aria-label="Área do barbeiro" hidden>
       <div class="grid-barbeiro">
         <div class="card">
@@ -97,6 +221,34 @@
       </div>
     </section>
   </main>
+
+  <footer class="rodape">
+    <div class="rodape-inner">
+      <div class="rodape-col">
+        <h2 class="rodape-titulo">Endereço</h2>
+        <p class="rodape-texto">
+          Rua das Navalhas, 100 — Centro<br />
+          São Paulo — SP<br />
+          CEP 01000-000
+        </p>
+      </div>
+      <div class="rodape-col">
+        <h2 class="rodape-titulo">Contato</h2>
+        <p class="rodape-texto">
+          WhatsApp: (11) 99999-0000<br />
+          Instagram: @barbearianavalha
+        </p>
+      </div>
+      <div class="rodape-col">
+        <h2 class="rodape-titulo">Funcionamento</h2>
+        <p class="rodape-texto">
+          Segunda a sexta: 9h às 18h<br />
+          Sábado: 9h às 13h<br />
+          Domingo: fechado
+        </p>
+      </div>
+    </div>
+  </footer>
 
   <script src="js/app.js"></script>
 </body>
