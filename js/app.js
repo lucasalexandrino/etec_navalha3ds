@@ -242,7 +242,7 @@
       calGrade.appendChild(celulaVaziaCal());
     }
 
-    for (var dia = 1; dia < ultimoDia; dia++) {
+    for (var dia = 1; dia <= ultimoDia; dia++) {
       var ehHoje =
         dia === hoje.getDate() &&
         mesCal === hoje.getMonth() &&
@@ -284,18 +284,18 @@
   }
 
   calMesAnt.addEventListener("click", function () {
-    mesCal++;
-    if (mesCal > 11) {
-      mesCal = 0;
-      anoCal++;
-    }
-    renderCalendario();
-  });
-  calProxMes.addEventListener("click", function () {
     mesCal--;
     if (mesCal < 0) {
       mesCal = 11;
       anoCal--;
+    }
+    renderCalendario();
+  });
+  calProxMes.addEventListener("click", function () {
+    mesCal++;
+    if (mesCal > 11) {
+      mesCal = 0;
+      anoCal++;
     }
     renderCalendario();
   });
