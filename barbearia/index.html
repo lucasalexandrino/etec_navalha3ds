@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agenda da Barbearia</title>
+  <link rel="stylesheet" href="css/estilos.css" />
+</head>
+<body>
+  <header class="cabecalho">
+    <h1>Navalha — Agenda</h1>
+    <nav class="abas-perfil" role="tablist">
+      <button type="button" class="aba-perfil aba-perfil-ativa" data-perfil="cliente" role="tab" aria-selected="true">Cliente</button>
+      <button type="button" class="aba-perfil" data-perfil="barbeiro" role="tab" aria-selected="false">Barbeiro</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="painelCliente" class="painel painel-ativo" aria-label="Área do cliente">
+      <div class="grade-cliente">
+        <div class="cartao">
+          <h2>Calendário</h2>
+          <div class="navegacao-calendario">
+            <button type="button" id="btnMesAnterior" aria-label="Mês anterior">◀</button>
+            <span id="tituloMesCalendario"></span>
+            <button type="button" id="btnProximoMes" aria-label="Próximo mês">▶</button>
+          </div>
+          <div class="cabecalho-semanas">
+            <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+          </div>
+          <div id="gradeCalendario" class="grade-calendario"></div>
+        </div>
+
+        <div class="cartao">
+          <h2>Novo agendamento</h2>
+          <form id="formularioAgendamento" class="formulario" novalidate>
+            <label>
+              Nome
+              <input type="text" id="campoNomeCliente" name="nome" autocomplete="name" />
+            </label>
+            <label>
+              WhatsApp
+              <input type="tel" id="campoWhatsapp" name="whatsapp" inputmode="numeric" />
+            </label>
+            <label>
+              Serviço
+              <select id="selectServico" name="servico"></select>
+            </label>
+            <label>
+              Data
+              <input type="date" id="campoData" name="data" />
+            </label>
+            <label>
+              Horário
+              <input type="time" id="campoHora" name="hora" />
+            </label>
+            <button type="submit" id="botaoConfirmarAgendamento" class="botao-primario">Confirmar agendamento</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section id="painelBarbeiro" class="painel" aria-label="Área do barbeiro" hidden>
+      <div class="grade-barbeiro">
+        <div class="cartao">
+          <h2>Cadastrar serviço</h2>
+          <form id="formularioServico" class="formulario" novalidate>
+            <label>
+              Nome do serviço
+              <input type="text" id="campoNomeServico" />
+            </label>
+            <button type="submit" id="botaoAdicionarServico" class="botao-primario">Adicionar</button>
+          </form>
+          <h3 class="subtitulo">Serviços cadastrados</h3>
+          <ul id="listaServicos" class="lista-servicos"></ul>
+        </div>
+
+        <div class="cartao cartao-largo">
+          <h2>Agendamentos</h2>
+          <div class="container-tabela">
+            <table class="tabela-agendamentos">
+              <thead>
+                <tr>
+                  <th>Data / hora</th>
+                  <th>Cliente</th>
+                  <th>WhatsApp</th>
+                  <th>Serviço</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="corpoTabelaAgendamentos"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/storage.js"></script>
+  <script src="js/servicos.js"></script>
+  <script src="js/agendamentos.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>

@@ -28,7 +28,7 @@ body {
   flex-direction: column;
 }
 
-.topo {
+.cabecalho {
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--border);
   display: flex;
@@ -38,18 +38,18 @@ body {
   gap: 1rem;
 }
 
-.topo h1 {
+.cabecalho h1 {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
 }
 
-.papeis {
+.abas-perfil {
   display: flex;
   gap: 0.5rem;
 }
 
-.papel {
+.aba-perfil {
   padding: 0.45rem 1rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -59,14 +59,14 @@ body {
   font: inherit;
 }
 
-.papel:hover {
+.aba-perfil:hover {
   border-color: var(--muted);
 }
 
-.papel.ativo {
+.aba-perfil.aba-perfil-ativa {
   background: var(--accent);
   color: #1a1a12;
-  border-color: var(--accentt);
+  border-color: var(--accent);
   font-weight: 600;
 }
 
@@ -82,46 +82,46 @@ main {
   display: none;
 }
 
-.painel.ativo {
+.painel.painel-ativo {
   display: block;
 }
 
-.grid-cliente {
+.grade-cliente {
   display: grid;
   gap: 1.25rem;
 }
 
 @media (min-width: 840px) {
-  .grid-cliente {
+  .grade-cliente {
     grid-template-columns: 1fr 1fr;
     align-items: start;
   }
 }
 
-.grid-barbeiro {
+.grade-barbeiro {
   display: grid;
   gap: 1.25rem;
 }
 
 @media (min-width: 840px) {
-  .grid-barbeiro {
+  .grade-barbeiro {
     grid-template-columns: 320px 1fr;
     align-items: start;
   }
 }
 
-.card {
+.cartao {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1.25rem;
 }
 
-.card-largo {
+.cartao-largo {
   min-width: 0;
 }
 
-.card h2 {
+.cartao h2 {
   margin: 0 0 1rem;
   font-size: 1.1rem;
 }
@@ -133,14 +133,14 @@ main {
   font-weight: 600;
 }
 
-.cal-nav {
+.navegacao-calendario {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.75rem;
 }
 
-.cal-nav button {
+.navegacao-calendario button {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text);
@@ -151,17 +151,17 @@ main {
   font: inherit;
 }
 
-.cal-nav button:hover {
+.navegacao-calendario button:hover {
   border-color: var(--accent);
   color: var(--accent);
 }
 
-#cal-titulo-mes {
+#tituloMesCalendario {
   font-weight: 600;
   text-transform: capitalize;
 }
 
-.cal-semanas {
+.cabecalho-semanas {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 4px;
@@ -171,13 +171,13 @@ main {
   text-align: center;
 }
 
-.cal-grade {
+.grade-calendario {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 4px;
 }
 
-.cal-dia {
+.dia-calendario {
   aspect-ratio: 1;
   display: flex;
   flex-direction: column;
@@ -193,21 +193,21 @@ main {
   padding: 2px;
 }
 
-.cal-dia:hover:not(:disabled) {
+.dia-calendario:hover:not(:disabled) {
   border-color: var(--accent);
 }
 
-.cal-dia.fora {
+.dia-calendario-fora {
   opacity: 0.35;
   cursor: default;
 }
 
-.cal-dia.hoje {
+.dia-calendario-hoje {
   border-color: var(--accent);
   font-weight: 700;
 }
 
-.cal-dia.tem-evento::after {
+.dia-calendario-com-evento::after {
   content: "";
   width: 4px;
   height: 4px;
@@ -216,26 +216,26 @@ main {
   margin-top: 2px;
 }
 
-.cal-dia:disabled {
+.dia-calendario:disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
 
-.form {
+.formulario {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
 }
 
-.form label {
+.formulario label {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
   font-size: 0.9rem;
 }
 
-.form input,
-.form select {
+.formulario input,
+.formulario select {
   padding: 0.55rem 0.65rem;
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -244,13 +244,13 @@ main {
   font: inherit;
 }
 
-.form input:focus,
-.form select:focus {
+.formulario input:focus,
+.formulario select:focus {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
-.btn-prim {
+.botao-primario {
   margin-top: 0.25rem;
   padding: 0.65rem 1rem;
   border: none;
@@ -262,8 +262,8 @@ main {
   cursor: pointer;
 }
 
-.btn-prim:hover {
-  background: var(--accent-hober);
+.botao-primario:hover {
+  background: var(--accent-hover);
 }
 
 .lista-servicos {
@@ -286,7 +286,7 @@ main {
   border-bottom: none;
 }
 
-.btn-icone {
+.botao-icone {
   padding: 0.25rem 0.5rem;
   font-size: 0.8rem;
   border-radius: 6px;
@@ -297,28 +297,28 @@ main {
   font: inherit;
 }
 
-.btn-icone:hover {
+.botao-icone:hover {
   background: rgba(224, 49, 49, 0.15);
 }
 
-.tabela-wrap {
+.container-tabela {
   overflow-x: auto;
 }
 
-.tabela-ag {
+.tabela-agendamentos {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.88rem;
 }
 
-.tabela-ag th,
-.tabela-ag td {
+.tabela-agendamentos th,
+.tabela-agendamentos td {
   text-align: left;
   padding: 0.5rem 0.65rem;
   border-bottom: 1px solid var(--border);
 }
 
-.tabela-ag th {
+.tabela-agendamentos th {
   color: var(--muted);
   font-weight: 600;
 }
