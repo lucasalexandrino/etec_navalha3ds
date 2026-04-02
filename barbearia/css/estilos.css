@@ -1,14 +1,21 @@
 :root {
-  --bg: #1a1b1e;
-  --card: #25262b;
-  --text: #e9e9ed;
-  --muted: #909296;
-  --accent: #c9a227;
-  --accent-hover: #ddb92e;
-  --border: #373a40;
-  --danger: #e03131;
-  --radius: 10px;
+  --bg: #141518;
+  --card: #1f2024;
+  --text: #f0f1f3;
+  --text-secundario: #c4c7ce;
+  --muted: #b0b4bd;
+  --accent: #d4af37;
+  --accent-escuro: #1a1708;
+  --accent-hover: #e4c04a;
+  --accent-disabled: #6b5d2e;
+  --border: #3d4048;
+  --danger: #f87171;
+  --danger-fundo: rgba(248, 113, 113, 0.12);
+  --sucesso: #86efac;
+  --sucesso-fundo: rgba(134, 239, 172, 0.12);
+  --radius: 12px;
   --font: "Segoe UI", system-ui, sans-serif;
+  --sombra-cartao: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
 }
 
 *,
@@ -17,65 +24,169 @@
   box-sizing: border-box;
 }
 
+html {
+  min-width: 360px;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
   font-family: var(--font);
   background: var(--bg);
   color: var(--text);
-  line-height: 1.5;
+  line-height: 1.55;
   display: flex;
   flex-direction: column;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.link-pular {
+  position: absolute;
+  left: -9999px;
+  z-index: 1000;
+  padding: 0.75rem 1rem;
+  background: var(--accent);
+  color: var(--accent-escuro);
+  font-weight: 600;
+  border-radius: var(--radius);
+  text-decoration: none;
+}
+
+.link-pular:focus {
+  left: 1rem;
+  top: 1rem;
+  outline: 3px solid var(--text);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .cabecalho {
-  padding: 1rem 1.25rem;
+  padding: 1rem 1rem 1.1rem;
   border-bottom: 1px solid var(--border);
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
 }
 
+@media (min-width: 480px) {
+  .cabecalho {
+    padding: 1.1rem 1.35rem;
+    align-items: center;
+  }
+}
+
+.cabecalho-titulo {
+  min-width: 0;
+}
+
+.cabecalho-epigrafe {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .cabecalho h1 {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--text);
+}
+
+@media (min-width: 480px) {
+  .cabecalho h1 {
+    font-size: 1.35rem;
+  }
 }
 
 .abas-perfil {
   display: flex;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .aba-perfil {
-  padding: 0.45rem 1rem;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.5rem 1.1rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--card);
   color: var(--text);
   cursor: pointer;
   font: inherit;
+  font-weight: 500;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
 
-.aba-perfil:hover {
+.aba-perfil:hover:not(:disabled) {
   border-color: var(--muted);
+  background: #2a2b31;
+}
+
+.aba-perfil:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.aba-perfil:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .aba-perfil.aba-perfil-ativa {
   background: var(--accent);
-  color: #1a1a12;
+  color: var(--accent-escuro);
   border-color: var(--accent);
-  font-weight: 600;
+  font-weight: 700;
+}
+
+.aba-perfil.aba-perfil-ativa:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 main {
   flex: 1;
-  padding: 1.25rem;
+  padding: 1rem;
   max-width: 1100px;
   margin: 0 auto;
   width: 100%;
+}
+
+@media (min-width: 480px) {
+  main {
+    padding: 1.35rem 1.25rem 2rem;
+  }
+}
+
+main:focus {
+  outline: none;
 }
 
 .painel {
@@ -88,7 +199,7 @@ main {
 
 .grade-cliente {
   display: grid;
-  gap: 1.25rem;
+  gap: 1.35rem;
 }
 
 @media (min-width: 840px) {
@@ -100,12 +211,12 @@ main {
 
 .grade-barbeiro {
   display: grid;
-  gap: 1.25rem;
+  gap: 1.35rem;
 }
 
 @media (min-width: 840px) {
   .grade-barbeiro {
-    grid-template-columns: 320px 1fr;
+    grid-template-columns: minmax(280px, 320px) 1fr;
     align-items: start;
   }
 }
@@ -114,22 +225,51 @@ main {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 1.25rem;
+  padding: 1.15rem 1.1rem 1.35rem;
+  box-shadow: var(--sombra-cartao);
+}
+
+@media (min-width: 480px) {
+  .cartao {
+    padding: 1.35rem 1.35rem 1.5rem;
+  }
+}
+
+.cartao-calendario {
+  min-width: 0;
 }
 
 .cartao-largo {
   min-width: 0;
 }
 
-.cartao h2 {
+.titulo-secao {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.texto-ajuda {
   margin: 0 0 1rem;
-  font-size: 1.1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-secundario);
+}
+
+.texto-ajuda-campo {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
 }
 
 .subtitulo {
-  margin: 1.25rem 0 0.5rem;
+  margin: 1.35rem 0 0.6rem;
   font-size: 0.95rem;
-  color: var(--muted);
+  color: var(--text-secundario);
   font-weight: 600;
 }
 
@@ -137,64 +277,96 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
 }
 
-.navegacao-calendario button {
+.botao-calendario {
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text);
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   font: inherit;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
 
-.navegacao-calendario button:hover {
+.botao-calendario:hover:not(:disabled) {
   border-color: var(--accent);
   color: var(--accent);
+  background: rgba(212, 175, 55, 0.08);
 }
 
-#tituloMesCalendario {
-  font-weight: 600;
+.botao-calendario:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.botao-calendario:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.titulo-mes {
+  flex: 1;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text);
   text-transform: capitalize;
+  min-height: 1.5em;
 }
 
 .cabecalho-semanas {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 4px;
-  margin-bottom: 4px;
-  font-size: 0.7rem;
+  margin-bottom: 6px;
+  font-size: 0.68rem;
+  font-weight: 600;
   color: var(--muted);
   text-align: center;
+  letter-spacing: 0.02em;
 }
 
 .grade-calendario {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  gap: 5px;
+  width: 100%;
 }
 
 .dia-calendario {
   aspect-ratio: 1;
+  min-width: 0;
+  min-height: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: 10px;
   border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.04);
   cursor: pointer;
   font: inherit;
   color: var(--text);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 500;
   padding: 2px;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .dia-calendario:hover:not(:disabled) {
   border-color: var(--accent);
+  background: rgba(212, 175, 55, 0.1);
+}
+
+.dia-calendario:focus-visible:not(:disabled) {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .dia-calendario-fora {
@@ -205,65 +377,144 @@ main {
 .dia-calendario-hoje {
   border-color: var(--accent);
   font-weight: 700;
+  box-shadow: 0 0 0 1px var(--accent);
 }
 
 .dia-calendario-com-evento::after {
   content: "";
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
   background: var(--accent);
   border-radius: 50%;
-  margin-top: 2px;
+  margin-top: 3px;
+  flex-shrink: 0;
 }
 
 .dia-calendario:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.45;
 }
 
 .formulario {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 1rem;
 }
 
-.formulario label {
+.campo-formulario {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+}
+
+.rotulo {
   font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.grade-data-hora {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 400px) {
+  .grade-data-hora {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
 }
 
 .formulario input,
 .formulario select {
-  padding: 0.55rem 0.65rem;
-  border-radius: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text);
   font: inherit;
+  font-size: 1rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.formulario input::placeholder {
+  color: var(--muted);
+}
+
+.formulario input:hover,
+.formulario select:hover {
+  border-color: #5c5f68;
 }
 
 .formulario input:focus,
 .formulario select:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25);
+}
+
+.formulario input:disabled,
+.formulario select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .botao-primario {
-  margin-top: 0.25rem;
-  padding: 0.65rem 1rem;
+  margin-top: 0.35rem;
+  min-height: 48px;
+  padding: 0.7rem 1.15rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--accent);
-  color: #1a1a12;
+  color: var(--accent-escuro);
   font: inherit;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 700;
   cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
 }
 
-.botao-primario:hover {
+.botao-primario:hover:not(:disabled) {
   background: var(--accent-hover);
+}
+
+.botao-primario:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 2px;
+}
+
+.botao-primario:disabled {
+  background: var(--accent-disabled);
+  color: rgba(26, 23, 8, 0.75);
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.botao-primario:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.mensagem {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  border: 1px solid transparent;
+}
+
+.mensagem-erro {
+  color: #fecaca;
+  background: var(--danger-fundo);
+  border-color: rgba(248, 113, 113, 0.35);
+}
+
+.mensagem-sucesso {
+  color: #bbf7d0;
+  background: var(--sucesso-fundo);
+  border-color: rgba(134, 239, 172, 0.35);
 }
 
 .lista-servicos {
@@ -276,10 +527,11 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.5rem 0;
+  gap: 0.65rem;
+  padding: 0.65rem 0;
   border-bottom: 1px solid var(--border);
   font-size: 0.95rem;
+  color: var(--text);
 }
 
 .lista-servicos li:last-child {
@@ -287,26 +539,52 @@ main {
 }
 
 .botao-icone {
-  padding: 0.25rem 0.5rem;
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 0.35rem 0.65rem;
   font-size: 0.8rem;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid var(--danger);
   background: transparent;
   color: var(--danger);
   cursor: pointer;
   font: inherit;
+  font-weight: 600;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-.botao-icone:hover {
-  background: rgba(224, 49, 49, 0.15);
+.botao-icone:hover:not(:disabled) {
+  background: var(--danger-fundo);
+}
+
+.botao-icone:focus-visible {
+  outline: 3px solid var(--danger);
+  outline-offset: 2px;
+}
+
+.botao-icone:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .container-tabela {
   overflow-x: auto;
+  margin-top: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabela-legenda {
+  caption-side: top;
+  text-align: left;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-secundario);
+  padding: 0 0 0.65rem;
 }
 
 .tabela-agendamentos {
   width: 100%;
+  min-width: 520px;
   border-collapse: collapse;
   font-size: 0.88rem;
 }
@@ -314,11 +592,19 @@ main {
 .tabela-agendamentos th,
 .tabela-agendamentos td {
   text-align: left;
-  padding: 0.5rem 0.65rem;
+  padding: 0.6rem 0.7rem;
   border-bottom: 1px solid var(--border);
+  vertical-align: middle;
 }
 
 .tabela-agendamentos th {
-  color: var(--muted);
+  color: var(--text-secundario);
   font-weight: 600;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tabela-agendamentos td {
+  color: var(--text);
 }

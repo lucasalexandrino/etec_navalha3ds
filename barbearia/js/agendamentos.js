@@ -36,6 +36,7 @@
   }
 
   function adicionar(dados) {
+    if (!dados || !dados.dataHora) return;
     var lista = listar();
     lista.push({
       id: A.gerarId(),
