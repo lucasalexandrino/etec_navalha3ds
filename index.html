@@ -2,102 +2,14 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="refresh" content="0; url=deslogado/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Agenda da Barbearia</title>
-  <link rel="stylesheet" href="css/estilos.css" />
+  <title>Navalha — Agenda</title>
+  <script>
+    window.location.replace("deslogado/index.html");
+  </script>
 </head>
 <body>
-  <header class="topo">
-    <h1>Navalha — Agenda</h1>
-    <nav class="papeis" role="tablist">
-      <button type="button" class="papel ativo" data-papel="cliente" role="tab" aria-selected="true">Cliente</button>
-      <button type="button" class="papel" data-papel="barbeiro" role="tab" aria-selected="false">Barbeiro</button>
-    </nav>
-  </header>
-
-  <main>
-    <!-- CLIENTE -->
-    <section id="painel-cliente" class="painel ativo" aria-label="Área do cliente">
-      <div class="grid-cliente">
-        <div class="card">
-          <h2>Calendário</h2>
-          <div class="cal-nav">
-            <button type="button" id="cal-mes-ant" aria-label="Mês anterior">◀</button>
-            <span id="cal-titulo-mes"></span>
-            <button type="button" id="cal-prox-mes" aria-label="Próximo mês">▶</button>
-          </div>
-          <div class="cal-semanas">
-            <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
-          </div>
-          <div id="cal-grade" class="cal-grade"></div>
-        </div>
-
-        <div class="card">
-          <h2>Novo agendamento</h2>
-          <form id="form-agendamento" class="form" novalidate>
-            <label>
-              Nome
-              <input type="text" id="ag-nome" name="nome" autocomplete="name" />
-            </label>
-            <label>
-              WhatsApp
-              <input type="tel" id="ag-whatsapp" name="whatsapp" inputmode="numeric" />
-            </label>
-            <label>
-              Serviço
-              <select id="ag-servico" name="servico"></select>
-            </label>
-            <label>
-              Data
-              <input type="date" id="ag-data" name="data" />
-            </label>
-            <label>
-              Horário
-              <input type="time" id="ag-hora" name="hora" />
-            </label>
-            <button type="submit" class="btn-prim">Confirmar agendamento</button>
-          </form>
-        </div>
-      </div>
-    </section>
-
-    <!-- BARBEIRO -->
-    <section id="painel-barbeiro" class="painel" aria-label="Área do barbeiro" hidden>
-      <div class="grid-barbeiro">
-        <div class="card">
-          <h2>Cadastrar serviço</h2>
-          <form id="form-servico" class="form" novalidate>
-            <label>
-              Nome do serviço
-              <input type="text" id="sv-nome" />
-            </label>
-            <button type="submit" class="btn-prim">Adicionar</button>
-          </form>
-          <h3 class="subtitulo">Serviços cadastrados</h3>
-          <ul id="lista-servicos" class="lista-servicos"></ul>
-        </div>
-
-        <div class="card card-largo">
-          <h2>Agendamentos</h2>
-          <div class="tabela-wrap">
-            <table class="tabela-ag">
-              <thead>
-                <tr>
-                  <th>Data / hora</th>
-                  <th>Cliente</th>
-                  <th>WhatsApp</th>
-                  <th>Serviço</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="tbody-agendamentos"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <script src="js/app.js"></script>
+  <p>Redirecionando para <a href="deslogado/index.html">entrada do sistema</a>…</p>
 </body>
 </html>

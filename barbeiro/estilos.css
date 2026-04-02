@@ -1,12 +1,13 @@
+/* Área barbeiro — tema cobre / âmbar */
 :root {
-  --bg: #1a1b1e;
-  --card: #25262b;
-  --text: #e9e9ed;
-  --muted: #909296;
-  --accent: #c9a227;
-  --accent-hover: #ddb92e;
-  --border: #373a40;
-  --danger: #e03131;
+  --bg: #14110e;
+  --card: #1f1a15;
+  --text: #f2ebe4;
+  --muted: #9c8b7a;
+  --accent: #d4a574;
+  --accent-hover: #e8bc8c;
+  --border: #3d342c;
+  --danger: #e85d5d;
   --radius: 10px;
   --font: "Segoe UI", system-ui, sans-serif;
 }
@@ -22,13 +23,14 @@ body {
   min-height: 100vh;
   font-family: var(--font);
   background: var(--bg);
+  background-image: radial-gradient(ellipse 100% 60% at 100% 0%, rgba(212, 165, 116, 0.12), transparent);
   color: var(--text);
   line-height: 1.5;
   display: flex;
   flex-direction: column;
 }
 
-.topo {
+.topo-barbeiro {
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--border);
   display: flex;
@@ -36,66 +38,69 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  background: rgba(31, 26, 21, 0.9);
 }
 
-.topo h1 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.papeis {
+.topo-esq {
   display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.topo-barbeiro h1 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.usuario-resumo {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.topo-acoes {
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
 }
 
-.papel {
-  padding: 0.45rem 1rem;
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.btn-sec {
+  padding: 0.45rem 0.9rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--card);
+  background: transparent;
   color: var(--text);
   cursor: pointer;
   font: inherit;
+  font-size: 0.9rem;
 }
 
-.papel:hover {
-  border-color: var(--muted);
-}
-
-.papel.ativo {
-  background: var(--accent);
-  color: #1a1a12;
+.btn-sec:hover {
   border-color: var(--accent);
-  font-weight: 600;
+  color: var(--accent);
 }
 
-main {
+.main-barbeiro {
   flex: 1;
   padding: 1.25rem;
   max-width: 1100px;
   margin: 0 auto;
   width: 100%;
-}
-
-.painel {
-  display: none;
-}
-
-.painel.ativo {
-  display: block;
-}
-
-.grid-cliente {
-  display: grid;
-  gap: 1.25rem;
-}
-
-@media (min-width: 840px) {
-  .grid-cliente {
-    grid-template-columns: 1fr 1fr;
-    align-items: start;
-  }
 }
 
 .grid-barbeiro {
@@ -133,94 +138,6 @@ main {
   font-weight: 600;
 }
 
-.cal-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.75rem;
-}
-
-.cal-nav button {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text);
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font: inherit;
-}
-
-.cal-nav button:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-#cal-titulo-mes {
-  font-weight: 600;
-  text-transform: capitalize;
-}
-
-.cal-semanas {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-  margin-bottom: 4px;
-  font-size: 0.7rem;
-  color: var(--muted);
-  text-align: center;
-}
-
-.cal-grade {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-}
-
-.cal-dia {
-  aspect-ratio: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.03);
-  cursor: pointer;
-  font: inherit;
-  color: var(--text);
-  font-size: 0.85rem;
-  padding: 2px;
-}
-
-.cal-dia:hover:not(:disabled) {
-  border-color: var(--accent);
-}
-
-.cal-dia.fora {
-  opacity: 0.35;
-  cursor: default;
-}
-
-.cal-dia.hoje {
-  border-color: var(--accent);
-  font-weight: 700;
-}
-
-.cal-dia.tem-evento::after {
-  content: "";
-  width: 4px;
-  height: 4px;
-  background: var(--accent);
-  border-radius: 50%;
-  margin-top: 2px;
-}
-
-.cal-dia:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
 .form {
   display: flex;
   flex-direction: column;
@@ -234,8 +151,7 @@ main {
   font-size: 0.9rem;
 }
 
-.form input,
-.form select {
+.form input {
   padding: 0.55rem 0.65rem;
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -244,8 +160,7 @@ main {
   font: inherit;
 }
 
-.form input:focus,
-.form select:focus {
+.form input:focus {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
@@ -256,7 +171,7 @@ main {
   border: none;
   border-radius: 8px;
   background: var(--accent);
-  color: #1a1a12;
+  color: #1a1208;
   font: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -298,11 +213,20 @@ main {
 }
 
 .btn-icone:hover {
-  background: rgba(224, 49, 49, 0.15);
+  background: rgba(232, 93, 93, 0.12);
 }
 
 .tabela-wrap {
   overflow-x: auto;
+}
+
+.tabela-caption {
+  caption-side: top;
+  text-align: left;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 0 0 0.5rem;
 }
 
 .tabela-ag {

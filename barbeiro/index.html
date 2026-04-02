@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Navalha — Área do barbeiro</title>
+  <link rel="stylesheet" href="estilos.css" />
+</head>
+<body>
+  <header class="topo topo-barbeiro">
+    <div class="topo-esq">
+      <h1>Navalha — Barbeiro</h1>
+      <p id="usuario-resumo" class="usuario-resumo"></p>
+    </div>
+    <nav class="topo-acoes" aria-label="Conta">
+      <button type="button" id="btn-logout" class="btn-sec">Sair</button>
+    </nav>
+  </header>
+
+  <main class="main-barbeiro" id="conteudo-principal">
+    <h2 class="visually-hidden">Painel do barbeiro</h2>
+    <div class="grid-barbeiro">
+      <section class="card" aria-labelledby="titulo-servicos">
+        <h2 id="titulo-servicos">Cadastrar serviço</h2>
+        <form id="form-servico" class="form" novalidate aria-labelledby="titulo-servicos">
+          <label>
+            Nome do serviço
+            <input type="text" id="sv-nome" name="nome-servico" autocomplete="off" />
+          </label>
+          <button type="submit" class="btn-prim">Adicionar</button>
+        </form>
+        <h3 class="subtitulo" id="subtitulo-lista-servicos">Serviços cadastrados</h3>
+        <ul id="lista-servicos" class="lista-servicos" aria-labelledby="subtitulo-lista-servicos"></ul>
+      </section>
+
+      <section class="card card-largo" aria-labelledby="titulo-agendamentos">
+        <h2 id="titulo-agendamentos">Agendamentos</h2>
+        <div class="tabela-wrap">
+          <table class="tabela-ag">
+            <caption class="tabela-caption">
+              Lista de agendamentos com data, cliente, contato e serviço
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Data / hora</th>
+                <th scope="col">Cliente</th>
+                <th scope="col">WhatsApp</th>
+                <th scope="col">Serviço</th>
+                <th scope="col"><span class="visually-hidden">Ações</span></th>
+              </tr>
+            </thead>
+            <tbody id="tbody-agendamentos"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="../lib/armazenamento.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
