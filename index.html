@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Navalha — Gestão de Barbearia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./css/styles.css" />
+  </head>
+  <body>
+    <div class="appShell" id="appShell">
+      <header class="topBar" aria-label="Barra superior">
+        <div class="brand">
+          <div class="brandMark" aria-hidden="true"></div>
+          <div class="brandText">
+            <div class="brandName">Navalha</div>
+            <div class="brandTag">Gestão de Barbearia</div>
+          </div>
+        </div>
+
+        <div class="topBarActions">
+          <div class="sessionChip" id="sessionChip" hidden>
+            <span class="sessionChipLabel" id="sessionChipLabel"></span>
+            <button class="btn btnGhost btnSm" id="btnLogout" type="button">Sair</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="main" id="main">
+        <!-- LOGIN -->
+        <section class="panel" id="viewLogin" aria-label="Login">
+          <div class="panelHeader">
+            <h1 class="panelTitle">Bem-vindo a Navalha Barbearia</h1>
+            <p class="panelSubtitle">
+              Acesse sua conta para agendar horários ou gerenciar os atendimentos.
+            </p>
+          </div>
+
+          <section class="heroBanner" aria-label="Resumo da plataforma">
+            <div class="heroTitle">Agendamento online simples e rápido</div>
+            <div class="heroText">
+              Escolha o serviço, veja os horários disponíveis e confirme em poucos cliques.
+            </div>
+            <div class="heroBadges">
+              <span class="heroBadge">Agenda em tempo real</span>
+              <span class="heroBadge">Pagamento facilitado</span>
+              <span class="heroBadge">Painel administrativo</span>
+            </div>
+          </section>
+
+          <div class="grid2" style="grid-template-columns: 1fr">
+            <form class="card" id="formLogin" autocomplete="on">
+              <div class="cardTitle">Acessar conta</div>
+
+              <div class="field">
+                <label for="loginEmail">E-mail</label>
+                <input id="loginEmail" name="email" type="email" inputmode="email" required />
+                <div class="fieldHelp" id="loginEmailHelp"></div>
+              </div>
+
+              <div class="field">
+                <label for="loginSenha">Senha</label>
+                <input id="loginSenha" name="senha" type="password" required />
+                <div class="fieldHelp" id="loginSenhaHelp"></div>
+              </div>
+
+              <div class="row">
+                <button class="btn btnPrimary" type="submit">Entrar</button>
+                <button class="btn btnGhost" id="btnPreencherDemo" type="button">
+                  Preencher demo
+                </button>
+              </div>
+
+              <div class="row" style="margin-top:10px; flex-wrap:wrap">
+                <button class="btn btnGhost btnSm" id="btnLoginAdmin" type="button">Entrar como Admin</button>
+                <button class="btn btnGhost btnSm" id="btnLoginUsuario" type="button">Entrar como Usuário</button>
+              </div>
+
+              <div class="hint">
+                <div class="hintTitle">Credenciais</div>
+                <div class="hintBody">
+                  <div><strong>Admin:</strong> <code>admin@navalha.com</code> / <code>1234</code></div>
+                  <div><strong>Usuário:</strong> <code>usuario@navalha.com</code> / <code>1234</code></div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- CLIENTE -->
+        <section class="panel" id="viewCliente" aria-label="Área do cliente" hidden>
+          <div class="panelHeader">
+            <h2 class="panelTitle">Área do Cliente</h2>
+            <p class="panelSubtitle">Faça seu agendamento com clareza: profissional, serviço, horário e pagamento.</p>
+          </div>
+
+          <section class="heroBanner" aria-label="Guia rápido de agendamento">
+            <div class="heroTitle">Reserve em 3 passos</div>
+            <div class="heroText">Selecione barbeiro e data, escolha o serviço e finalize no melhor horário disponível.</div>
+            <div class="heroBadges">
+              <span class="heroBadge">1. Profissional</span>
+              <span class="heroBadge">2. Serviço</span>
+              <span class="heroBadge">3. Horário</span>
+            </div>
+          </section>
+
+          <div class="tabs" role="tablist" aria-label="Navegação do cliente">
+            <button class="tab isActive" id="tabClienteAgendar" type="button" role="tab" aria-selected="true">
+              Agendar
+            </button>
+            <button class="tab" id="tabClienteHistorico" type="button" role="tab" aria-selected="false">
+              Histórico
+            </button>
+          </div>
+
+          <div id="clienteViewAgendar">
+            <div class="grid2">
+              <section class="card" aria-label="Novo agendamento">
+                <div class="cardTitle">Novo agendamento</div>
+                <div class="flowSteps" aria-hidden="true">
+                  <span class="flowStep">Selecionar</span>
+                  <span class="flowStep">Confirmar</span>
+                  <span class="flowStep">Pagar</span>
+                </div>
+
+                <div class="stack">
+                  <div class="field">
+                    <label for="clienteBarbeiro">Barbeiro</label>
+                    <select id="clienteBarbeiro" required></select>
+                  </div>
+
+                  <div class="field">
+                    <label for="clienteData">Data</label>
+                    <input id="clienteData" type="date" required />
+                  </div>
+
+                  <div class="field">
+                    <label for="clienteServico">Serviço</label>
+                    <select id="clienteServico" required></select>
+                  </div>
+
+                  <div class="field" id="clienteHorariosField">
+                    <label>Horários</label>
+                    <div class="slots" id="slotsContainer" role="list"></div>
+                    <div class="fieldHelp" id="slotsHelp"></div>
+                  </div>
+
+                  <div class="divider"></div>
+
+                  <div class="field">
+                    <label for="clientePagamento">Forma de pagamento</label>
+                    <select id="clientePagamento" required>
+                      <option value="Pix">Pix</option>
+                      <option value="Dinheiro">Dinheiro</option>
+                      <option value="CartaoCredito">Cartão (Crédito)</option>
+                      <option value="CartaoDebito">Cartão (Débito)</option>
+                    </select>
+                  </div>
+
+                  <div class="summary" id="clienteResumo">
+                    <div class="summaryRow">
+                      <span class="summaryLabel">Duração</span>
+                      <span class="summaryValue" id="resumoDuracao">—</span>
+                    </div>
+                    <div class="summaryRow">
+                      <span class="summaryLabel">Intervalo limpeza</span>
+                      <span class="summaryValue">10 min</span>
+                    </div>
+                    <div class="summaryRow">
+                      <span class="summaryLabel">Valor</span>
+                      <span class="summaryValue" id="resumoValor">—</span>
+                    </div>
+                    <div class="summaryRow">
+                      <span class="summaryLabel">Status</span>
+                      <span class="summaryValue"><span class="pill pillWarn">Pendente</span></span>
+                    </div>
+                  </div>
+
+                  <button class="btn btnPrimary" id="btnAgendar" type="button" disabled>
+                    Confirmar agendamento
+                  </button>
+                  <div class="hint" id="agendamentoHint"></div>
+                </div>
+              </section>
+
+              <section class="card" aria-label="Dicas rápidas">
+                <div class="cardTitle">Dicas rápidas</div>
+                <div class="hint" style="margin-top:0">
+                  - Selecione <strong>barbeiro</strong> e <strong>serviço</strong> para liberar os horários.<br />
+                  - Horários <strong>ocupados</strong> e <strong>passados</strong> ficam indisponíveis automaticamente.<br />
+                  - O atendimento inclui <strong>10 min</strong> de limpeza entre horários.
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <div id="clienteViewHistorico" hidden>
+            <section class="card" aria-label="Histórico do cliente">
+              <div class="cardTitle">Seu histórico</div>
+              <div class="tableWrap">
+                <table class="table" aria-label="Histórico de agendamentos">
+                  <thead>
+                    <tr>
+                      <th>Data</th>
+                      <th>Hora</th>
+                      <th>Serviço</th>
+                      <th>Barbeiro</th>
+                      <th>Pagamento</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="clienteHistoricoBody"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <!-- ADMIN -->
+        <section class="panel" id="viewAdmin" aria-label="Área do admin" hidden>
+          <div class="panelHeader">
+            <h2 class="panelTitle">Área Administrativa</h2>
+            <p class="panelSubtitle">Acompanhe faturamento, pendências e controle a agenda do dia.</p>
+          </div>
+
+          <section class="heroBanner" aria-label="Resumo operacional">
+            <div class="heroTitle">Visão operacional</div>
+            <div class="heroText">Acompanhe receita, pendências e ações da agenda de forma rápida e objetiva.</div>
+            <div class="heroBadges">
+              <span class="heroBadge">KPIs do Dia</span>
+              <span class="heroBadge">Pendências</span>
+              <span class="heroBadge">Ações Rápidas</span>
+            </div>
+          </section>
+
+          <div class="card">
+            <div class="row rowWrap">
+              <div class="field">
+                <label for="adminData">Dia</label>
+                <input id="adminData" type="date" />
+              </div>
+              <div class="field">
+                <label for="adminBarbeiro">Barbeiro</label>
+                <select id="adminBarbeiro"></select>
+              </div>
+              <div class="field">
+                <label>&nbsp;</label>
+                <button class="btn btnGhost" id="btnAdminHoje" type="button">Hoje</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="kpis" aria-label="Indicadores">
+            <div class="kpi">
+              <div class="kpiLabel">Total faturado</div>
+              <div class="kpiValue" id="kpiTotal">R$ 0,00</div>
+              <div class="kpiHint" id="kpiTotalHint">Pagos no dia selecionado</div>
+            </div>
+            <div class="kpi">
+              <div class="kpiLabel">Pix</div>
+              <div class="kpiValue" id="kpiPix">R$ 0,00</div>
+              <div class="kpiHint">Somente pagamentos marcados como Pago</div>
+            </div>
+            <div class="kpi">
+              <div class="kpiLabel">Dinheiro</div>
+              <div class="kpiValue" id="kpiDinheiro">R$ 0,00</div>
+              <div class="kpiHint">Somente pagamentos marcados como Pago</div>
+            </div>
+            <div class="kpi">
+              <div class="kpiLabel">Cartão</div>
+              <div class="kpiValue" id="kpiCartao">R$ 0,00</div>
+              <div class="kpiHint">Crédito + Débito</div>
+            </div>
+          </div>
+
+          <div class="tabs" role="tablist" aria-label="Navegação do admin">
+            <button class="tab isActive" id="tabAdminDashboard" type="button" role="tab" aria-selected="true">
+              Dashboard
+            </button>
+            <button class="tab" id="tabAdminAgenda" type="button" role="tab" aria-selected="false">
+              Agenda
+            </button>
+          </div>
+
+          <div id="adminViewDashboard">
+            <section class="card" aria-label="Pendências">
+              <div class="cardTitle">Pagamentos pendentes</div>
+              <div class="list" id="adminPendentes"></div>
+              <div class="hint">
+                Destaque em laranja/vermelho indica urgência (agendamento no passado ou muito próximo).
+              </div>
+            </section>
+          </div>
+
+          <div id="adminViewAgenda" hidden>
+            <section class="card" aria-label="Todos os agendamentos">
+              <div class="cardTitle">Agendamentos do dia</div>
+              <div class="tableWrap">
+                <table class="table" aria-label="Agendamentos do dia">
+                  <thead>
+                    <tr>
+                      <th>Hora</th>
+                      <th>Cliente</th>
+                      <th>Serviço</th>
+                      <th>Barbeiro</th>
+                      <th>Valor</th>
+                      <th>Pagamento</th>
+                      <th>Status</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="adminAgendamentosBody"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- MODAL PIX -->
+    <dialog class="modal" id="modalPix" aria-label="Pagamento Pix">
+      <form method="dialog" class="modalCard">
+        <div class="modalHeader">
+          <div>
+            <div class="modalTitle">Pix — QR Code</div>
+            <div class="modalSubtitle">Simulação (fictício). Em produção, isso viria do servidor/PSP.</div>
+          </div>
+          <button class="btn btnGhost btnSm" value="close" aria-label="Fechar">Fechar</button>
+        </div>
+
+        <div class="modalBody">
+          <div class="qrWrap">
+            <canvas id="pixCanvas" width="240" height="240" aria-label="QR Code fictício"></canvas>
+            <div class="qrMeta">
+              <div class="qrLine"><span class="qrLabel">Chave</span><span class="qrValue" id="pixChave"></span></div>
+              <div class="qrLine"><span class="qrLabel">Valor</span><span class="qrValue" id="pixValor"></span></div>
+              <div class="qrLine"><span class="qrLabel">Identificador</span><span class="qrValue" id="pixId"></span></div>
+            </div>
+          </div>
+          <div class="hint">
+            O pagamento fica como <strong>Pendente</strong> até o admin marcar como <strong>Pago</strong>.
+          </div>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toasts" id="toasts" aria-live="polite" aria-relevant="additions"></div>
+
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>
