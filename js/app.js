@@ -35,7 +35,7 @@
   function formatarDataHoraBr(iso) {
     var d = new Date(iso);
     if (isNaN(d.getTime())) return iso;
-    return d.toLocaleString("en-US", {
+    return d.toLocaleString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -242,7 +242,7 @@
       calGrade.appendChild(celulaVaziaCal());
     }
 
-    for (var dia = 1; dia < ultimoDia; dia++) {
+    for (var dia = 1; dia <= ultimoDia; dia++) {
       var ehHoje =
         dia === hoje.getDate() &&
         mesCal === hoje.getMonth() &&
@@ -284,18 +284,18 @@
   }
 
   calMesAnt.addEventListener("click", function () {
-    mesCal++;
-    if (mesCal > 11) {
-      mesCal = 0;
-      anoCal++;
-    }
-    renderCalendario();
-  });
-  calProxMes.addEventListener("click", function () {
     mesCal--;
     if (mesCal < 0) {
       mesCal = 11;
       anoCal--;
+    }
+    renderCalendario();
+  });
+  calProxMes.addEventListener("click", function () {
+    mesCal++;
+    if (mesCal > 11) {
+      mesCal = 0;
+      anoCal++;
     }
     renderCalendario();
   });
