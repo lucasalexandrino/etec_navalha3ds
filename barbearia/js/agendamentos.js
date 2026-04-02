@@ -5,23 +5,15 @@
 
   function normalizarAgendamento(item) {
     if (!item || typeof item !== "object") return null;
-    if (item.dataHora !== undefined) {
-      return {
-        id: String(item.id),
-        nomeCliente: String(item.nomeCliente || ""),
-        whatsapp: String(item.whatsapp || ""),
-        dataHora: String(item.dataHora || ""),
-        idServico: String(item.idServico || ""),
-        nomeServico: String(item.nomeServico || ""),
-      };
-    }
     return {
-      id: String(item.id),
-      nomeCliente: String(item.clientName || item.nomeCliente || ""),
-      whatsapp: String(item.whatsapp || ""),
-      dataHora: String(item.datetime || item.dataHora || ""),
-      idServico: String(item.serviceId || item.idServico || ""),
-      nomeServico: String(item.serviceName || item.nomeServico || ""),
+      id:           String(item.id),
+      nomeCliente:  String(item.clientName  || item.nomeCliente  || ""),
+      whatsapp:     String(item.whatsapp    || ""),
+      dataHora:     String(item.datetime    || item.dataHora     || ""),
+      idServico:    String(item.serviceId   || item.idServico    || ""),
+      nomeServico:  String(item.serviceName || item.nomeServico  || ""),
+      precoServico: typeof item.precoServico === "number" ? item.precoServico : parseFloat(item.precoServico) || 0,
+      profissional: String(item.profissional || ""),
     };
   }
 
@@ -39,21 +31,20 @@
     if (!dados || !dados.dataHora) return;
     var lista = listar();
     lista.push({
-      id: A.gerarId(),
-      nomeCliente: dados.nomeCliente,
-      whatsapp: dados.whatsapp,
-      dataHora: dados.dataHora,
-      idServico: dados.idServico,
-      nomeServico: dados.nomeServico,
+      id:           A.gerarId(),
+      nomeCliente:  dados.nomeCliente  || "",
+      whatsapp:     dados.whatsapp     || "",
+      dataHora:     dados.dataHora,
+      idServico:    dados.idServico    || "",
+      nomeServico:  dados.nomeServico  || "",
+      precoServico: typeof dados.precoServico === "number" ? dados.precoServico : 0,
+      profissional: dados.profissional || "",
     });
     persistir(lista);
   }
 
   function remover(id) {
-    var lista = listar().filter(function (a) {
-      return a.id !== id;
-    });
-    persistir(lista);
+    persistir(listar().filter(function (a) { return a.id !== id; }));
   }
 
   function ordenarPorDataHora(lista) {
@@ -68,11 +59,8 @@
     var d = new Date(iso);
     if (isNaN(d.getTime())) return iso;
     return d.toLocaleString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+      day: "2-digit", month: "2-digit", year: "numeric",
+      hour: "2-digit", minute: "2-digit",
     });
   }
 
@@ -95,12 +83,12 @@
   }
 
   window.Agendamentos = {
-    listar: listar,
-    adicionar: adicionar,
-    remover: remover,
-    ordenarPorDataHora: ordenarPorDataHora,
-    formatarDataHoraBr: formatarDataHoraBr,
-    dataHoraLocalParaIso: dataHoraLocalParaIso,
+    listar:                       listar,
+    adicionar:                    adicionar,
+    remover:                      remover,
+    ordenarPorDataHora:           ordenarPorDataHora,
+    formatarDataHoraBr:           formatarDataHoraBr,
+    dataHoraLocalParaIso:         dataHoraLocalParaIso,
     obterDiasComAgendamentoNoMes: obterDiasComAgendamentoNoMes,
   };
 })();

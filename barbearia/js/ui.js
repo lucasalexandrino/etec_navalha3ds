@@ -4,403 +4,566 @@
   var S = window.Servicos;
   var A = window.Agendamentos;
 
-  var botoesPerfil = document.querySelectorAll(".aba-perfil");
-  var painelCliente = document.getElementById("painelCliente");
-  var painelBarbeiro = document.getElementById("painelBarbeiro");
-  var formularioServico = document.getElementById("formularioServico");
-  var campoNomeServico = document.getElementById("campoNomeServico");
-  var listaServicos = document.getElementById("listaServicos");
-  var selectServico = document.getElementById("selectServico");
-  var textoAjudaServico = document.getElementById("textoAjudaServico");
+  /* ══════════════════════════════════════
+     REFERÊNCIAS AO DOM
+  ══════════════════════════════════════ */
+  var botoesPerfil            = document.querySelectorAll(".aba-perfil");
+  var painelCliente           = document.getElementById("painelCliente");
+  var painelBarbeiro          = document.getElementById("painelBarbeiro");
 
-  var formularioAgendamento = document.getElementById("formularioAgendamento");
-  var campoNomeCliente = document.getElementById("campoNomeCliente");
-  var campoWhatsapp = document.getElementById("campoWhatsapp");
-  var campoData = document.getElementById("campoData");
-  var campoHora = document.getElementById("campoHora");
-  var corpoTabelaAgendamentos = document.getElementById("corpoTabelaAgendamentos");
-  var mensagemErroAgendamento = document.getElementById("mensagemErroAgendamento");
-  var mensagemSucessoAgendamento = document.getElementById("mensagemSucessoAgendamento");
-  var botaoConfirmarAgendamento = document.getElementById("botaoConfirmarAgendamento");
+  var campoNomeCliente        = document.getElementById("campoNomeCliente");
+  var campoWhatsapp           = document.getElementById("campoWhatsapp");
 
-  var tituloMesCalendario = document.getElementById("tituloMesCalendario");
-  var gradeCalendario = document.getElementById("gradeCalendario");
-  var btnMesAnterior = document.getElementById("btnMesAnterior");
-  var btnProximoMes = document.getElementById("btnProximoMes");
+  var mesTitulo               = document.getElementById("mesTitulo");
+  var diasSemanaContainer     = document.getElementById("diasSemana");
+  var btnSemanaAnterior       = document.getElementById("btnSemanaAnterior");
+  var btnProximaSemana        = document.getElementById("btnProximaSemana");
 
-  var mesCalendario = new Date().getMonth();
-  var anoCalendario = new Date().getFullYear();
+  var servicosChips           = document.getElementById("servicosChips");
+  var ajudaServico            = document.getElementById("ajudaServico");
+  var precoDestaque           = document.getElementById("precoDestaque");
+  var precoNomeServico        = document.getElementById("precoNomeServico");
+  var precoValorEl            = document.getElementById("precoValor");
 
-  function escaparHtml(texto) {
-    if (!texto) return "";
-    var div = document.createElement("div");
-    div.textContent = texto;
-    return div.innerHTML;
+  var profissionaisLista      = document.getElementById("profissionaisLista");
+
+  var horariosManha           = document.getElementById("horariosManha");
+  var horariosTarde           = document.getElementById("horariosTarde");
+  var blocoManha              = document.getElementById("blocoManha");
+  var blocoTarde              = document.getElementById("blocoTarde");
+  var countManha              = document.getElementById("countManha");
+  var countTarde              = document.getElementById("countTarde");
+
+  var mensagemErro            = document.getElementById("mensagemErroAgendamento");
+  var mensagemSucesso         = document.getElementById("mensagemSucessoAgendamento");
+  var botaoConfirmar          = document.getElementById("botaoConfirmarAgendamento");
+
+  var campoNomeServico        = document.getElementById("campoNomeServico");
+  var campoPrecoServico       = document.getElementById("campoPrecoServico");
+  var botaoAdicionarServico   = document.getElementById("botaoAdicionarServico");
+  var listaServicosEl         = document.getElementById("listaServicos");
+  var corpoTabela             = document.getElementById("corpoTabelaAgendamentos");
+
+  /* ══════════════════════════════════════
+     CONSTANTES
+  ══════════════════════════════════════ */
+  var DIAS_ABREV  = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+  var MESES_NOME  = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+                     "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+  var PROFISSIONAIS = [
+    { id: "prof-1", nome: "Digão",  nota: "4.9", emoji: "💈" },
+    { id: "prof-2", nome: "Marcos", nota: "4.7", emoji: "✂️" },
+    { id: "prof-3", nome: "Leo",    nota: "4.8", emoji: "🪒" },
+  ];
+
+  /* Horários disponíveis por turno */
+  var HORARIOS_MANHA = ["08:00","08:30","09:00","09:30","10:00","10:30","11:00","11:30"];
+  var HORARIOS_TARDE = ["12:00","13:00","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"];
+
+  /* ══════════════════════════════════════
+     ESTADO
+  ══════════════════════════════════════ */
+  var estado = {
+    /* Offset em dias a partir de hoje para o primeiro dia exibido na faixa.
+       Sempre exibimos 7 dias a partir desse ponto. */
+    offsetDias: 0,
+    diaSelecionado: null,   /* "YYYY-MM-DD" */
+    idServico: null,
+    idProfissional: PROFISSIONAIS[0].id,
+    horario: null,
+  };
+
+  /* ══════════════════════════════════════
+     UTILITÁRIOS
+  ══════════════════════════════════════ */
+  function escaparHtml(t) {
+    if (!t) return "";
+    var d = document.createElement("div");
+    d.textContent = t;
+    return d.innerHTML;
   }
 
-  function atualizarTabIndices(abaAtiva) {
-    botoesPerfil.forEach(function (b) {
-      var ativo = b === abaAtiva;
-      b.setAttribute("tabindex", ativo ? "0" : "-1");
+  function formatarPreco(v) {
+    return "R$\u00a0" + Number(v).toFixed(2).replace(".", ",");
+  }
+
+  /* Retorna "YYYY-MM-DD" de um objeto Date, sem depender de timezone */
+  function dataParaIso(d) {
+    var mm = String(d.getMonth() + 1).padStart(2, "0");
+    var dd = String(d.getDate()).padStart(2, "0");
+    return d.getFullYear() + "-" + mm + "-" + dd;
+  }
+
+  /* Retorna um novo Date representando hoje às 00:00:00 local */
+  function hoje() {
+    var d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  /* Dado o offsetDias atual, retorna o Date do primeiro dia da janela */
+  function primeiroDiaJanela() {
+    var d = hoje();
+    d.setDate(d.getDate() + estado.offsetDias);
+    return d;
+  }
+
+  /* ══════════════════════════════════════
+     SELETOR DE SEMANA
+  ══════════════════════════════════════ */
+  function renderizarSemana() {
+    var hojeDate = hoje();
+    var hojeIso  = dataParaIso(hojeDate);
+    var inicio   = primeiroDiaJanela();
+
+    /* Título do mês: usa o mês do 4º dia da janela (centro) */
+    var centro = new Date(inicio);
+    centro.setDate(inicio.getDate() + 3);
+    mesTitulo.textContent = MESES_NOME[centro.getMonth()] + " " + centro.getFullYear();
+
+    /* Desabilita "semana anterior" se a janela já começa em hoje ou antes */
+    btnSemanaAnterior.disabled = estado.offsetDias <= 0;
+
+    diasSemanaContainer.innerHTML = "";
+
+    for (var i = 0; i < 7; i++) {
+      var d = new Date(inicio);
+      d.setDate(inicio.getDate() + i);
+      var iso     = dataParaIso(d);
+      var ehHoje  = iso === hojeIso;
+      var ehAtivo = iso === estado.diaSelecionado;
+
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "dia-btn" +
+        (ehHoje  ? " dia-btn-hoje"  : "") +
+        (ehAtivo ? " dia-btn-ativo" : "");
+      btn.setAttribute("aria-pressed", ehAtivo ? "true" : "false");
+      btn.setAttribute("aria-label",
+        d.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })
+      );
+
+      btn.innerHTML =
+        '<span class="dia-semana-abrev">' + DIAS_ABREV[d.getDay()] + '</span>' +
+        '<span class="dia-num">'          + String(d.getDate()).padStart(2, "0") + '</span>';
+
+      /* captura correta de iso por closure */
+      (function (isoCapturado) {
+        btn.addEventListener("click", function () {
+          estado.diaSelecionado = isoCapturado;
+          estado.horario = null;          /* reseta horário ao trocar de dia */
+          renderizarSemana();
+          renderizarHorarios();
+          atualizarBotaoConfirmar();
+        });
+      }(iso));
+
+      diasSemanaContainer.appendChild(btn);
+    }
+  }
+
+  function configurarNavegacaoSemana() {
+    btnSemanaAnterior.addEventListener("click", function () {
+      /* recua 7 dias, mas nunca antes de hoje */
+      estado.offsetDias = Math.max(0, estado.offsetDias - 7);
+      renderizarSemana();
+    });
+
+    btnProximaSemana.addEventListener("click", function () {
+      estado.offsetDias += 7;
+      renderizarSemana();
     });
   }
 
-  function atualizarAjudaServicoEBotao() {
+  /* ══════════════════════════════════════
+     SERVIÇOS (chips)
+  ══════════════════════════════════════ */
+  function renderizarServicosChips() {
     var servicos = S.listar();
+    servicosChips.innerHTML = "";
+
     if (servicos.length === 0) {
-      textoAjudaServico.textContent =
-        "Ainda não há serviços. Quem gere a agenda precisa abrir a aba Barbeiro e cadastrar pelo menos um serviço antes de marcar horários aqui.";
-      botaoConfirmarAgendamento.disabled = true;
-      botaoConfirmarAgendamento.setAttribute("aria-describedby", "textoAjudaServico");
-    } else {
-      textoAjudaServico.textContent = "Escolha o tipo de serviço que deseja.";
-      botaoConfirmarAgendamento.disabled = false;
-      botaoConfirmarAgendamento.removeAttribute("aria-describedby");
+      ajudaServico.textContent =
+        "Nenhum serviço disponível ainda. Abra a aba Barbeiro e cadastre serviços.";
+      botaoConfirmar.disabled = true;
+      precoDestaque.hidden = true;
+      return;
     }
+    ajudaServico.textContent = "";
+
+    /* limpa seleção se serviço foi excluído */
+    if (estado.idServico && !servicos.find(function (s) { return s.id === estado.idServico; })) {
+      estado.idServico = null;
+      precoDestaque.hidden = true;
+    }
+
+    servicos.forEach(function (s) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "servico-chip" + (estado.idServico === s.id ? " servico-chip-ativo" : "");
+      btn.setAttribute("aria-pressed", estado.idServico === s.id ? "true" : "false");
+      btn.setAttribute("aria-label", s.nome + " — " + formatarPreco(s.preco));
+      btn.innerHTML =
+        escaparHtml(s.nome) +
+        '<span class="servico-chip-preco">' + formatarPreco(s.preco) + '</span>';
+
+      btn.addEventListener("click", function () {
+        estado.idServico = s.id;
+        precoNomeServico.textContent = s.nome;
+        precoValorEl.textContent     = formatarPreco(s.preco);
+        precoDestaque.hidden         = false;
+        renderizarServicosChips();
+        atualizarBotaoConfirmar();
+      });
+
+      servicosChips.appendChild(btn);
+    });
+
+    atualizarBotaoConfirmar();
+  }
+
+  /* ══════════════════════════════════════
+     PROFISSIONAIS
+  ══════════════════════════════════════ */
+  function renderizarProfissionais() {
+    profissionaisLista.innerHTML = "";
+
+    PROFISSIONAIS.forEach(function (p) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "prof-btn" + (estado.idProfissional === p.id ? " prof-btn-ativo" : "");
+      btn.setAttribute("aria-pressed", estado.idProfissional === p.id ? "true" : "false");
+      btn.setAttribute("aria-label", p.nome + " — nota " + p.nota);
+      btn.innerHTML =
+        '<div class="prof-avatar-wrap">' +
+          '<div class="prof-avatar" aria-hidden="true">' + p.emoji + '</div>' +
+          '<div class="prof-nota"   aria-hidden="true">' + p.nota  + '</div>' +
+        '</div>' +
+        '<span class="prof-nome">' + escaparHtml(p.nome) + '</span>';
+
+      btn.addEventListener("click", function () {
+        estado.idProfissional = p.id;
+        renderizarProfissionais();
+        atualizarBotaoConfirmar();
+      });
+
+      profissionaisLista.appendChild(btn);
+    });
+  }
+
+  /* ══════════════════════════════════════
+     HORÁRIOS
+  ══════════════════════════════════════ */
+  function horarioOcupado(h) {
+    if (!estado.diaSelecionado) return false;
+    return A.listar().some(function (ag) {
+      var d   = new Date(ag.dataHora);
+      var iso = dataParaIso(d);
+      var hAg = String(d.getHours()).padStart(2, "0") + ":" +
+                String(d.getMinutes()).padStart(2, "0");
+      return iso === estado.diaSelecionado && hAg === h;
+    });
+  }
+
+  function criarBotaoHorario(h) {
+    var ocupado  = horarioOcupado(h);
+    var ehAtivo  = estado.horario === h;
+    var btn      = document.createElement("button");
+    btn.type     = "button";
+    btn.className = "horario-btn" + (ehAtivo ? " horario-btn-ativo" : "");
+    btn.textContent = h;
+    btn.disabled    = ocupado;
+    btn.setAttribute("aria-pressed", ehAtivo ? "true" : "false");
+    if (ocupado) btn.setAttribute("aria-label", h + " — ocupado");
+
+    btn.addEventListener("click", function () {
+      estado.horario = h;
+      renderizarHorarios();
+      atualizarBotaoConfirmar();
+    });
+    return btn;
+  }
+
+  function renderizarHorarios() {
+    horariosManha.innerHTML = "";
+    horariosTarde.innerHTML = "";
+
+    var livreManha = 0;
+    var livreTarde = 0;
+
+    HORARIOS_MANHA.forEach(function (h) {
+      if (!horarioOcupado(h)) livreManha++;
+      horariosManha.appendChild(criarBotaoHorario(h));
+    });
+    HORARIOS_TARDE.forEach(function (h) {
+      if (!horarioOcupado(h)) livreTarde++;
+      horariosTarde.appendChild(criarBotaoHorario(h));
+    });
+
+    countManha.textContent = livreManha + " livre" + (livreManha !== 1 ? "s" : "");
+    countTarde.textContent = livreTarde + " livre" + (livreTarde !== 1 ? "s" : "");
+  }
+
+  function configurarFiltrosTurno() {
+    document.querySelectorAll(".filtro-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        document.querySelectorAll(".filtro-btn").forEach(function (b) {
+          b.classList.remove("filtro-btn-ativo");
+        });
+        btn.classList.add("filtro-btn-ativo");
+        var turno = btn.getAttribute("data-turno");
+        blocoManha.style.display = turno === "tarde"  ? "none" : "";
+        blocoTarde.style.display = turno === "manha" ? "none" : "";
+      });
+    });
+  }
+
+  /* ══════════════════════════════════════
+     BOTÃO CONFIRMAR
+  ══════════════════════════════════════ */
+  function atualizarBotaoConfirmar() {
+    var ok = estado.diaSelecionado &&
+             estado.idServico &&
+             estado.idProfissional &&
+             estado.horario &&
+             S.listar().length > 0;
+    botaoConfirmar.disabled = !ok;
+  }
+
+  function configurarBotaoConfirmar() {
+    botaoConfirmar.addEventListener("click", function () {
+      limparMensagens();
+
+      var nome     = (campoNomeCliente.value || "").trim();
+      var whatsapp = (campoWhatsapp.value    || "").trim();
+
+      if (!nome)                 { mostrarErro("Preencha seu nome antes de confirmar.");      campoNomeCliente.focus(); return; }
+      if (!whatsapp)             { mostrarErro("Preencha seu WhatsApp antes de confirmar."); campoWhatsapp.focus();    return; }
+      if (!estado.diaSelecionado){ mostrarErro("Selecione um dia no calendário.");                                     return; }
+      if (!estado.idServico)     { mostrarErro("Escolha um serviço.");                                                 return; }
+      if (!estado.horario)       { mostrarErro("Escolha um horário disponível.");                                      return; }
+
+      var servico     = S.obterPorId(estado.idServico);
+      var prof        = PROFISSIONAIS.find(function (p) { return p.id === estado.idProfissional; });
+      var dataHoraIso = A.dataHoraLocalParaIso(estado.diaSelecionado, estado.horario);
+
+      if (!dataHoraIso) { mostrarErro("Data ou horário inválido. Tente novamente."); return; }
+
+      A.adicionar({
+        nomeCliente:  nome,
+        whatsapp:     whatsapp,
+        dataHora:     dataHoraIso,
+        idServico:    estado.idServico,
+        nomeServico:  servico  ? servico.nome  : "",
+        precoServico: servico  ? servico.preco : 0,
+        profissional: prof     ? prof.nome     : "",
+      });
+
+      /* limpa formulário e estado de seleção */
+      campoNomeCliente.value = "";
+      campoWhatsapp.value    = "";
+      estado.horario         = null;
+      estado.diaSelecionado  = null;
+
+      renderizarSemana();
+      renderizarHorarios();
+      atualizarBotaoConfirmar();
+      mostrarSucesso();
+    });
+  }
+
+  /* ══════════════════════════════════════
+     MENSAGENS
+  ══════════════════════════════════════ */
+  function limparMensagens() {
+    mensagemErro.textContent    = ""; mensagemErro.hidden    = true;
+    mensagemSucesso.textContent = ""; mensagemSucesso.hidden = true;
+  }
+
+  function mostrarErro(texto) {
+    mensagemSucesso.hidden      = true;
+    mensagemErro.textContent    = texto;
+    mensagemErro.hidden         = false;
+  }
+
+  function mostrarSucesso() {
+    mensagemErro.hidden         = true;
+    mensagemSucesso.textContent =
+      "Tudo certo! Seu horário foi registrado. Os dados ficam guardados neste navegador.";
+    mensagemSucesso.hidden      = false;
+    var reducao = typeof window.matchMedia === "function" &&
+                  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    mensagemSucesso.scrollIntoView({ behavior: reducao ? "auto" : "smooth", block: "nearest" });
+  }
+
+  /* ══════════════════════════════════════
+     BARBEIRO — serviços
+  ══════════════════════════════════════ */
+  function configurarFormularioServico() {
+    botaoAdicionarServico.addEventListener("click", function () {
+      var nome  = (campoNomeServico.value  || "").trim();
+      var preco = parseFloat(campoPrecoServico.value) || 0;
+      if (!nome) { campoNomeServico.focus(); return; }
+      S.adicionar(nome, preco);
+      campoNomeServico.value  = "";
+      campoPrecoServico.value = "";
+      renderizarListaServicos();
+      renderizarServicosChips();
+    });
   }
 
   function renderizarListaServicos() {
     var servicos = S.listar();
-    listaServicos.innerHTML = "";
+    listaServicosEl.innerHTML = "";
+
     servicos.forEach(function (s) {
-      var item = document.createElement("li");
-      item.textContent = s.nome;
-      var btnExcluir = document.createElement("button");
-      btnExcluir.type = "button";
-      btnExcluir.className = "botao-icone";
-      btnExcluir.textContent = "Excluir";
-      btnExcluir.setAttribute("aria-label", "Excluir o serviço " + s.nome);
-      btnExcluir.addEventListener("click", function () {
-        S.remover(s.id);
-        renderizarListaServicos();
-        popularSelectServicos();
-      });
-      item.appendChild(btnExcluir);
-      listaServicos.appendChild(item);
+      var li   = document.createElement("li");
+      var info = document.createElement("div");
+      info.className  = "servico-info";
+      info.innerHTML  =
+        '<span class="servico-info-nome">'  + escaparHtml(s.nome) + '</span>' +
+        '<span class="servico-info-preco">' + formatarPreco(s.preco) + '</span>';
+
+      var btnEx = document.createElement("button");
+      btnEx.type      = "button";
+      btnEx.className = "botao-icone";
+      btnEx.textContent = "Excluir";
+      btnEx.setAttribute("aria-label", "Excluir o serviço " + s.nome);
+
+      (function (sid) {
+        btnEx.addEventListener("click", function () {
+          S.remover(sid);
+          if (estado.idServico === sid) {
+            estado.idServico   = null;
+            precoDestaque.hidden = true;
+          }
+          renderizarListaServicos();
+          renderizarServicosChips();
+        });
+      }(s.id));
+
+      li.appendChild(info);
+      li.appendChild(btnEx);
+      listaServicosEl.appendChild(li);
     });
   }
 
-  function popularSelectServicos() {
-    var servicos = S.listar();
-    var valorAnterior = selectServico.value;
-    selectServico.innerHTML = "";
-    servicos.forEach(function (s) {
-      var opcao = document.createElement("option");
-      opcao.value = s.id;
-      opcao.textContent = s.nome;
-      selectServico.appendChild(opcao);
-    });
-    if (
-      valorAnterior &&
-      servicos.some(function (s) {
-        return s.id === valorAnterior;
-      })
-    ) {
-      selectServico.value = valorAnterior;
-    }
-    atualizarAjudaServicoEBotao();
-  }
-
+  /* ══════════════════════════════════════
+     BARBEIRO — tabela de agendamentos
+  ══════════════════════════════════════ */
   function renderizarTabelaAgendamentos() {
-    var agendamentosOrdenados = A.ordenarPorDataHora(A.listar());
-    corpoTabelaAgendamentos.innerHTML = "";
-    agendamentosOrdenados.forEach(function (ag) {
-      var linha = document.createElement("tr");
+    var lista = A.ordenarPorDataHora(A.listar());
+    corpoTabela.innerHTML = "";
+
+    lista.forEach(function (ag) {
+      var linha     = document.createElement("tr");
       var textoData = A.formatarDataHoraBr(ag.dataHora);
+      var preco     = (ag.precoServico != null && ag.precoServico !== "") ?
+                      formatarPreco(ag.precoServico) : "—";
+
       linha.innerHTML =
-        "<td>" +
-        escaparHtml(textoData) +
-        "</td><td>" +
-        escaparHtml(ag.nomeCliente) +
-        "</td><td>" +
-        escaparHtml(ag.whatsapp) +
-        "</td><td>" +
-        escaparHtml(ag.nomeServico) +
-        "</td><td></td>";
-      var celulaAcoes = linha.lastElementChild;
-      var btnCancelar = document.createElement("button");
-      btnCancelar.type = "button";
-      btnCancelar.className = "botao-icone";
-      btnCancelar.textContent = "Cancelar";
-      btnCancelar.setAttribute(
-        "aria-label",
-        "Cancelar agendamento de " + (ag.nomeCliente || "cliente") + " em " + textoData
-      );
-      btnCancelar.addEventListener("click", function () {
-        A.remover(ag.id);
-        renderizarPainelBarbeiro();
-        renderizarCalendario();
-      });
-      celulaAcoes.appendChild(btnCancelar);
-      corpoTabelaAgendamentos.appendChild(linha);
+        "<td>" + escaparHtml(textoData)         + "</td>" +
+        "<td>" + escaparHtml(ag.nomeCliente)    + "</td>" +
+        "<td>" + escaparHtml(ag.whatsapp)       + "</td>" +
+        "<td>" + escaparHtml(ag.nomeServico)    + "</td>" +
+        '<td class="tabela-preco">' + escaparHtml(preco) + "</td>" +
+        "<td></td>";
+
+      var celAcoes  = linha.lastElementChild;
+      var btnCancel = document.createElement("button");
+      btnCancel.type      = "button";
+      btnCancel.className = "botao-icone";
+      btnCancel.textContent = "Cancelar";
+      btnCancel.setAttribute("aria-label",
+        "Cancelar agendamento de " + (ag.nomeCliente || "cliente") + " em " + textoData);
+
+      (function (aid) {
+        btnCancel.addEventListener("click", function () {
+          A.remover(aid);
+          renderizarTabelaAgendamentos();
+          renderizarHorarios();
+          renderizarSemana();
+        });
+      }(ag.id));
+
+      celAcoes.appendChild(btnCancel);
+      corpoTabela.appendChild(linha);
     });
   }
 
-  function renderizarPainelBarbeiro() {
-    renderizarListaServicos();
-    renderizarTabelaAgendamentos();
-  }
-
-  function criarCelulaVaziaCalendario() {
-    var btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "dia-calendario dia-calendario-fora";
-    btn.disabled = true;
-    btn.setAttribute("aria-hidden", "true");
-    btn.tabIndex = -1;
-    return btn;
-  }
-
-  function rotuloDiaCalendario(ano, mes, dia) {
-    var d = new Date(ano, mes, dia);
-    return d.toLocaleDateString("pt-BR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
+  /* ══════════════════════════════════════
+     ABAS DE PERFIL
+  ══════════════════════════════════════ */
+  function configurarAbas() {
+    /* tabindex inicial */
+    botoesPerfil.forEach(function (b) {
+      b.setAttribute("tabindex", b.id === "tabCliente" ? "0" : "-1");
     });
-  }
 
-  function criarCelulaDia(numero, fora, ehHoje, temEvento, ano, mes) {
-    var btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "dia-calendario";
-    btn.textContent = String(numero);
-    if (fora) {
-      btn.classList.add("dia-calendario-fora");
-      btn.disabled = true;
-    } else {
-      btn.setAttribute(
-        "aria-label",
-        "Usar " + rotuloDiaCalendario(ano, mes, numero) + " no formulário de agendamento"
-      );
-      if (ehHoje) btn.classList.add("dia-calendario-hoje");
-      if (temEvento) btn.classList.add("dia-calendario-com-evento");
-      btn.addEventListener("click", function () {
-        var mm = String(mes + 1).padStart(2, "0");
-        var dd = String(numero).padStart(2, "0");
-        campoData.value = ano + "-" + mm + "-" + dd;
-        campoData.focus();
-      });
-    }
-    return btn;
-  }
-
-  function renderizarCalendario() {
-    var hoje = new Date();
-    var primeiro = new Date(anoCalendario, mesCalendario, 1);
-    var ultimoDia = new Date(anoCalendario, mesCalendario + 1, 0).getDate();
-    var inicioSemana = primeiro.getDay();
-    var tituloMes = primeiro.toLocaleDateString("pt-BR", {
-      month: "long",
-      year: "numeric",
-    });
-    tituloMesCalendario.textContent = tituloMes;
-    gradeCalendario.setAttribute(
-      "aria-label",
-      "Dias de " + tituloMes + ". Toque num dia para copiar a data para o formulário."
-    );
-    gradeCalendario.innerHTML = "";
-    var marcacoes = A.obterDiasComAgendamentoNoMes(
-      anoCalendario,
-      mesCalendario,
-      A.listar()
-    );
-
-    for (var i = 0; i < inicioSemana; i++) {
-      gradeCalendario.appendChild(criarCelulaVaziaCalendario());
-    }
-
-    for (var dia = 1; dia <= ultimoDia; dia++) {
-      var ehHoje =
-        dia === hoje.getDate() &&
-        mesCalendario === hoje.getMonth() &&
-        anoCalendario === hoje.getFullYear();
-      var tem = !!marcacoes[dia];
-      gradeCalendario.appendChild(
-        criarCelulaDia(dia, false, ehHoje, tem, anoCalendario, mesCalendario)
-      );
-    }
-  }
-
-  function configurarTecladoAbas() {
+    /* navegação por teclado */
     var tablist = document.querySelector(".abas-perfil");
-    if (!tablist) return;
-    tablist.addEventListener("keydown", function (e) {
-      var tabs = Array.prototype.slice.call(botoesPerfil);
-      var atual = tabs.indexOf(document.activeElement);
-      if (atual < 0) return;
-      var proximo = atual;
-      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-        e.preventDefault();
-        proximo = (atual + 1) % tabs.length;
-      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-        e.preventDefault();
-        proximo = (atual - 1 + tabs.length) % tabs.length;
-      } else if (e.key === "Home") {
-        e.preventDefault();
-        proximo = 0;
-      } else if (e.key === "End") {
-        e.preventDefault();
-        proximo = tabs.length - 1;
-      } else {
-        return;
-      }
-      tabs[proximo].focus();
-      tabs[proximo].click();
-    });
-  }
+    if (tablist) {
+      tablist.addEventListener("keydown", function (e) {
+        var tabs  = Array.prototype.slice.call(botoesPerfil);
+        var atual = tabs.indexOf(document.activeElement);
+        if (atual < 0) return;
+        var prox  = atual;
+        if      (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); prox = (atual + 1) % tabs.length; }
+        else if (e.key === "ArrowLeft"  || e.key === "ArrowUp")   { e.preventDefault(); prox = (atual - 1 + tabs.length) % tabs.length; }
+        else if (e.key === "Home")                                 { e.preventDefault(); prox = 0; }
+        else if (e.key === "End")                                  { e.preventDefault(); prox = tabs.length - 1; }
+        else return;
+        tabs[prox].focus();
+        tabs[prox].click();
+      });
+    }
 
-  function configurarTrocaPerfil() {
-    atualizarTabIndices(document.getElementById("tabCliente"));
-    configurarTecladoAbas();
     botoesPerfil.forEach(function (btn) {
       btn.addEventListener("click", function () {
-        var perfil = btn.getAttribute("data-perfil");
+        var perfil    = btn.getAttribute("data-perfil");
+        var ehCliente = perfil === "cliente";
+
         botoesPerfil.forEach(function (b) {
           var ativo = b === btn;
           b.classList.toggle("aba-perfil-ativa", ativo);
           b.setAttribute("aria-selected", ativo ? "true" : "false");
+          b.setAttribute("tabindex",      ativo ? "0"    : "-1");
         });
-        atualizarTabIndices(btn);
-        var ehCliente = perfil === "cliente";
+
         painelCliente.classList.toggle("painel-ativo", ehCliente);
         painelCliente.hidden = !ehCliente;
-        painelCliente.setAttribute("aria-hidden", ehCliente ? "false" : "true");
+        painelCliente.setAttribute("aria-hidden", String(!ehCliente));
+
         painelBarbeiro.classList.toggle("painel-ativo", !ehCliente);
         painelBarbeiro.hidden = ehCliente;
-        painelBarbeiro.setAttribute("aria-hidden", ehCliente ? "true" : "false");
-        if (!ehCliente) renderizarPainelBarbeiro();
+        painelBarbeiro.setAttribute("aria-hidden", String(ehCliente));
+
+        if (!ehCliente) {
+          renderizarListaServicos();
+          renderizarTabelaAgendamentos();
+        }
       });
     });
   }
 
-  function configurarFormularioServico() {
-    formularioServico.addEventListener("submit", function (e) {
-      e.preventDefault();
-      S.adicionar(campoNomeServico.value);
-      campoNomeServico.value = "";
-      renderizarListaServicos();
-      popularSelectServicos();
-    });
-  }
-
-  function limparErroAgendamento() {
-    mensagemErroAgendamento.textContent = "";
-    mensagemErroAgendamento.hidden = true;
-  }
-
-  function limparSucessoAgendamento() {
-    mensagemSucessoAgendamento.textContent = "";
-    mensagemSucessoAgendamento.hidden = true;
-  }
-
-  function limparMensagensAgendamento() {
-    limparErroAgendamento();
-    limparSucessoAgendamento();
-  }
-
-  function mostrarErroAgendamento(texto) {
-    limparSucessoAgendamento();
-    mensagemErroAgendamento.textContent = texto;
-    mensagemErroAgendamento.hidden = false;
-  }
-
-  function mostrarSucessoAgendamento() {
-    limparErroAgendamento();
-    mensagemSucessoAgendamento.textContent =
-      "Tudo certo! O seu horário foi registado. Os dados ficam guardados neste navegador — pode fechar e voltar depois, desde que não limpe o histórico do site.";
-    mensagemSucessoAgendamento.hidden = false;
-    var reduzirMovimento =
-      typeof window.matchMedia === "function" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    mensagemSucessoAgendamento.scrollIntoView({
-      behavior: reduzirMovimento ? "auto" : "smooth",
-      block: "nearest",
-    });
-  }
-
-  function configurarFormularioAgendamento() {
-    formularioAgendamento.addEventListener("submit", function (e) {
-      e.preventDefault();
-      limparMensagensAgendamento();
-      var servicos = S.listar();
-      if (servicos.length === 0) {
-        mostrarErroAgendamento(
-          "Para marcar um horário, é preciso existir pelo menos um serviço. Peça a quem gere a agenda para abrir a aba Barbeiro e cadastrar serviços."
-        );
-        return;
-      }
-      var idServico = selectServico.value;
-      if (!idServico) {
-        mostrarErroAgendamento("Escolha um serviço na lista antes de confirmar.");
-        return;
-      }
-      var dataHoraIso = A.dataHoraLocalParaIso(campoData.value, campoHora.value);
-      if (!dataHoraIso) {
-        mostrarErroAgendamento("Indique uma data e um horário válidos.");
-        return;
-      }
-      var servico = S.obterPorId(idServico);
-      A.adicionar({
-        nomeCliente: campoNomeCliente.value,
-        whatsapp: campoWhatsapp.value,
-        dataHora: dataHoraIso,
-        idServico: idServico,
-        nomeServico: servico ? servico.nome : "",
-      });
-      campoNomeCliente.value = "";
-      campoWhatsapp.value = "";
-      renderizarCalendario();
-      renderizarTabelaAgendamentos();
-      mostrarSucessoAgendamento();
-    });
-
-    formularioAgendamento.addEventListener("input", limparMensagensAgendamento);
-    formularioAgendamento.addEventListener("change", limparMensagensAgendamento);
-  }
-
-  function configurarNavegacaoCalendario() {
-    btnMesAnterior.addEventListener("click", function () {
-      mesCalendario--;
-      if (mesCalendario < 0) {
-        mesCalendario = 11;
-        anoCalendario--;
-      }
-      renderizarCalendario();
-    });
-    btnProximoMes.addEventListener("click", function () {
-      mesCalendario++;
-      if (mesCalendario > 11) {
-        mesCalendario = 0;
-        anoCalendario++;
-      }
-      renderizarCalendario();
-    });
-  }
-
-  function definirDataHoraPadraoFormulario() {
-    var agora = new Date();
-    campoData.value =
-      agora.getFullYear() +
-      "-" +
-      String(agora.getMonth() + 1).padStart(2, "0") +
-      "-" +
-      String(agora.getDate()).padStart(2, "0");
-    campoHora.value = "09:00";
-  }
-
+  /* ══════════════════════════════════════
+     INICIALIZAÇÃO
+  ══════════════════════════════════════ */
   function iniciar() {
-    painelCliente.setAttribute("aria-hidden", "false");
+    painelCliente.setAttribute("aria-hidden",  "false");
     painelBarbeiro.setAttribute("aria-hidden", "true");
-    configurarTrocaPerfil();
+
+    configurarAbas();
+    configurarNavegacaoSemana();
+    configurarFiltrosTurno();
     configurarFormularioServico();
-    configurarFormularioAgendamento();
-    configurarNavegacaoCalendario();
-    definirDataHoraPadraoFormulario();
-    renderizarListaServicos();
-    popularSelectServicos();
-    renderizarCalendario();
+    configurarBotaoConfirmar();
+
+    renderizarSemana();
+    renderizarServicosChips();
+    renderizarProfissionais();
+    renderizarHorarios();
   }
 
   iniciar();

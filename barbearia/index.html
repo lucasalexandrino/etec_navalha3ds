@@ -12,84 +12,152 @@
   <header class="cabecalho">
     <div class="cabecalho-titulo">
       <p class="cabecalho-epigrafe">Barbearia</p>
-      <h1 id="tituloApp">Navalha — Agenda</h1>
+      <h1>Navalha — Agenda</h1>
     </div>
     <nav class="abas-perfil" role="tablist" aria-label="Escolher perfil de uso">
-      <button type="button" id="tabCliente" class="aba-perfil aba-perfil-ativa" data-perfil="cliente" role="tab" aria-selected="true" aria-controls="painelCliente" tabindex="0">Cliente</button>
-      <button type="button" id="tabBarbeiro" class="aba-perfil" data-perfil="barbeiro" role="tab" aria-selected="false" aria-controls="painelBarbeiro" tabindex="-1">Barbeiro</button>
+      <button type="button" id="tabCliente"  class="aba-perfil aba-perfil-ativa"
+              data-perfil="cliente"  role="tab" aria-selected="true"
+              aria-controls="painelCliente"  tabindex="0">Cliente</button>
+      <button type="button" id="tabBarbeiro" class="aba-perfil"
+              data-perfil="barbeiro" role="tab" aria-selected="false"
+              aria-controls="painelBarbeiro" tabindex="-1">Barbeiro</button>
     </nav>
   </header>
 
   <main id="conteudoPrincipal" tabindex="-1">
-    <section id="painelCliente" class="painel painel-ativo" role="tabpanel" aria-labelledby="tabCliente" aria-label="Área do cliente">
-      <div class="grade-cliente">
-        <div class="cartao cartao-calendario">
-          <h2 class="titulo-secao">Calendário</h2>
-          <p class="texto-ajuda" id="ajudaCalendario">Os dias com ponto indicam que já existe agendamento. Toque num dia para usar essa data no formulário.</p>
-          <div class="navegacao-calendario">
-            <button type="button" id="btnMesAnterior" class="botao-calendario" aria-label="Ver mês anterior">◀</button>
-            <span id="tituloMesCalendario" class="titulo-mes" aria-live="polite"></span>
-            <button type="button" id="btnProximoMes" class="botao-calendario" aria-label="Ver próximo mês">▶</button>
-          </div>
-          <div class="cabecalho-semanas" aria-hidden="true">
-            <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
-          </div>
-          <div id="gradeCalendario" class="grade-calendario" role="group" aria-label="Dias do mês"></div>
-        </div>
 
+    <!-- ══════════════ PAINEL CLIENTE ══════════════ -->
+    <section id="painelCliente" class="painel painel-ativo"
+             role="tabpanel" aria-labelledby="tabCliente" aria-label="Área do cliente">
+      <div class="grade-cliente">
+
+        <!-- coluna esquerda: dados pessoais -->
         <div class="cartao">
-          <h2 class="titulo-secao">Novo agendamento</h2>
-          <p class="texto-ajuda">Preencha os campos e confirme. Após criar o horário, aparecerá uma mensagem de confirmação abaixo.</p>
-          <form id="formularioAgendamento" class="formulario" novalidate>
+          <h2 class="titulo-secao">Seus dados</h2>
+          <p class="texto-ajuda">Preencha nome e WhatsApp para continuar com o agendamento.</p>
+          <div class="formulario">
             <div class="campo-formulario">
               <label for="campoNomeCliente" class="rotulo">Nome</label>
-              <input type="text" id="campoNomeCliente" name="nome" autocomplete="name" />
+              <input type="text" id="campoNomeCliente" name="nome"
+                     autocomplete="name" placeholder="Seu nome completo" />
             </div>
             <div class="campo-formulario">
               <label for="campoWhatsapp" class="rotulo">WhatsApp</label>
-              <input type="tel" id="campoWhatsapp" name="whatsapp" inputmode="numeric" autocomplete="tel" aria-describedby="ajudaWhatsapp" />
+              <input type="tel" id="campoWhatsapp" name="whatsapp"
+                     inputmode="numeric" autocomplete="tel"
+                     placeholder="Ex.: 14999990000"
+                     aria-describedby="ajudaWhatsapp" />
               <p id="ajudaWhatsapp" class="texto-ajuda texto-ajuda-campo">Somente números, com DDD.</p>
             </div>
-            <div class="campo-formulario">
-              <label for="selectServico" class="rotulo">Serviço</label>
-              <select id="selectServico" name="servico" aria-describedby="textoAjudaServico"></select>
-              <p id="textoAjudaServico" class="texto-ajuda texto-ajuda-campo" aria-live="polite"></p>
-            </div>
-            <div class="campo-formulario grade-data-hora">
-              <div>
-                <label for="campoData" class="rotulo">Data</label>
-                <input type="date" id="campoData" name="data" />
-              </div>
-              <div>
-                <label for="campoHora" class="rotulo">Horário</label>
-                <input type="time" id="campoHora" name="hora" />
-              </div>
-            </div>
-            <p id="mensagemErroAgendamento" class="mensagem mensagem-erro" role="alert" aria-live="assertive" hidden></p>
-            <p id="mensagemSucessoAgendamento" class="mensagem mensagem-sucesso" role="status" aria-live="polite" hidden></p>
-            <button type="submit" id="botaoConfirmarAgendamento" class="botao-primario">Confirmar agendamento</button>
-          </form>
+          </div>
         </div>
+
+        <!-- coluna direita: seletor de agendamento -->
+        <div class="cartao">
+          <h2 class="titulo-secao">Novo agendamento</h2>
+
+          <!-- cabeçalho com mês e navegação -->
+          <div class="mes-header">
+            <span id="mesTitulo" class="mes-titulo" aria-live="polite"></span>
+            <div class="mes-nav-btns">
+              <button type="button" id="btnSemanaAnterior" class="btn-nav-semana"
+                      aria-label="Semana anterior">&#8249;</button>
+              <button type="button" id="btnProximaSemana"  class="btn-nav-semana"
+                      aria-label="Próxima semana">&#8250;</button>
+            </div>
+          </div>
+
+          <!-- faixa de dias -->
+          <div class="semana-nav" role="group" aria-label="Selecionar dia">
+            <div class="dias-semana" id="diasSemana"></div>
+          </div>
+
+          <!-- serviço -->
+          <div class="secao-agendamento">
+            <h3 class="subtitulo-agendamento">Serviço</h3>
+            <p id="ajudaServico" class="texto-ajuda texto-ajuda-campo" aria-live="polite"></p>
+            <div class="servicos-chips" id="servicosChips"
+                 role="group" aria-label="Escolha o serviço"></div>
+            <div id="precoDestaque" class="preco-destaque" hidden>
+              <span id="precoNomeServico"></span>
+              <strong id="precoValor"></strong>
+            </div>
+          </div>
+
+          <!-- profissional -->
+          <div class="secao-agendamento">
+            <h3 class="subtitulo-agendamento">Selecione um profissional</h3>
+            <div class="profissionais-lista" id="profissionaisLista"
+                 role="group" aria-label="Escolha o profissional"></div>
+          </div>
+
+          <!-- horários -->
+          <div class="secao-agendamento">
+            <h3 class="subtitulo-agendamento">Horários disponíveis</h3>
+            <div class="filtros-turno" role="group" aria-label="Filtrar por turno">
+              <button type="button" class="filtro-btn filtro-btn-ativo" data-turno="todos">Todos</button>
+              <button type="button" class="filtro-btn" data-turno="manha">Manhã</button>
+              <button type="button" class="filtro-btn" data-turno="tarde">Tarde</button>
+            </div>
+
+            <div id="blocoManha" class="turno-bloco">
+              <div class="turno-header">
+                <span class="turno-nome">Manhã</span>
+                <span class="turno-count" id="countManha"></span>
+              </div>
+              <div class="horarios-grid" id="horariosManha"
+                   role="group" aria-label="Horários da manhã"></div>
+            </div>
+
+            <div id="blocoTarde" class="turno-bloco">
+              <div class="turno-header">
+                <span class="turno-nome">Tarde</span>
+                <span class="turno-count" id="countTarde"></span>
+              </div>
+              <div class="horarios-grid" id="horariosTarde"
+                   role="group" aria-label="Horários da tarde"></div>
+            </div>
+          </div>
+
+          <p id="mensagemErroAgendamento"   class="mensagem mensagem-erro"
+             role="alert"  aria-live="assertive" hidden></p>
+          <p id="mensagemSucessoAgendamento" class="mensagem mensagem-sucesso"
+             role="status" aria-live="polite"    hidden></p>
+
+          <button type="button" id="botaoConfirmarAgendamento"
+                  class="botao-primario" disabled>Confirmar agendamento</button>
+        </div>
+
       </div>
     </section>
 
-    <section id="painelBarbeiro" class="painel" role="tabpanel" aria-labelledby="tabBarbeiro" aria-label="Área do barbeiro" hidden>
+    <!-- ══════════════ PAINEL BARBEIRO ══════════════ -->
+    <section id="painelBarbeiro" class="painel"
+             role="tabpanel" aria-labelledby="tabBarbeiro" aria-label="Área do barbeiro" hidden>
       <div class="grade-barbeiro">
+
         <div class="cartao">
           <h2 class="titulo-secao">Cadastrar serviço</h2>
-          <p class="texto-ajuda">Os serviços cadastrados aparecem na lista do cliente para agendamento.</p>
-          <form id="formularioServico" class="formulario" novalidate>
+          <p class="texto-ajuda">Os serviços aparecem para o cliente escolher ao agendar.</p>
+          <div class="formulario">
             <div class="campo-formulario">
               <label for="campoNomeServico" class="rotulo">Nome do serviço</label>
-              <input type="text" id="campoNomeServico" autocomplete="off" />
+              <input type="text" id="campoNomeServico" autocomplete="off"
+                     placeholder="Ex.: Corte simples" />
             </div>
-            <button type="submit" id="botaoAdicionarServico" class="botao-primario">Adicionar serviço</button>
-          </form>
+            <div class="campo-formulario">
+              <label for="campoPrecoServico" class="rotulo">Preço (R$)</label>
+              <input type="number" id="campoPrecoServico" min="0" step="0.01"
+                     placeholder="Ex.: 35.00" />
+            </div>
+            <button type="button" id="botaoAdicionarServico"
+                    class="botao-primario">Adicionar serviço</button>
+          </div>
           <h3 class="subtitulo">Serviços cadastrados</h3>
           <ul id="listaServicos" class="lista-servicos" aria-label="Lista de serviços"></ul>
         </div>
 
-        <div class="cartao cartao-largo">
+        <div class="cartao">
           <h2 class="titulo-secao">Agendamentos</h2>
           <p class="texto-ajuda">Lista de horários reservados pelos clientes.</p>
           <div class="container-tabela">
@@ -101,6 +169,7 @@
                   <th scope="col">Cliente</th>
                   <th scope="col">WhatsApp</th>
                   <th scope="col">Serviço</th>
+                  <th scope="col">Preço</th>
                   <th scope="col"><span class="sr-only">Ações</span></th>
                 </tr>
               </thead>
@@ -108,8 +177,10 @@
             </table>
           </div>
         </div>
+
       </div>
     </section>
+
   </main>
 
   <script src="js/storage.js"></script>
