@@ -3,8 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Agenda da Barbearia</title>
+    <title>Navalha Barbearia — Agendamento</title>
     <link rel="stylesheet" href="css/estilos.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
   </head>
   <body>
     <!-- ===================== LOGIN ===================== -->
@@ -44,9 +50,10 @@
         <button id="btnLogin" class="btn btn-primary">Entrar</button>
 
         <div class="demo-credentials">
-          <strong>Credenciais Demo</strong><br />
+          <strong>Credenciais demo</strong><br />
           Cliente: cliente@email.com / 123456<br />
-          Barbeiro: barbeiro@email.com / 123456
+          Barbeiros (cada um vê só a própria agenda):<br />
+          joao@navalha.com · pedro@navalha.com · lucas@navalha.com / 123456
         </div>
       </div>
     </div>
@@ -105,9 +112,35 @@
           <div id="agendar" class="page">
             <div class="page-header">
               <h2>Agendar Horário</h2>
-              <p>Selecione o serviço, data e horário</p>
+              <p>Escolha o profissional, o serviço e o melhor horário</p>
             </div>
             <div class="form-card">
+              <div class="input-group">
+                <label for="barbeiroSelectCliente">Profissional</label>
+                <select id="barbeiroSelectCliente">
+                  <option value="">Carregando…</option>
+                </select>
+              </div>
+              <div class="input-group">
+                <label for="clienteNomeCompleto">Nome completo</label>
+                <input
+                  type="text"
+                  id="clienteNomeCompleto"
+                  autocomplete="name"
+                  maxlength="120"
+                  placeholder="Seu nome"
+                />
+              </div>
+              <div class="input-group">
+                <label for="clienteWhatsapp">WhatsApp</label>
+                <input
+                  type="tel"
+                  id="clienteWhatsapp"
+                  autocomplete="tel"
+                  inputmode="numeric"
+                  placeholder="11999998888 (DDD + número)"
+                />
+              </div>
               <div class="input-group">
                 <label for="servicoSelect">Serviço</label>
                 <select id="servicoSelect"></select>
@@ -122,8 +155,22 @@
                   <option value="">Selecione uma data primeiro</option>
                 </select>
               </div>
-              <button id="btnAgendar" class="btn btn-primary">
-                Confirmar Agendamento
+              <div class="input-group">
+                <label for="pagamentoMetodo">Forma de pagamento</label>
+                <select id="pagamentoMetodo">
+                  <option value="pix">PIX (simulado, QR na confirmação)</option>
+                  <option value="cartao">Cartão (simulado)</option>
+                  <option value="dinheiro">Dinheiro (pagar na chegada)</option>
+                  <option value="boleto">Boleto (simulado — pendente até pagamento)</option>
+                </select>
+              </div>
+              <p class="form-hint" id="regrasAgendamento">
+                Grade automática: seg–sex 9h–18h e sábado 9h–14h; pausa de
+                almoço 12h–13h bloqueada; 5 min entre atendimentos do mesmo
+                profissional. Antecedência mínima: 1h.
+              </p>
+              <button id="btnAgendar" class="btn btn-primary" type="button">
+                <span class="btn-text">Confirmar agendamento</span>
               </button>
             </div>
           </div>
@@ -148,13 +195,16 @@
           <div class="user-info">
             <div class="user-avatar"><i class="fas fa-user-tie"></i></div>
             <div>
-              <span class="user-name">Carlos Eduardo</span>
+              <span class="user-name" id="barbeiroNomeDisplay">Barbeiro</span>
               <span class="user-role">Barbeiro</span>
             </div>
           </div>
           <nav class="sidebar-nav">
             <button class="nav-item active" data-page="dashboard">
               <i class="fas fa-chart-line"></i><span>Dashboard</span>
+            </button>
+            <button class="nav-item" data-page="servicos-barbeiro">
+              <i class="fas fa-scissors"></i><span>Serviços</span>
             </button>
             <button class="nav-item" data-page="gerenciar-horarios">
               <i class="fas fa-clock"></i><span>Gerenciar Horários</span>
@@ -182,6 +232,50 @@
             <h2 id="barbeiroPageTitle">Dashboard</h2>
           </div>
 
+          <div id="servicos-barbeiro" class="page">
+            <div class="page-header">
+              <h2>Serviços</h2>
+              <p>Cadastre preço e duração (usados no conflito de horários)</p>
+            </div>
+            <div class="form-card" style="max-width: 100%; margin-bottom: 1.5rem">
+              <form id="formNovoServico">
+                <div class="form-row barbeiro-form-row">
+                  <div class="input-group">
+                    <label for="novoServicoNome">Nome</label>
+                    <input type="text" id="novoServicoNome" maxlength="120" required />
+                  </div>
+                  <div class="input-group">
+                    <label for="novoServicoPreco">Preço (R$)</label>
+                    <input
+                      type="number"
+                      id="novoServicoPreco"
+                      min="0.01"
+                      step="0.01"
+                      required
+                    />
+                  </div>
+                  <div class="input-group">
+                    <label for="novoServicoDuracao">Duração (min)</label>
+                    <input
+                      type="number"
+                      id="novoServicoDuracao"
+                      min="1"
+                      max="480"
+                      value="30"
+                      required
+                    />
+                  </div>
+                  <div class="input-group" style="display: flex; align-items: flex-end">
+                    <button type="submit" class="btn btn-primary" style="width: auto">
+                      Adicionar
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div id="listaServicosBarbeiro" class="lista-servicos-barbeiro"></div>
+          </div>
+
           <div id="dashboard" class="page active">
             <div class="page-header"><h2>Dashboard</h2></div>
             <div class="stats-grid">
@@ -203,69 +297,23 @@
                 <div class="stat-icon">
                   <i class="fas fa-dollar-sign"></i>
                 </div>
-                <div class="stat-label">Faturamento</div>
+                <div class="stat-label">Faturamento (concluídos)</div>
                 <div class="stat-value" id="faturamentoTotal">R$ 0</div>
               </div>
               <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-clock"></i></div>
-                <div class="stat-label">Horários Cadastrados</div>
-                <div class="stat-value" id="totalHorarios">0</div>
+                <div class="stat-label">Expediente (auto)</div>
+                <div class="stat-value stat-value--sm" id="totalHorarios">9–18h</div>
               </div>
             </div>
           </div>
 
           <div id="gerenciar-horarios" class="page">
-            <div class="page-header"><h2>Gerenciar Horários</h2></div>
-            <div
-              class="form-card"
-              style="max-width: 100%; margin-bottom: 1.5rem"
-            >
-              <h3
-                style="
-                  margin-bottom: 1rem;
-                  font-size: 0.95rem;
-                  color: var(--dim);
-                  font-weight: 600;
-                "
-              >
-                ADICIONAR HORÁRIO
-              </h3>
-              <div class="form-row">
-                <div class="input-group">
-                  <label for="novaDataHorario">Data</label>
-                  <input type="date" id="novaDataHorario" />
-                </div>
-                <div class="input-group">
-                  <label for="novoHorario">Horário</label>
-                  <input type="time" id="novoHorario" step="1800" />
-                </div>
-                <div
-                  class="input-group"
-                  style="display: flex; align-items: flex-end"
-                >
-                  <button
-                    id="btnAddHorario"
-                    class="btn btn-primary"
-                    style="width: auto"
-                  >
-                    Adicionar
-                  </button>
-                </div>
-              </div>
+            <div class="page-header">
+              <h2>Horários</h2>
+              <p>Grade automática para os clientes</p>
             </div>
-            <h3
-              style="
-                margin-bottom: 0.75rem;
-                font-size: 0.85rem;
-                color: var(--dim);
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.07em;
-              "
-            >
-              HORÁRIOS CADASTRADOS
-            </h3>
-            <div id="horariosDisponiveisList" class="horarios-grid"></div>
+            <div id="horariosDisponiveisList" class="horarios-info-wrap"></div>
           </div>
 
           <div id="todos" class="page">
@@ -287,8 +335,8 @@
     <!-- Modal customizado (substitui confirm()) -->
     <template id="modalTemplate">
       <div id="modalOverlay">
-        <div class="modal-box">
-          <p id="modalMessage"></p>
+        <div class="modal-box" role="dialog" aria-modal="true">
+          <div id="modalMessage" class="modal-message"></div>
           <div class="modal-actions">
             <button class="btn btn-secondary" id="modalCancel">Cancelar</button>
             <button
