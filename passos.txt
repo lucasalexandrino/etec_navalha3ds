@@ -10,3 +10,8 @@ Resumo rápido
 git add .
 git commit -m "sua mensagem"
 git push
+
+
+Envia sua branch local "grupo4" para o GitHub (origin)
+git push -u origin grupo4
+

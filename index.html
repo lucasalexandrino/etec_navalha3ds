@@ -1,103 +1,305 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Agenda da Barbearia</title>
-  <link rel="stylesheet" href="css/estilo.css" />
-</head>
-<body>
-  <header class="topo">
-    <h1>Navalha — Agenda</h1>
-    <nav class="papeis" role="tablist">
-      <button type="button" class="papel ativo" data-papel="cliente" role="tab" aria-selected="true">Cliente</button>
-      <button type="button" class="papel" data-papel="barbeiro" role="tab" aria-selected="false">Barbeiro</button>
-    </nav>
-  </header>
-
-  <main>
-    <!-- CLIENTE -->
-    <section id="painel-cliente" class="painel ativo" aria-label="Área do cliente">
-      <div class="grid-cliente">
-        <div class="card">
-          <h2>Calendário</h2>
-          <div class="cal-nav">
-            <button type="button" id="cal-mes-ant" aria-label="Mês anterior">◀</button>
-            <span id="cal-titulo-mes"></span>
-            <button type="button" id="cal-prox-mes" aria-label="Próximo mês">▶</button>
-          </div>
-          <div class="cal-semanas">
-            <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
-          </div>
-          <div id="cal-grade" class="cal-grade"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agenda da Barbearia</title>
+    <link rel="stylesheet" href="css/estilo.css" />
+  </head>
+  <body>
+    <!-- ===================== LOGIN ===================== -->
+    <div id="loginScreen">
+      <div class="login-card">
+        <div class="logo-area">
+          <div class="logo-icon"><i class="fas fa-cut"></i></div>
+          <h1 class="logo-title">CORTE <span>&</span> ESTILO</h1>
+          <p class="logo-subtitle">Barbearia Premium</p>
         </div>
 
-        <div class="card">
-          <h2>Novo agendamento</h2>
-          <form id="form-agendamento" class="form" novalidate>
-            <label>
-              Nome
-              <input type="text" id="ag-nome" name="nome" autocomplete="name" />
-            </label>
-            <label>
-              WhatsApp
-              <input type="tel" id="ag-whatsapp" name="whatsapp" inputmode="numeric" />
-            </label>
-            <label>
-              Serviço
-              <select id="ag-servico" name="servico"></select>
-            </label>
-            <label>
-              Data
-              <input type="date" id="ag-data" name="data" />
-            </label>
-            <label>
-              Horário
-              <input type="time" id="ag-hora" name="hora" />
-            </label>
-            <button type="submit" class="btn-prim">Confirmar agendamento</button>
-          </form>
+        <div class="input-group">
+          <label for="loginEmail">Email</label>
+          <input
+            type="email"
+            id="loginEmail"
+            placeholder="seu@email.com"
+            autocomplete="email"
+          />
+        </div>
+        <div class="input-group">
+          <label for="loginPassword">Senha</label>
+          <input
+            type="password"
+            id="loginPassword"
+            placeholder="••••••"
+            autocomplete="current-password"
+          />
+        </div>
+        <div class="input-group">
+          <label for="userType">Tipo de Usuário</label>
+          <select id="userType">
+            <option value="cliente">Cliente</option>
+            <option value="barbeiro">Barbeiro</option>
+          </select>
+        </div>
+        <button id="btnLogin" class="btn btn-primary">Entrar</button>
+
+        <div class="demo-credentials">
+          <strong>Credenciais Demo</strong><br />
+          Cliente: cliente@email.com / 123456<br />
+          Barbeiro: barbeiro@email.com / 123456
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- BARBEIRO -->
-    <section id="painel-barbeiro" class="painel" aria-label="Área do barbeiro" hidden>
-      <div class="grid-barbeiro">
-        <div class="card">
-          <h2>Cadastrar serviço</h2>
-          <form id="form-servico" class="form" novalidate>
-            <label>
-              Nome do serviço
-              <input type="text" id="sv-nome" />
-            </label>
-            <button type="submit" class="btn-prim">Adicionar</button>
-          </form>
-          <h3 class="subtitulo">Serviços cadastrados</h3>
-          <ul id="lista-servicos" class="lista-servicos"></ul>
-        </div>
+    <!-- ===================== CLIENTE ===================== -->
+    <div id="clienteScreen" class="hidden">
+      <div class="layout">
+        <div class="page-overlay" id="clienteOverlay"></div>
+        <aside class="sidebar" id="clienteSidebar">
+          <div class="sidebar-header">
+            <div class="sidebar-logo"><i class="fas fa-cut"></i></div>
+            <h2>Corte & Estilo</h2>
+          </div>
+          <div class="user-info">
+            <div class="user-avatar"><i class="fas fa-user"></i></div>
+            <div>
+              <span class="user-name" id="clienteNome">Cliente</span>
+              <span class="user-role">Cliente</span>
+            </div>
+          </div>
+          <nav class="sidebar-nav">
+            <button class="nav-item active" data-page="servicos">
+              <i class="fas fa-scissors"></i><span>Serviços</span>
+            </button>
+            <button class="nav-item" data-page="agendar">
+              <i class="fas fa-calendar-plus"></i><span>Agendar</span>
+            </button>
+            <button class="nav-item" data-page="meus-agendamentos">
+              <i class="fas fa-list-check"></i><span>Meus Agendamentos</span>
+            </button>
+            <button class="nav-item logout" id="clienteLogout">
+              <i class="fas fa-sign-out-alt"></i><span>Sair</span>
+            </button>
+          </nav>
+        </aside>
+        <main class="main-content">
+          <div class="mobile-header">
+            <button
+              class="menu-toggle"
+              id="clienteMenuToggle"
+              aria-label="Abrir menu"
+            >
+              <i class="fas fa-bars"></i>
+            </button>
+            <h2 id="clientePageTitle">Serviços</h2>
+          </div>
 
-        <div class="card card-largo">
-          <h2>Agendamentos</h2>
-          <div class="tabela-wrap">
-            <table class="tabela-ag">
-              <thead>
-                <tr>
-                  <th>Data / hora</th>
-                  <th>Cliente</th>
-                  <th>WhatsApp</th>
-                  <th>Serviço</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="tbody-agendamentos"></tbody>
-            </table>
+          <div id="servicos" class="page active">
+            <div class="page-header">
+              <h2>Nossos Serviços</h2>
+              <p>Escolha o serviço ideal para você</p>
+            </div>
+            <div class="servicos-grid" id="servicosList"></div>
+          </div>
+
+          <div id="agendar" class="page">
+            <div class="page-header">
+              <h2>Agendar Horário</h2>
+              <p>Selecione o serviço, data e horário</p>
+            </div>
+            <div class="form-card">
+              <div class="input-group">
+                <label for="servicoSelect">Serviço</label>
+                <select id="servicoSelect"></select>
+              </div>
+              <div class="input-group">
+                <label for="dataAgendamento">Data</label>
+                <input type="date" id="dataAgendamento" />
+              </div>
+              <div class="input-group">
+                <label for="horarioSelect">Horário</label>
+                <select id="horarioSelect" disabled>
+                  <option value="">Selecione uma data primeiro</option>
+                </select>
+              </div>
+              <button id="btnAgendar" class="btn btn-primary">
+                Confirmar Agendamento
+              </button>
+            </div>
+          </div>
+
+          <div id="meus-agendamentos" class="page">
+            <div class="page-header"><h2>Meus Agendamentos</h2></div>
+            <div id="meusAgendamentosList" class="agendamentos-list"></div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- ===================== BARBEIRO ===================== -->
+    <div id="barbeiroScreen" class="hidden">
+      <div class="layout">
+        <div class="page-overlay" id="barbeiroOverlay"></div>
+        <aside class="sidebar" id="barbeiroSidebar">
+          <div class="sidebar-header">
+            <div class="sidebar-logo"><i class="fas fa-cut"></i></div>
+            <h2>Corte & Estilo</h2>
+          </div>
+          <div class="user-info">
+            <div class="user-avatar"><i class="fas fa-user-tie"></i></div>
+            <div>
+              <span class="user-name">Carlos Eduardo</span>
+              <span class="user-role">Barbeiro</span>
+            </div>
+          </div>
+          <nav class="sidebar-nav">
+            <button class="nav-item active" data-page="dashboard">
+              <i class="fas fa-chart-line"></i><span>Dashboard</span>
+            </button>
+            <button class="nav-item" data-page="gerenciar-horarios">
+              <i class="fas fa-clock"></i><span>Gerenciar Horários</span>
+            </button>
+            <button class="nav-item" data-page="todos">
+              <i class="fas fa-calendar-alt"></i><span>Todos Agendamentos</span>
+            </button>
+            <button class="nav-item" data-page="hoje">
+              <i class="fas fa-sun"></i><span>Agendamentos Hoje</span>
+            </button>
+            <button class="nav-item logout" id="barbeiroLogout">
+              <i class="fas fa-sign-out-alt"></i><span>Sair</span>
+            </button>
+          </nav>
+        </aside>
+        <main class="main-content">
+          <div class="mobile-header">
+            <button
+              class="menu-toggle"
+              id="barbeiroMenuToggle"
+              aria-label="Abrir menu"
+            >
+              <i class="fas fa-bars"></i>
+            </button>
+            <h2 id="barbeiroPageTitle">Dashboard</h2>
+          </div>
+
+          <div id="dashboard" class="page active">
+            <div class="page-header"><h2>Dashboard</h2></div>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-label">Total Agendamentos</div>
+                <div class="stat-value" id="totalAgendamentos">0</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <i class="fas fa-calendar-day"></i>
+                </div>
+                <div class="stat-label">Hoje</div>
+                <div class="stat-value" id="agendamentosHoje">0</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stat-label">Faturamento</div>
+                <div class="stat-value" id="faturamentoTotal">R$ 0</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-label">Horários Cadastrados</div>
+                <div class="stat-value" id="totalHorarios">0</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="gerenciar-horarios" class="page">
+            <div class="page-header"><h2>Gerenciar Horários</h2></div>
+            <div
+              class="form-card"
+              style="max-width: 100%; margin-bottom: 1.5rem"
+            >
+              <h3
+                style="
+                  margin-bottom: 1rem;
+                  font-size: 0.95rem;
+                  color: var(--dim);
+                  font-weight: 600;
+                "
+              >
+                ADICIONAR HORÁRIO
+              </h3>
+              <div class="form-row">
+                <div class="input-group">
+                  <label for="novaDataHorario">Data</label>
+                  <input type="date" id="novaDataHorario" />
+                </div>
+                <div class="input-group">
+                  <label for="novoHorario">Horário</label>
+                  <input type="time" id="novoHorario" step="1800" />
+                </div>
+                <div
+                  class="input-group"
+                  style="display: flex; align-items: flex-end"
+                >
+                  <button
+                    id="btnAddHorario"
+                    class="btn btn-primary"
+                    style="width: auto"
+                  >
+                    Adicionar
+                  </button>
+                </div>
+              </div>
+            </div>
+            <h3
+              style="
+                margin-bottom: 0.75rem;
+                font-size: 0.85rem;
+                color: var(--dim);
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.07em;
+              "
+            >
+              HORÁRIOS CADASTRADOS
+            </h3>
+            <div id="horariosDisponiveisList" class="horarios-grid"></div>
+          </div>
+
+          <div id="todos" class="page">
+            <div class="page-header"><h2>Todos os Agendamentos</h2></div>
+            <div id="todosAgendamentosList" class="agendamentos-list"></div>
+          </div>
+
+          <div id="hoje" class="page">
+            <div class="page-header"><h2>Agendamentos de Hoje</h2></div>
+            <div id="hojeAgendamentosList" class="agendamentos-list"></div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toastContainer"></div>
+
+    <!-- Modal customizado (substitui confirm()) -->
+    <template id="modalTemplate">
+      <div id="modalOverlay">
+        <div class="modal-box">
+          <p id="modalMessage"></p>
+          <div class="modal-actions">
+            <button class="btn btn-secondary" id="modalCancel">Cancelar</button>
+            <button
+              class="btn btn-primary"
+              id="modalConfirm"
+              style="width: auto"
+            ></button>
           </div>
         </div>
       </div>
-    </section>
-  </main>
-
-  <script src="js/app.js"></script>
-</body>
+    </template>
+    <script src="js/app.js"></script>
+  </body>
 </html>
