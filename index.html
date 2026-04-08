@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="pt-BR">
+<<<<<<< HEAD
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -19,10 +20,38 @@
         <div class="logo-area">
           <div class="logo-icon">
             <img src="logo.png" alt="logo">
+=======
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agenda da Barbearia</title>
+  <link rel="stylesheet" href="css/estilos.css" />
+</head>
+<body>
+  <header class="topo">
+    <h1>Navalha — Agenda</h1>
+    <nav class="papeis" role="tablist">
+      <button type="button" class="papel ativo" data-papel="cliente" role="tab" aria-selected="true">Cliente</button>
+      <button type="button" class="papel" data-papel="barbeiro" role="tab" aria-selected="false">Barbeiro</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- CLIENTE -->
+    <section id="painel-cliente" class="painel ativo" aria-label="Área do cliente">
+      <div class="grid-cliente">
+        <div class="card">
+          <h2>Calendário</h2>
+          <div class="cal-nav">
+            <button type="button" id="cal-mes-ant" aria-label="Mês anterior">◀</button>
+            <span id="cal-titulo-mes"></span>
+            <button type="button" id="cal-prox-mes" aria-label="Próximo mês">▶</button>
+>>>>>>> 275ae58049ad6a08310ae7f2bcb109dd106cfb46
           </div>
           <p class="logo-subtitle">Barbearia Premium</p>
         </div>
 
+<<<<<<< HEAD
         <div class="input-group">
           <label for="loginEmail">Email</label>
           <input
@@ -55,6 +84,34 @@
           Cliente: cliente@email.com / 123456<br />
           Barbeiros (cada um vê só a própria agenda):<br />
           joao@navalha.com · pedro@navalha.com · lucas@navalha.com / 123456
+=======
+        <div class="card">
+          <h2>Novo agendamento</h2>
+          <form id="form-agendamento" class="form" novalidate>
+            <label>
+              Nome
+              <input type="text" id="ag-nome" name="nome" autocomplete="name" placeholder="Informe seu nome"/>
+            </label>
+            <label>
+              WhatsApp
+              <input type="tel" id="ag-whatsapp" name="whatsapp" inputmode="numeric" placeholder="(99) 99999-9999"/>
+            </label>
+            <label>
+              Serviço
+              <!-- ALTERAÇÃO: multiple -->
+              <select id="ag-servico" name="servico" multiple size="1"></select>
+            </label>
+            <label>
+              Data
+              <input type="date" id="ag-data" name="data" placeholder="DD/MM/AAAA"/>
+            </label>
+            <label>
+              Horário
+              <input type="time" id="ag-hora" name="hora" placeholder="00:00h"/>
+            </label>
+            <button type="submit" class="btn-prim">Confirmar agendamento</button>
+          </form>
+>>>>>>> 275ae58049ad6a08310ae7f2bcb109dd106cfb46
         </div>
       </div>
     </div>
@@ -352,7 +409,16 @@
           </div>
         </div>
       </div>
+<<<<<<< HEAD
     </template>
     <script src="js/app.js"></script>
   </body>
 </html>
+=======
+    </section>
+  </main>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
+>>>>>>> 275ae58049ad6a08310ae7f2bcb109dd106cfb46
