@@ -15,3 +15,5 @@ git push
 Envia sua branch local "grupo4" para o GitHub (origin)
 git push -u origin grupo4
 
+
+git pull origin main --rebase

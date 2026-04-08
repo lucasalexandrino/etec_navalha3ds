@@ -1025,3 +1025,102 @@ body {
         grid-template-columns: repeat(2, 1fr);
     }
 }
+/* Adicione estas regras no final do seu arquivo CSS */
+
+/* Garantir que o mobile header e menu toggle sejam visíveis */
+.mobile-header {
+    display: none;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 0.5rem 0;
+}
+
+.menu-toggle {
+    background: var(--gray-800);
+    border: none;
+    color: var(--white);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.75rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    width: 44px;
+    height: 44px;
+}
+
+.menu-toggle:hover {
+    background: var(--gray-700);
+}
+
+.menu-toggle i {
+    font-size: 1.25rem;
+}
+
+/* Garantir que o overlay funcione */
+.page-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+
+.page-overlay.visible {
+    display: block;
+}
+
+/* Sidebar para mobile */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        position: fixed;
+        z-index: 1000;
+        transition: transform 0.3s ease;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        padding: 1rem;
+    }
+
+    .mobile-header {
+        display: flex !important;
+    }
+
+    .menu-toggle {
+        display: flex !important;
+    }
+}
+
+/* Para tablets */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .mobile-header {
+        display: none !important;
+    }
+    
+    .menu-toggle {
+        display: none !important;
+    }
+}
+
+/* Para desktop */
+@media (min-width: 1025px) {
+    .mobile-header {
+        display: none !important;
+    }
+    
+    .menu-toggle {
+        display: none !important;
+    }
+}
