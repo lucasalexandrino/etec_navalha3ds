@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Agenda da Barbearia</title>
-  <link rel="stylesheet" href="css/estilo.css" />
+  <link rel="stylesheet" href="css/estilos.css" />
 </head>
 <body>
   <header class="topo">
@@ -37,23 +37,24 @@
           <form id="form-agendamento" class="form" novalidate>
             <label>
               Nome
-              <input type="text" id="ag-nome" name="nome" autocomplete="name" />
+              <input type="text" id="ag-nome" name="nome" autocomplete="name" placeholder="Informe seu nome"/>
             </label>
             <label>
               WhatsApp
-              <input type="tel" id="ag-whatsapp" name="whatsapp" inputmode="numeric" />
+              <input type="tel" id="ag-whatsapp" name="whatsapp" inputmode="numeric" placeholder="(99) 99999-9999"/>
             </label>
             <label>
               Serviço
-              <select id="ag-servico" name="servico"></select>
+              <!-- ALTERAÇÃO: multiple -->
+              <select id="ag-servico" name="servico" multiple size="1"></select>
             </label>
             <label>
               Data
-              <input type="date" id="ag-data" name="data" />
+              <input type="date" id="ag-data" name="data" placeholder="DD/MM/AAAA"/>
             </label>
             <label>
               Horário
-              <input type="time" id="ag-hora" name="hora" />
+              <input type="time" id="ag-hora" name="hora" placeholder="00:00h"/>
             </label>
             <button type="submit" class="btn-prim">Confirmar agendamento</button>
           </form>

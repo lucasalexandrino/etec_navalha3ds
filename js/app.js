@@ -35,7 +35,7 @@
   function formatarDataHoraBr(iso) {
     var d = new Date(iso);
     if (isNaN(d.getTime())) return iso;
-    return d.toLocaleString("en-US", {
+    return d.toLocaleString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -73,7 +73,7 @@
     });
   });
 
-  /* ——— Serviços (barbeiro + select cliente) ——— */
+  /* ——— Serviços ——— */
   var formServico = document.getElementById("form-servico");
   var svNome = document.getElementById("sv-nome");
   var listaServicos = document.getElementById("lista-servicos");
@@ -106,7 +106,6 @@
 
   function popularSelectServicos() {
     var servicos = getServicos();
-    var val = selectServico.value;
     selectServico.innerHTML = "";
     servicos.forEach(function (s) {
       var o = document.createElement("option");
@@ -114,9 +113,6 @@
       o.textContent = s.name;
       selectServico.appendChild(o);
     });
-    if (val && servicos.some(function (s) { return s.id === val; })) {
-      selectServico.value = val;
-    }
   }
 
   formServico.addEventListener("submit", function (e) {
@@ -133,31 +129,73 @@
   /* ——— Agendamentos ——— */
   var formAg = document.getElementById("form-agendamento");
   var agNome = document.getElementById("ag-nome");
+  agNome.addEventListener("input", function () {
+  // remove tudo que não for letra (inclui acentos) e espaço
+  var valor = agNome.value.replace(/[^a-zA-ZÀ-ÿ\s]/g, "");
+  agNome.value = valor;
+});
   var agWhatsapp = document.getElementById("ag-whatsapp");
   var agData = document.getElementById("ag-data");
   var agHora = document.getElementById("ag-hora");
   var tbodyAg = document.getElementById("tbody-agendamentos");
 
+  /* ✅ MÁSCARA EXATA (99) 99999-9999 */
+  agWhatsapp.addEventListener("input", function () {
+    var valor = agWhatsapp.value.replace(/\D/g, "").slice(0, 11);
+
+    var formatado = "";
+
+    if (valor.length > 0) {
+      formatado = "(" + valor.substring(0, 2);
+    }
+    if (valor.length >= 3) {
+      formatado += ") " + valor.substring(2, 7);
+    }
+    if (valor.length >= 8) {
+      formatado += "-" + valor.substring(7, 11);
+    }
+
+    agWhatsapp.value = formatado;
+  });
+
   formAg.addEventListener("submit", function (e) {
     e.preventDefault();
-    var servicos = getServicos();
-    var sid = selectServico.value;
+
+    var selectedOptions = Array.from(selectServico.selectedOptions);
+    var servicosSelecionados = selectedOptions.map(function (opt) {
+      return {
+        id: opt.value,
+        name: opt.textContent
+      };
+    });
+
     var data = agData.value;
     var hora = agHora.value;
     var iso = isoLocal(data, hora);
-    var svc = servicos.find(function (s) { return s.id === sid; });
+
+    var conflito = getAgendamentos().some(function (a) {
+      return a.datetime === iso;
+    });
+
+    if (conflito) {
+      alert("Esse horário não está disponível no momento");
+      return;
+    }
+
     var lista = getAgendamentos();
     lista.push({
       id: uid(),
       clientName: agNome.value,
       whatsapp: agWhatsapp.value,
       datetime: iso,
-      serviceId: sid,
-      serviceName: svc ? svc.name : "",
+      services: servicosSelecionados
     });
+
     save(KEY_AG, lista);
+
     agNome.value = "";
     agWhatsapp.value = "";
+
     renderCalendario();
     renderBarbeiro();
   });
@@ -165,28 +203,28 @@
   function renderBarbeiro() {
     renderListaServicos();
     var ags = getAgendamentos().slice().sort(function (a, b) {
-      var ta = new Date(a.datetime).getTime();
-      var tb = new Date(b.datetime).getTime();
-      return (isNaN(ta) ? 0 : ta) - (isNaN(tb) ? 0 : tb);
+      return new Date(a.datetime) - new Date(b.datetime);
     });
+
     tbodyAg.innerHTML = "";
+
     ags.forEach(function (a) {
       var tr = document.createElement("tr");
+
       tr.innerHTML =
-        "<td>" +
-        formatarDataHoraBr(a.datetime) +
-        "</td><td>" +
-        escapeHtml(a.clientName) +
-        "</td><td>" +
-        escapeHtml(a.whatsapp) +
-        "</td><td>" +
-        escapeHtml(a.serviceName) +
-        "</td><td></td>";
+        "<td>" + formatarDataHoraBr(a.datetime) + "</td>" +
+        "<td>" + escapeHtml(a.clientName) + "</td>" +
+        "<td>" + escapeHtml(a.whatsapp) + "</td>" +
+        "<td>" + (a.services || []).map(function(s){ return escapeHtml(s.name); }).join(", ") + "</td>" +
+        "<td></td>";
+
       var tdBtn = tr.lastElementChild;
+
       var rm = document.createElement("button");
       rm.type = "button";
       rm.className = "btn-icone";
       rm.textContent = "Cancelar";
+
       rm.addEventListener("click", function () {
         var rest = getAgendamentos().filter(function (x) {
           return x.id !== a.id;
@@ -195,19 +233,19 @@
         renderBarbeiro();
         renderCalendario();
       });
+
       tdBtn.appendChild(rm);
       tbodyAg.appendChild(tr);
     });
   }
 
   function escapeHtml(t) {
-    if (!t) return "";
     var div = document.createElement("div");
-    div.textContent = t;
+    div.textContent = t || "";
     return div.innerHTML;
   }
 
-  /* ——— Calendário cliente ——— */
+  /* ——— Calendário ——— */
   var calTitulo = document.getElementById("cal-titulo-mes");
   var calGrade = document.getElementById("cal-grade");
   var calMesAnt = document.getElementById("cal-mes-ant");
@@ -215,83 +253,66 @@
   var mesCal = new Date().getMonth();
   var anoCal = new Date().getFullYear();
 
-  function diasComEventoNoMes(y, m) {
-    var set = {};
-    getAgendamentos().forEach(function (a) {
-      var d = new Date(a.datetime);
-      if (d.getFullYear() === y && d.getMonth() === m) {
-        set[d.getDate()] = true;
-      }
-    });
-    return set;
-  }
-
   function renderCalendario() {
-    var hoje = new Date();
     var primeiro = new Date(anoCal, mesCal, 1);
     var ultimoDia = new Date(anoCal, mesCal + 1, 0).getDate();
     var inicioSemana = primeiro.getDay();
+
     calTitulo.textContent = primeiro.toLocaleDateString("pt-BR", {
       month: "long",
       year: "numeric",
     });
+
     calGrade.innerHTML = "";
-    var marcacoes = diasComEventoNoMes(anoCal, mesCal);
 
     for (var i = 0; i < inicioSemana; i++) {
       calGrade.appendChild(celulaVaziaCal());
     }
 
-    for (var dia = 1; dia < ultimoDia; dia++) {
-      var ehHoje =
-        dia === hoje.getDate() &&
-        mesCal === hoje.getMonth() &&
-        anoCal === hoje.getFullYear();
-      var y = anoCal;
-      var m = mesCal;
-      var tem = !!marcacoes[dia];
-      calGrade.appendChild(diaCel(dia, false, ehHoje, tem, y, m));
+    for (var dia = 1; dia <= ultimoDia; dia++) {
+      calGrade.appendChild(diaCel(dia, false));
     }
   }
 
   function celulaVaziaCal() {
     var btn = document.createElement("button");
-    btn.type = "button";
     btn.className = "cal-dia fora";
     btn.disabled = true;
-    btn.setAttribute("aria-hidden", "true");
     return btn;
   }
 
-  function diaCel(n, fora, hoje, temEvento, y, m) {
+  function diaCel(n) {
     var btn = document.createElement("button");
-    btn.type = "button";
     btn.className = "cal-dia";
-    btn.textContent = String(n);
-    if (fora) {
-      btn.classList.add("fora");
-      btn.disabled = true;
-    } else {
-      if (hoje) btn.classList.add("hoje");
-      if (temEvento) btn.classList.add("tem-evento");
-      btn.addEventListener("click", function () {
-        var mm = String(m + 1).padStart(2, "0");
-        var dd = String(n).padStart(2, "0");
-        agData.value = y + "-" + mm + "-" + dd;
-      });
-    }
+    btn.textContent = n;
+
+    btn.addEventListener("click", function () {
+      var mm = String(mesCal + 1).padStart(2, "0");
+      var dd = String(n).padStart(2, "0");
+      var data = anoCal + "-" + mm + "-" + dd;
+
+      agData.value = data;
+
+      var horarios = getAgendamentos()
+        .filter(function (a) {
+          return a.datetime.startsWith(data);
+        })
+        .map(function (a) {
+          return new Date(a.datetime).toLocaleTimeString("pt-BR", {
+            hour: "2-digit",
+            minute: "2-digit"
+          });
+        });
+
+      if (horarios.length) {
+        alert("Horários já reservados:\n" + horarios.join("\n"));
+      }
+    });
+
     return btn;
   }
 
   calMesAnt.addEventListener("click", function () {
-    mesCal++;
-    if (mesCal > 11) {
-      mesCal = 0;
-      anoCal++;
-    }
-    renderCalendario();
-  });
-  calProxMes.addEventListener("click", function () {
     mesCal--;
     if (mesCal < 0) {
       mesCal = 11;
@@ -300,9 +321,18 @@
     renderCalendario();
   });
 
-  /* ——— Início ——— */
+  calProxMes.addEventListener("click", function () {
+    mesCal++;
+    if (mesCal > 11) {
+      mesCal = 0;
+      anoCal++;
+    }
+    renderCalendario();
+  });
+
+  /* ——— Init ——— */
   var h = new Date();
-  agData.value = h.getFullYear() + "-" + String(h.getMonth() + 1).padStart(2, "0") + "-" + String(h.getDate()).padStart(2, "0");
+  agData.value = h.toISOString().split("T")[0];
   agHora.value = "09:00";
 
   renderListaServicos();
