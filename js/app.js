@@ -135,19 +135,35 @@ function initData() {
     State.setAgendamentos(Storage.load('agendamentos', []));
 
     const savedHorarios = Storage.load('horariosDisponiveis', null);
+
     if (savedHorarios !== null) {
         State.setHorarios(savedHorarios);
     } else {
-        const today    = DateUtils.today();
-        const tomorrow = DateUtils.tomorrow();
-        State.setHorarios([
-            { id: 1, data: today,    horario: '14:00' },
-            { id: 2, data: today,    horario: '15:00' },
-            { id: 3, data: today,    horario: '16:00' },
-            { id: 4, data: tomorrow, horario: '10:00' },
-            { id: 5, data: tomorrow, horario: '11:00' },
-            { id: 6, data: tomorrow, horario: '14:00' }
-        ]);
+        const horariosSemana = [];
+        let id = 1;
+
+        // horários padrão do dia
+        const horariosPadrao = ['10:00', '11:00', '14:00', '15:00', '16:00'];
+
+        const hoje = new Date();
+
+        // loop para os próximos 7 dias
+        for (let i = 0; i < 7; i++) {
+            const data = new Date();
+            data.setDate(hoje.getDate() + i);
+
+            const dataFormatada = data.toISOString().split('T')[0];
+
+            horariosPadrao.forEach(horario => {
+                horariosSemana.push({
+                    id: id++,
+                    data: dataFormatada,
+                    horario: horario
+                });
+            });
+        }
+
+        State.setHorarios(horariosSemana);
         persistHorarios();
     }
 }
