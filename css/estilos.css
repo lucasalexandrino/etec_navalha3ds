@@ -533,3 +533,62 @@ body {
     background: var(--gray-800);
     border-radius: 16px;
 }
+
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        width: var(--sidebar-width);
+    }
+    
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+        padding: 0;
+    }
+    
+    .mobile-header {
+        display: flex;
+    }
+    
+    .servicos-grid,
+    .agendamentos-list {
+        grid-template-columns: 1fr;
+        padding: 0 1rem 1rem 1rem;
+    }
+    
+    .barbeiro-stats {
+        grid-template-columns: 1fr;
+        padding: 0 1rem;
+    }
+    
+    .content-title {
+        padding: 0 1rem;
+    }
+    
+    .form-card {
+        margin: 0 1rem;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .servicos-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .agendamentos-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1025px) {
+    .servicos-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .agendamentos-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
