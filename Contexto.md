@@ -1,6 +1,3 @@
-
-https://etec-aulas.vercel.app/atividade-projeto-navalha.html
-
 # Atividade: agenda da barbearia (HTML, CSS e JavaScript)
 
 Projeto base para **Ensino Técnico** em Desenvolvimento de Sistemas (ou equivalente). Os alunos partem de uma aplicação simples de agendamento (cliente e barbeiro) que grava dados no **localStorage** do navegador.

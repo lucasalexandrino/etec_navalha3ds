@@ -1,103 +1,144 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-navalha-site>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Agenda da Barbearia</title>
+  <meta name="description" content="Navalha — agendamentos online. Barbearia com ofício de raiz e atitude urbana." />
+  <title>Navalha — Agendamentos online</title>
   <link rel="stylesheet" href="css/estilos.css" />
 </head>
-<body>
-  <header class="topo">
-    <h1>Navalha — Agenda</h1>
-    <nav class="papeis" role="tablist">
-      <button type="button" class="papel ativo" data-papel="cliente" role="tab" aria-selected="true">Cliente</button>
-      <button type="button" class="papel" data-papel="barbeiro" role="tab" aria-selected="false">Barbeiro</button>
-    </nav>
+<body class="site-body">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-brand site-brand--with-logo" href="index.html">
+        <img
+          class="site-brand__logo"
+          src="assets/logo-navalha.png"
+          width="56"
+          height="56"
+          alt="Navalha — agendamentos online"
+        />
+        <span class="site-brand__text">
+          <span class="site-brand__mark">Navalha</span>
+          <span class="site-brand__tag">Agendamentos online</span>
+        </span>
+      </a>
+      <nav class="site-nav" aria-label="Principal">
+        <a href="#inicio">Início</a>
+        <a href="#sobre">Sobre</a>
+        <a href="#experiencia">Experiência</a>
+        <a href="#contato">Contato</a>
+        <a class="btn btn--accent" href="agenda.html">Agendar</a>
+      </nav>
+    </div>
   </header>
 
-  <main>
-    <!-- CLIENTE -->
-    <section id="painel-cliente" class="painel ativo" aria-label="Área do cliente">
-      <div class="grid-cliente">
-        <div class="card">
-          <h2>Calendário</h2>
-          <div class="cal-nav">
-            <button type="button" id="cal-mes-ant" aria-label="Mês anterior">◀</button>
-            <span id="cal-titulo-mes"></span>
-            <button type="button" id="cal-prox-mes" aria-label="Próximo mês">▶</button>
-          </div>
-          <div class="cal-semanas">
-            <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
-          </div>
-          <div id="cal-grade" class="cal-grade"></div>
+  <main id="inicio">
+    <section class="hero" aria-labelledby="hero-title">
+      <div>
+        <span class="hero__eyebrow">Desde a vila até a avenida</span>
+        <h1 id="hero-title">Ofício de raiz, <span style="color: var(--accent)">corte urbano</span></h1>
+        <p class="hero__lead">
+          Tradição de barbearia clássica com estética contemporânea. Qualidade e facilidade para marcar seu horário — do jeito que a cidade pede.
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn--accent" href="agenda.html">Reservar horário</a>
+          <a class="btn btn--ghost" href="#sobre">Conhecer</a>
         </div>
-
-        <div class="card">
-          <h2>Novo agendamento</h2>
-          <form id="form-agendamento" class="form" novalidate>
-            <label>
-              Nome
-              <input type="text" id="ag-nome" name="nome" autocomplete="name" />
-            </label>
-            <label>
-              WhatsApp
-              <input type="tel" id="ag-whatsapp" name="whatsapp" inputmode="numeric" />
-            </label>
-            <label>
-              Serviço
-              <select id="ag-servico" name="servico"></select>
-            </label>
-            <label>
-              Data
-              <input type="date" id="ag-data" name="data" />
-            </label>
-            <label>
-              Horário
-              <input type="time" id="ag-hora" name="hora" />
-            </label>
-            <button type="submit" class="btn-prim">Confirmar agendamento</button>
-          </form>
+      </div>
+      <div class="hero__panel" aria-label="Destaques">
+        <div class="hero__panel-inner">
+          <h2>Por aqui</h2>
+          <ul class="hero__list">
+            <li>Atendimento com tempo reservado — sem correria na cadeira.</li>
+            <li>Acabamento e detalhe: navalha, degradê e barba com critério.</li>
+            <li>Agenda online Navalha integrada ao fluxo do dia a dia.</li>
+          </ul>
         </div>
       </div>
     </section>
 
-    <!-- BARBEIRO -->
-    <section id="painel-barbeiro" class="painel" aria-label="Área do barbeiro" hidden>
-      <div class="grid-barbeiro">
-        <div class="card">
-          <h2>Cadastrar serviço</h2>
-          <form id="form-servico" class="form" novalidate>
-            <label>
-              Nome do serviço
-              <input type="text" id="sv-nome" />
-            </label>
-            <button type="submit" class="btn-prim">Adicionar</button>
-          </form>
-          <h3 class="subtitulo">Serviços cadastrados</h3>
-          <ul id="lista-servicos" class="lista-servicos"></ul>
-        </div>
+    <section class="section" id="sobre" aria-labelledby="sobre-title">
+      <h2 class="section__title" id="sobre-title">Raízes que cortam o ruído</h2>
+      <p class="section__intro">
+        A Navalha nasce da ideia simples de que barbearia é ofício: pente, tesoura, máquina e respeito pelo tempo de quem senta na cadeira. O visual é limpo e direto — preto, branco e ouro — como uma fachada clássica iluminada pela cidade de noite.
+      </p>
+    </section>
 
-        <div class="card card-largo">
-          <h2>Agendamentos</h2>
-          <div class="tabela-wrap">
-            <table class="tabela-ag">
-              <thead>
-                <tr>
-                  <th>Data / hora</th>
-                  <th>Cliente</th>
-                  <th>WhatsApp</th>
-                  <th>Serviço</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="tbody-agendamentos"></tbody>
-            </table>
-          </div>
+    <section class="section section--tight-top" id="experiencia" aria-labelledby="exp-title">
+      <h2 class="section__title" id="exp-title">Experiência</h2>
+      <p class="section__intro">Três pilares que guiam o que fazemos no balcão e no espelho.</p>
+      <div class="grid-features">
+        <article class="feature-card">
+          <h3>Tradição</h3>
+          <p>Técnicas clássicas e ritual de barbearia — sem modismos que somem na próxima estação.</p>
+        </article>
+        <article class="feature-card">
+          <h3>Urbano</h3>
+          <p>Ritmo de metrópole: pontualidade, comunicação clara e espaço pensado para quem vive corrido.</p>
+        </article>
+        <article class="feature-card">
+          <h3>Contraste</h3>
+          <p>Alto contraste visual e atenção ao detalhe — no corte e na forma como você navega no site.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="cta-band" aria-label="Chamada para agendamento">
+      <div class="cta-band__inner">
+        <div class="cta-band__text">
+          <h2>Marque seu horário</h2>
+          <p>Use a agenda Navalha — a extensão digital do balcão.</p>
         </div>
+        <a class="btn btn--accent" href="agenda.html">Abrir agenda</a>
       </div>
     </section>
   </main>
 
-  <script src="js/app.js"></script>
+  <footer class="site-footer" id="contato">
+    <div class="site-footer__grid">
+      <div class="site-footer__col site-footer__col--brand">
+        <img
+          class="site-footer__logo"
+          src="assets/logo-navalha.png"
+          width="140"
+          height="140"
+          alt="Navalha — qualidade e facilidade"
+        />
+        <p class="site-footer__copy">© Navalha — projeto educacional.</p>
+        <p class="site-footer__addr">Rua Exemplo, 100 — Centro</p>
+        <p class="site-footer__links">
+          <a href="agenda.html">Agenda</a>
+          ·
+          <a href="tel:+5511999999999">(11) 99999-9999</a>
+          ·
+          <a href="mailto:contato@navalha.exemplo">contato@navalha.exemplo</a>
+        </p>
+      </div>
+      <div class="site-footer__col site-footer__col--form">
+        <h2 class="site-footer__form-title">Contato</h2>
+        <form id="form-contato" class="form-contato" novalidate>
+          <label class="form-contato__label" for="ct-nome">Nome</label>
+          <input class="form-contato__input" type="text" id="ct-nome" name="nome" autocomplete="name" required />
+
+          <label class="form-contato__label" for="ct-numero">Número</label>
+          <input class="form-contato__input" type="tel" id="ct-numero" name="numero" inputmode="tel" autocomplete="tel" required />
+
+          <label class="form-contato__label" for="ct-email">Email</label>
+          <input class="form-contato__input" type="email" id="ct-email" name="email" autocomplete="email" required />
+
+          <label class="form-contato__label" for="ct-assunto">Assunto</label>
+          <input class="form-contato__input" type="text" id="ct-assunto" name="assunto" autocomplete="off" required />
+
+          <label class="form-contato__label" for="ct-mensagem">Mensagem</label>
+          <textarea class="form-contato__textarea" id="ct-mensagem" name="mensagem" rows="4" required></textarea>
+
+          <button type="submit" class="btn btn--accent form-contato__submit">Enviar</button>
+          <p id="contato-feedback" class="form-contato__feedback" role="status" aria-live="polite" hidden></p>
+        </form>
+      </div>
+    </div>
+  </footer>
+  <script src="js/contato.js"></script>
 </body>
 </html>

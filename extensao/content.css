@@ -1,0 +1,29 @@
+#navalha-agenda-fab {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 2147483646;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: #dbb13b;
+  color: #0c0c0c;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  border: 2px solid #ffffff;
+  letter-spacing: 0.02em;
+}
+
+#navalha-agenda-fab:hover {
+  filter: brightness(1.06);
+}
+
+#navalha-agenda-fab:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
+}

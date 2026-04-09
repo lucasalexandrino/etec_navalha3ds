@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Navalha — Opções</title>
+  <style>
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      max-width: 520px;
+      margin: 2rem auto;
+      padding: 0 1.25rem;
+      background: #0c0c0c;
+      color: #ffffff;
+      line-height: 1.5;
+    }
+    h1 {
+      font-size: 1.25rem;
+      margin: 0 0 0.25rem;
+    }
+    .hint {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.55);
+      margin: 0 0 1.5rem;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.88rem;
+      margin-bottom: 0.35rem;
+    }
+    input {
+      width: 100%;
+      padding: 0.55rem 0.65rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: #141414;
+      color: #fff;
+      font: inherit;
+    }
+    input:focus {
+      outline: 2px solid #dbb13b;
+      outline-offset: 1px;
+    }
+    button {
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 8px;
+      background: #dbb13b;
+      color: #0c0c0c;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:hover {
+      filter: brightness(1.05);
+    }
+    #status {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: #dbb13b;
+    }
+  </style>
+</head>
+<body>
+  <h1>Navalha — URLs</h1>
+  <p class="hint">
+    Defina os endereços do site principal e da agenda. Ex.: ao abrir o projeto com Live Server,
+    use algo como <code style="color:#dbb13b">http://127.0.0.1:5500/index.html</code> e
+    <code style="color:#dbb13b">http://127.0.0.1:5500/agenda.html</code>.
+    Para páginas locais em <code>file://</code>, ative em chrome://extensions → Detalhes → “Permitir acesso a URLs de arquivos”.
+  </p>
+  <form id="form">
+    <label for="mainUrl">Site principal</label>
+    <input type="url" id="mainUrl" name="mainUrl" placeholder="https://…/index.html" autocomplete="off" />
+
+    <label for="agendaUrl">Agenda</label>
+    <input type="url" id="agendaUrl" name="agendaUrl" placeholder="https://…/agenda.html" autocomplete="off" />
+
+    <button type="submit">Salvar</button>
+  </form>
+  <p id="status" role="status" aria-live="polite"></p>
+  <script src="options.js"></script>
+</body>
+</html>
