@@ -16,45 +16,56 @@
     <!-- ===================== LOGIN ===================== -->
     <div id="loginScreen">
       <div class="login-card">
-        <div class="logo-area">
-          <div class="logo-icon">
-            <img src="logo.png" alt="logo">
+        <div class="login-container">
+          <div class="logo-area">
+            <div class="logo-icon">
+              <img src="logo.png" alt="logo">
+            </div>
           </div>
-          <p class="logo-subtitle">Barbearia Premium</p>
-        </div>
 
-        <div class="input-group">
-          <label for="loginEmail">Email</label>
-          <input
-            type="email"
-            id="loginEmail"
-            placeholder="seu@email.com"
-            autocomplete="email"
-          />
-        </div>
-        <div class="input-group">
-          <label for="loginPassword">Senha</label>
-          <input
-            type="password"
-            id="loginPassword"
-            placeholder="••••••"
-            autocomplete="current-password"
-          />
-        </div>
-        <div class="input-group">
-          <label for="userType">Tipo de Usuário</label>
-          <select id="userType">
-            <option value="cliente">Cliente</option>
-            <option value="barbeiro">Barbeiro</option>
-          </select>
-        </div>
-        <button id="btnLogin" class="btn btn-primary">Entrar</button>
+          <div class="input-group">
+            <label for="loginEmail">Email</label>
+            <input
+              type="email"
+              id="loginEmail"
+              placeholder="seu@email.com"
+              autocomplete="email"
+            />
+          </div>
+          <div class="input-group">
+            <label for="loginPassword">Senha</label>
+            <div class="input-with-icon">
+              <input
+                type="password"
+                id="loginPassword"
+                placeholder="••••••"
+                autocomplete="current-password"
+              />
+              <button
+                type="button"
+                id="passwordToggle"
+                class="password-toggle"
+                aria-label="Mostrar senha"
+              >
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="userType">Tipo de Usuário</label>
+            <select id="userType">
+              <option value="cliente">Cliente</option>
+              <option value="barbeiro">Barbeiro</option>
+            </select>
+          </div>
+          <button id="btnLogin" class="btn btn-primary">Entrar</button>
 
-        <div class="demo-credentials">
-          <strong>Credenciais demo</strong><br />
-          Cliente: cliente@gmail.com / cliente123<br />
-          Barbeiros (cada um vê só a própria agenda):<br />
-          barbeiroteste1@gmail.com · barbeiroteste2@gmail.com / barbeiro123
+          <div class="demo-credentials">
+            <strong>Credenciais demo</strong><br />
+            Cliente: cliente@gmail.com / cliente123<br />
+            Barbeiros (cada um vê só a própria agenda):<br />
+            barbeiro1@gmail.com · barbeiro2@gmail.com · barbeiro3@gmail.com / barbeiro123
+          </div>
         </div>
       </div>
     </div>

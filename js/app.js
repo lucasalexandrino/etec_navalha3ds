@@ -162,9 +162,9 @@
   }
 
   var BARBEIRO_CONTAS = [
-    { email: "barbeiroteste1@gmail.com", password: "barbeiro123", barberId: "barber-1" },
-    { email: "barbeiroteste2@gmail.com", password: "barbeiro123", barberId: "barber-2" },
-    { email: "lucas@navalha.com", password: "123456", barberId: "barber-3" },
+    { email: "barbeiro1@gmail.com", password: "barbeiro123", barberId: "barber-1" },
+    { email: "barbeiro2@gmail.com", password: "barbeiro123", barberId: "barber-2" },
+    { email: "barbeiro3@gmail.com", password: "barbeiro123", barberId: "barber-3" },
   ];
 
   function resolveBarberLogin(email, pass) {
@@ -442,10 +442,11 @@
   var btnLogin = document.getElementById("btnLogin");
   var loginEmail = document.getElementById("loginEmail");
   var loginPassword = document.getElementById("loginPassword");
+  var passwordToggle = document.getElementById("passwordToggle");
   var userType = document.getElementById("userType");
 
   var DEMO_CLIENTE = {
-    email: "cliente@email.com",
+    email: "cliente@gmail.com",
     password: "cliente123",
   };
 
@@ -484,7 +485,7 @@
       var conta = resolveBarberLogin(email, pass);
       if (!conta) {
         showToast(
-          "Use uma conta de barbeiro demo (ex.: barbeiroteste1@gmail.com / barbeiro123).",
+          "Use uma conta de barbeiro demo (ex.: barbeiro1@gmail.com / barbeiro123).",
           "error"
         );
         return;
@@ -513,6 +514,22 @@
     setSessao(null);
     applyScreen(null);
     showToast("Sessão encerrada.", "success");
+  }
+
+  if (passwordToggle && loginPassword) {
+    passwordToggle.addEventListener("click", function () {
+      var isVisible = loginPassword.type === "text";
+      loginPassword.type = isVisible ? "password" : "text";
+      passwordToggle.setAttribute(
+        "aria-label",
+        isVisible ? "Mostrar senha" : "Ocultar senha"
+      );
+      var icon = passwordToggle.querySelector("i");
+      if (icon) {
+        icon.classList.toggle("fa-eye");
+        icon.classList.toggle("fa-eye-slash");
+      }
+    });
   }
 
   if (btnLogin) {
@@ -1330,6 +1347,13 @@
     if (fatEl) fatEl.textContent = formatMoney(fat);
   }
 
+  function renderHojeAgendamentos() {
+    // Função de compatibilidade para chamadas existentes.
+    // Atualmente não há um elemento específico para renderizar aqui,
+    // então apenas mantém a API e evita erros de inicialização.
+    return;
+  }
+
   var KEY_HORARIOS_CUSTOM = "barbearia_horarios_custom";
 
   function getHorariosCustom() {
@@ -1961,6 +1985,12 @@
           icon.classList.add("fa-cloud-moon");
         }
       }
+      // Update logo images based on theme
+      var logoSrc = theme === "dark" ? "img/logo-tema-claro.png" : "img/logo-tema-escuro.png";
+      var logoImages = document.querySelectorAll('img[alt="logo"]');
+      logoImages.forEach(function (img) {
+        img.src = logoSrc;
+      });
     }
 
     // Apply saved theme on load
