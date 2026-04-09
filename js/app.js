@@ -1,311 +1,466 @@
-(function () {
-  "use strict";
+"use strict";
 
-  var KEY_SERVICOS = "barbearia_servicos";
-  var KEY_AG = "barbearia_agendamentos";
+import { Storage } from './modules/storage.js';
+import { Auth } from './modules/auth.js';
+import { Calendar } from './modules/calendar.js';
+import { UI } from './modules/ui.js';
 
-  function load(key, padrao) {
-    try {
-      var raw = localStorage.getItem(key);
-      if (!raw) return padrao;
-      return JSON.parse(raw);
-    } catch (e) {
-      return padrao;
+// Aplicação Principal
+const App = {
+  state: {
+    user: null,
+    services: [],
+    appointments: []
+  },
+
+  elements: {},
+
+  init() {
+    this.cacheDOM();
+    this.bindEvents();
+    this.loadData();
+    this.checkSession();
+    this.setupMasks();
+    this.setupTodayDate();
+  },
+
+  cacheDOM() {
+    this.elements = {
+      authScreen: document.getElementById('auth-screen'),
+      appScreen: document.getElementById('app'),
+      loginForm: document.getElementById('login-form'),
+      loginUser: document.getElementById('login-user'),
+      loginPass: document.getElementById('login-pass'),
+      panelCliente: document.getElementById('painel-cliente'),
+      panelBarbeiro: document.getElementById('painel-barbeiro'),
+      userDisplay: document.getElementById('user-display'),
+      btnLogout: document.getElementById('btn-logout'),
+      
+      calGrade: document.getElementById('cal-grade'),
+      calTitulo: document.getElementById('cal-titulo-mes'),
+      calPrev: document.getElementById('cal-prev'),
+      calNext: document.getElementById('cal-next'),
+      
+      formAgendamento: document.getElementById('form-agendamento'),
+      agNome: document.getElementById('ag-nome'),
+      agWhatsapp: document.getElementById('ag-whatsapp'),
+      agServico: document.getElementById('ag-servico'),
+      agData: document.getElementById('ag-data'),
+      agHora: document.getElementById('ag-hora'),
+      
+      formServico: document.getElementById('form-servico'),
+      svNome: document.getElementById('sv-nome'),
+      listaServicos: document.getElementById('lista-servicos'),
+      tbodyAgendamentos: document.getElementById('tbody-agendamentos'),
+      todayDate: document.getElementById('today-date')
+    };
+  },
+
+  loadData() {
+    this.state.services = Storage.getServices();
+    this.state.appointments = Storage.getAppointments();
+    
+    if (this.state.services.length === 0) {
+      const defaultServices = ['Corte Masculino', 'Barba Completa', 'Corte + Barba', 'Pezinho e Acabamento', 'Platinado', 'Coloração'];
+      defaultServices.forEach(s => Storage.addService(s));
+      this.state.services = Storage.getServices();
     }
-  }
+  },
 
-  function save(key, data) {
-    localStorage.setItem(key, JSON.stringify(data));
-  }
-
-  function uid() {
-    return String(Date.now()) + "-" + Math.random().toString(36).slice(2, 9);
-  }
-
-  function getServicos() {
-    var s = load(KEY_SERVICOS, []);
-    return Array.isArray(s) ? s : [];
-  }
-
-  function getAgendamentos() {
-    var a = load(KEY_AG, []);
-    return Array.isArray(a) ? a : [];
-  }
-
-  function formatarDataHoraBr(iso) {
-    var d = new Date(iso);
-    if (isNaN(d.getTime())) return iso;
-    return d.toLocaleString("en-US", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
-
-  function isoLocal(dataStr, horaStr) {
-    if (!dataStr || !horaStr) return "";
-    var d = new Date(dataStr + "T" + horaStr + ":00");
-    if (isNaN(d.getTime())) return "";
-    return d.toISOString();
-  }
-
-  /* ——— Troca Cliente / Barbeiro ——— */
-  var botoesPapel = document.querySelectorAll(".papel");
-  var painelCliente = document.getElementById("painel-cliente");
-  var painelBarbeiro = document.getElementById("painel-barbeiro");
-
-  botoesPapel.forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      var papel = btn.getAttribute("data-papel");
-      botoesPapel.forEach(function (b) {
-        var ativo = b === btn;
-        b.classList.toggle("ativo", ativo);
-        b.setAttribute("aria-selected", ativo ? "true" : "false");
-      });
-      var ehCliente = papel === "cliente";
-      painelCliente.classList.toggle("ativo", ehCliente);
-      painelCliente.hidden = !ehCliente;
-      painelBarbeiro.classList.toggle("ativo", !ehCliente);
-      painelBarbeiro.hidden = ehCliente;
-      if (!ehCliente) renderBarbeiro();
-    });
-  });
-
-  /* ——— Serviços (barbeiro + select cliente) ——— */
-  var formServico = document.getElementById("form-servico");
-  var svNome = document.getElementById("sv-nome");
-  var listaServicos = document.getElementById("lista-servicos");
-  var selectServico = document.getElementById("ag-servico");
-
-  function renderListaServicos() {
-    var servicos = getServicos();
-    listaServicos.innerHTML = "";
-    servicos.forEach(function (s) {
-      var li = document.createElement("li");
-      li.textContent = s.name;
-      var del = document.createElement("button");
-      del.type = "button";
-      del.className = "btn-icone";
-      del.textContent = "Excluir";
-      del.setAttribute("data-id", s.id);
-      del.addEventListener("click", function () {
-        var id = del.getAttribute("data-id");
-        var rest = getServicos().filter(function (x) {
-          return x.id !== id;
-        });
-        save(KEY_SERVICOS, rest);
-        renderListaServicos();
-        popularSelectServicos();
-      });
-      li.appendChild(del);
-      listaServicos.appendChild(li);
-    });
-  }
-
-  function popularSelectServicos() {
-    var servicos = getServicos();
-    var val = selectServico.value;
-    selectServico.innerHTML = "";
-    servicos.forEach(function (s) {
-      var o = document.createElement("option");
-      o.value = s.id;
-      o.textContent = s.name;
-      selectServico.appendChild(o);
-    });
-    if (val && servicos.some(function (s) { return s.id === val; })) {
-      selectServico.value = val;
+  bindEvents() {
+    // Login
+    this.elements.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
+    
+    // Logout
+    if (this.elements.btnLogout) {
+      this.elements.btnLogout.addEventListener('click', () => this.handleLogout());
     }
-  }
+    
+    // Calendário
+    if (this.elements.calPrev) {
+      this.elements.calPrev.addEventListener('click', () => this.changeMonth(-1));
+      this.elements.calNext.addEventListener('click', () => this.changeMonth(1));
+    }
+    
+    // Agendamento
+    if (this.elements.formAgendamento) {
+      this.elements.formAgendamento.addEventListener('submit', (e) => this.handleAppointment(e));
+    }
+    
+    // Serviços (barbeiro)
+    if (this.elements.formServico) {
+      this.elements.formServico.addEventListener('submit', (e) => this.handleAddService(e));
+    }
+    
+    // Validação em tempo real
+    if (this.elements.agNome) {
+      this.elements.agNome.addEventListener('input', () => this.validateNome());
+      this.elements.agWhatsapp.addEventListener('input', () => this.validateWhatsapp());
+      this.elements.agData.addEventListener('change', () => this.validateData());
+      this.elements.agHora.addEventListener('change', () => this.validateHora());
+    }
+  },
 
-  formServico.addEventListener("submit", function (e) {
-    e.preventDefault();
-    var nome = svNome.value;
-    var servicos = getServicos();
-    servicos.push({ id: uid(), name: nome });
-    save(KEY_SERVICOS, servicos);
-    svNome.value = "";
-    renderListaServicos();
-    popularSelectServicos();
-  });
-
-  /* ——— Agendamentos ——— */
-  var formAg = document.getElementById("form-agendamento");
-  var agNome = document.getElementById("ag-nome");
-  var agWhatsapp = document.getElementById("ag-whatsapp");
-  var agData = document.getElementById("ag-data");
-  var agHora = document.getElementById("ag-hora");
-  var tbodyAg = document.getElementById("tbody-agendamentos");
-
-  formAg.addEventListener("submit", function (e) {
-    e.preventDefault();
-    var servicos = getServicos();
-    var sid = selectServico.value;
-    var data = agData.value;
-    var hora = agHora.value;
-    var iso = isoLocal(data, hora);
-    var svc = servicos.find(function (s) { return s.id === sid; });
-    var lista = getAgendamentos();
-    lista.push({
-      id: uid(),
-      clientName: agNome.value,
-      whatsapp: agWhatsapp.value,
-      datetime: iso,
-      serviceId: sid,
-      serviceName: svc ? svc.name : "",
-    });
-    save(KEY_AG, lista);
-    agNome.value = "";
-    agWhatsapp.value = "";
-    renderCalendario();
-    renderBarbeiro();
-  });
-
-  function renderBarbeiro() {
-    renderListaServicos();
-    var ags = getAgendamentos().slice().sort(function (a, b) {
-      var ta = new Date(a.datetime).getTime();
-      var tb = new Date(b.datetime).getTime();
-      return (isNaN(ta) ? 0 : ta) - (isNaN(tb) ? 0 : tb);
-    });
-    tbodyAg.innerHTML = "";
-    ags.forEach(function (a) {
-      var tr = document.createElement("tr");
-      tr.innerHTML =
-        "<td>" +
-        formatarDataHoraBr(a.datetime) +
-        "</td><td>" +
-        escapeHtml(a.clientName) +
-        "</td><td>" +
-        escapeHtml(a.whatsapp) +
-        "</td><td>" +
-        escapeHtml(a.serviceName) +
-        "</td><td></td>";
-      var tdBtn = tr.lastElementChild;
-      var rm = document.createElement("button");
-      rm.type = "button";
-      rm.className = "btn-icone";
-      rm.textContent = "Cancelar";
-      rm.addEventListener("click", function () {
-        var rest = getAgendamentos().filter(function (x) {
-          return x.id !== a.id;
-        });
-        save(KEY_AG, rest);
-        renderBarbeiro();
-        renderCalendario();
+  setupMasks() {
+    if (this.elements.agWhatsapp) {
+      this.elements.agWhatsapp.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length <= 11) {
+          if (value.length > 2) {
+            value = `(${value.substring(0, 2)}) ${value.substring(2)}`;
+          }
+          if (value.length > 10) {
+            value = `${value.substring(0, 11)}-${value.substring(11)}`;
+          }
+          if (value.length > 15) {
+            value = value.substring(0, 16);
+          }
+        }
+        e.target.value = value;
       });
-      tdBtn.appendChild(rm);
-      tbodyAg.appendChild(tr);
-    });
-  }
+    }
+  },
 
-  function escapeHtml(t) {
-    if (!t) return "";
-    var div = document.createElement("div");
-    div.textContent = t;
+  setupTodayDate() {
+    if (this.elements.todayDate) {
+      const today = new Date();
+      const formatted = today.toLocaleDateString('pt-BR', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric' 
+      });
+      this.elements.todayDate.textContent = formatted;
+    }
+  },
+
+  // ========== AUTENTICAÇÃO ==========
+  handleLogin(e) {
+    e.preventDefault();
+    const username = this.elements.loginUser.value.trim();
+    const password = this.elements.loginPass.value;
+    
+    if (!username) {
+      UI.showToast('Digite um usuário', 'error');
+      return;
+    }
+    
+    const result = Auth.login(username, password);
+    
+    if (result.success) {
+      this.state.user = result.user;
+      this.renderView();
+      UI.showToast(`Bem-vindo, ${result.user.displayName}!`, 'success');
+    } else {
+      UI.showToast(result.error, 'error');
+    }
+  },
+
+  handleLogout() {
+    Auth.logout();
+    this.state.user = null;
+    this.elements.authScreen.classList.remove('hidden');
+    this.elements.appScreen.classList.add('hidden');
+    this.elements.loginForm.reset();
+    UI.showToast('Logout realizado com sucesso', 'success');
+  },
+
+  checkSession() {
+    const session = Auth.getCurrentUser();
+    if (session) {
+      this.state.user = session;
+      this.renderView();
+    }
+  },
+
+  // ========== RENDERIZAÇÃO ==========
+  renderView() {
+    this.elements.authScreen.classList.add('hidden');
+    this.elements.appScreen.classList.remove('hidden');
+    this.elements.userDisplay.innerHTML = `<i class="bi bi-person-circle me-1"></i>${this.state.user.displayName}`;
+
+    if (this.state.user.role === 'barbeiro') {
+      this.elements.panelCliente.classList.add('hidden');
+      this.elements.panelBarbeiro.classList.remove('hidden');
+      this.renderBarbeiroPanel();
+    } else {
+      this.elements.panelBarbeiro.classList.add('hidden');
+      this.elements.panelCliente.classList.remove('hidden');
+      this.renderClientePanel();
+    }
+  },
+
+  // ========== PAINEL DO CLIENTE ==========
+  renderClientePanel() {
+    this.updateServiceSelect();
+    this.initCalendar();
+  },
+
+  initCalendar() {
+    Calendar.init((formattedDate) => {
+      this.elements.agData.value = formattedDate;
+      this.validateData();
+    });
+    Calendar.render(this.elements.calGrade, this.elements.calTitulo);
+  },
+
+  changeMonth(diff) {
+    Calendar.changeMonth(diff, this.elements.calGrade, this.elements.calTitulo);
+  },
+
+  updateServiceSelect() {
+    this.state.services = Storage.getServices();
+    
+    if (!this.elements.agServico) return;
+    
+    if (this.state.services.length === 0) {
+      this.elements.agServico.innerHTML = '<option value="">Nenhum serviço disponível</option>';
+      return;
+    }
+    
+    this.elements.agServico.innerHTML = '<option value="">Selecione um serviço</option>' +
+      this.state.services.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  },
+
+  // ========== VALIDAÇÕES ==========
+  validateNome() {
+    const nome = this.elements.agNome.value.trim();
+    if (nome.length < 3) {
+      UI.showFieldError('nome', 'Nome deve ter pelo menos 3 caracteres');
+      return false;
+    }
+    if (nome.length > 50) {
+      UI.showFieldError('nome', 'Nome muito longo (máx. 50 caracteres)');
+      return false;
+    }
+    UI.showFieldError('nome', '');
+    return true;
+  },
+
+  validateWhatsapp() {
+    let whatsapp = this.elements.agWhatsapp.value.replace(/\D/g, '');
+    if (whatsapp.length < 10 || whatsapp.length > 11) {
+      UI.showFieldError('whatsapp', 'WhatsApp inválido (ex: 11999999999)');
+      return false;
+    }
+    UI.showFieldError('whatsapp', '');
+    return true;
+  },
+
+  validateData() {
+    const data = this.elements.agData.value;
+    if (!data) {
+      UI.showFieldError('data', 'Selecione uma data');
+      return false;
+    }
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(data);
+    
+    if (selectedDate < today) {
+      UI.showFieldError('data', 'Não é permitido agendar em datas passadas');
+      return false;
+    }
+    
+    UI.showFieldError('data', '');
+    return true;
+  },
+
+  validateHora() {
+    const hora = this.elements.agHora.value;
+    if (!hora) {
+      UI.showFieldError('hora', 'Selecione um horário');
+      return false;
+    }
+    
+    const hour = parseInt(hora.split(':')[0]);
+    if (hour < 9 || hour > 20) {
+      UI.showFieldError('hora', 'Horário comercial: 09:00 às 20:00');
+      return false;
+    }
+    
+    UI.showFieldError('hora', '');
+    return true;
+  },
+
+  validateServico() {
+    const servicoId = this.elements.agServico.value;
+    if (!servicoId) {
+      UI.showFieldError('servico', 'Selecione um serviço');
+      return false;
+    }
+    UI.showFieldError('servico', '');
+    return true;
+  },
+
+  validateForm() {
+    return this.validateNome() && 
+           this.validateWhatsapp() && 
+           this.validateData() && 
+           this.validateHora() && 
+           this.validateServico();
+  },
+
+  // ========== AGENDAMENTO ==========
+  async handleAppointment(e) {
+    e.preventDefault();
+    
+    if (!this.validateForm()) {
+      UI.showToast('Preencha todos os campos corretamente', 'error');
+      return;
+    }
+    
+    const data = this.elements.agData.value;
+    const hora = this.elements.agHora.value;
+    
+    if (Storage.hasConflict(data, hora)) {
+      UI.showToast('❌ Este horário já está ocupado! Escolha outro.', 'error');
+      return;
+    }
+    
+    const servicoId = parseInt(this.elements.agServico.value);
+    const servico = this.state.services.find(s => s.id === servicoId);
+    
+    const appointment = {
+      cliente: this.elements.agNome.value.trim(),
+      whatsapp: this.elements.agWhatsapp.value.trim(),
+      servicoId: servicoId,
+      servicoNome: servico ? servico.name : 'Serviço',
+      data: data,
+      hora: hora,
+      status: 'agendado'
+    };
+    
+    Storage.addAppointment(appointment);
+    this.state.appointments = Storage.getAppointments();
+    
+    UI.showToast(`✅ Agendamento confirmado para ${data} às ${hora}!`, 'success');
+    this.elements.formAgendamento.reset();
+    Calendar.resetSelection();
+    this.renderCalendarioAtualizado();
+    
+    // Se for barbeiro, atualiza a lista
+    if (this.state.user.role === 'barbeiro') {
+      this.renderTodayAppointments();
+    }
+  },
+
+  renderCalendarioAtualizado() {
+    Calendar.render(this.elements.calGrade, this.elements.calTitulo);
+  },
+
+  // ========== PAINEL DO BARBEIRO ==========
+  renderBarbeiroPanel() {
+    this.renderServicesList();
+    this.renderTodayAppointments();
+  },
+
+  renderServicesList() {
+    if (!this.elements.listaServicos) return;
+    
+    this.state.services = Storage.getServices();
+    
+    if (this.state.services.length === 0) {
+      this.elements.listaServicos.innerHTML = '<div class="text-center text-secondary py-3">Nenhum serviço cadastrado</div>';
+      return;
+    }
+    
+    this.elements.listaServicos.innerHTML = this.state.services.map(service => `
+      <div class="service-item">
+        <span><i class="bi bi-scissors me-2"></i>${this.escapeHtml(service.name)}</span>
+        <button onclick="window.appDeleteService(${service.id})" class="btn-delete-service" title="Remover serviço">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    `).join('');
+    
+    window.appDeleteService = (id) => this.deleteService(id);
+  },
+
+  deleteService(id) {
+    if (confirm('Tem certeza que deseja remover este serviço?')) {
+      Storage.removeService(id);
+      this.state.services = Storage.getServices();
+      this.renderServicesList();
+      this.updateServiceSelect();
+      UI.showToast('Serviço removido com sucesso', 'success');
+    }
+  },
+
+  handleAddService(e) {
+    e.preventDefault();
+    const serviceName = this.elements.svNome.value.trim();
+    
+    if (!serviceName) {
+      UI.showToast('Digite o nome do serviço', 'error');
+      return;
+    }
+    
+    if (serviceName.length < 3) {
+      UI.showToast('Nome do serviço deve ter pelo menos 3 caracteres', 'error');
+      return;
+    }
+    
+    Storage.addService(serviceName);
+    this.state.services = Storage.getServices();
+    this.renderServicesList();
+    this.updateServiceSelect();
+    this.elements.svNome.value = '';
+    UI.showToast(`Serviço "${serviceName}" adicionado!`, 'success');
+  },
+
+  renderTodayAppointments() {
+    if (!this.elements.tbodyAgendamentos) return;
+    
+    const today = new Date().toISOString().split('T')[0];
+    const todayAppointments = this.state.appointments.filter(a => a.data === today);
+    
+    if (todayAppointments.length === 0) {
+      this.elements.tbodyAgendamentos.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center text-secondary py-4">
+            <i class="bi bi-inbox me-2"></i>Nenhum agendamento para hoje
+          </td>
+        </tr>
+      `;
+      return;
+    }
+    
+    todayAppointments.sort((a, b) => a.hora.localeCompare(b.hora));
+    
+    this.elements.tbodyAgendamentos.innerHTML = todayAppointments.map(app => `
+      <tr>
+        <td><strong>${this.escapeHtml(app.hora)}</strong></td>
+        <td>${this.escapeHtml(app.cliente)}</td>
+        <td><i class="bi bi-scissors me-1"></i>${this.escapeHtml(app.servicoNome)}</td>
+        <td><i class="bi bi-whatsapp me-1"></i>${this.escapeHtml(app.whatsapp)}</td>
+        <td>
+          <button onclick="window.appCancelAppointment(${app.id})" class="btn-cancel" title="Cancelar agendamento">
+            <i class="bi bi-x-circle"></i> Cancelar
+          </button>
+        </td>
+      </tr>
+    `).join('');
+    
+    window.appCancelAppointment = (id) => this.cancelAppointment(id);
+  },
+
+  cancelAppointment(id) {
+    if (confirm('Tem certeza que deseja cancelar este agendamento?')) {
+      Storage.removeAppointment(id);
+      this.state.appointments = Storage.getAppointments();
+      this.renderTodayAppointments();
+      UI.showToast('Agendamento cancelado', 'success');
+    }
+  },
+
+  escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
     return div.innerHTML;
   }
+};
 
-  /* ——— Calendário cliente ——— */
-  var calTitulo = document.getElementById("cal-titulo-mes");
-  var calGrade = document.getElementById("cal-grade");
-  var calMesAnt = document.getElementById("cal-mes-ant");
-  var calProxMes = document.getElementById("cal-prox-mes");
-  var mesCal = new Date().getMonth();
-  var anoCal = new Date().getFullYear();
-
-  function diasComEventoNoMes(y, m) {
-    var set = {};
-    getAgendamentos().forEach(function (a) {
-      var d = new Date(a.datetime);
-      if (d.getFullYear() === y && d.getMonth() === m) {
-        set[d.getDate()] = true;
-      }
-    });
-    return set;
-  }
-
-  function renderCalendario() {
-    var hoje = new Date();
-    var primeiro = new Date(anoCal, mesCal, 1);
-    var ultimoDia = new Date(anoCal, mesCal + 1, 0).getDate();
-    var inicioSemana = primeiro.getDay();
-    calTitulo.textContent = primeiro.toLocaleDateString("pt-BR", {
-      month: "long",
-      year: "numeric",
-    });
-    calGrade.innerHTML = "";
-    var marcacoes = diasComEventoNoMes(anoCal, mesCal);
-
-    for (var i = 0; i < inicioSemana; i++) {
-      calGrade.appendChild(celulaVaziaCal());
-    }
-
-    for (var dia = 1; dia < ultimoDia; dia++) {
-      var ehHoje =
-        dia === hoje.getDate() &&
-        mesCal === hoje.getMonth() &&
-        anoCal === hoje.getFullYear();
-      var y = anoCal;
-      var m = mesCal;
-      var tem = !!marcacoes[dia];
-      calGrade.appendChild(diaCel(dia, false, ehHoje, tem, y, m));
-    }
-  }
-
-  function celulaVaziaCal() {
-    var btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "cal-dia fora";
-    btn.disabled = true;
-    btn.setAttribute("aria-hidden", "true");
-    return btn;
-  }
-
-  function diaCel(n, fora, hoje, temEvento, y, m) {
-    var btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "cal-dia";
-    btn.textContent = String(n);
-    if (fora) {
-      btn.classList.add("fora");
-      btn.disabled = true;
-    } else {
-      if (hoje) btn.classList.add("hoje");
-      if (temEvento) btn.classList.add("tem-evento");
-      btn.addEventListener("click", function () {
-        var mm = String(m + 1).padStart(2, "0");
-        var dd = String(n).padStart(2, "0");
-        agData.value = y + "-" + mm + "-" + dd;
-      });
-    }
-    return btn;
-  }
-
-  calMesAnt.addEventListener("click", function () {
-    mesCal++;
-    if (mesCal > 11) {
-      mesCal = 0;
-      anoCal++;
-    }
-    renderCalendario();
-  });
-  calProxMes.addEventListener("click", function () {
-    mesCal--;
-    if (mesCal < 0) {
-      mesCal = 11;
-      anoCal--;
-    }
-    renderCalendario();
-  });
-
-  /* ——— Início ——— */
-  var h = new Date();
-  agData.value = h.getFullYear() + "-" + String(h.getMonth() + 1).padStart(2, "0") + "-" + String(h.getDate()).padStart(2, "0");
-  agHora.value = "09:00";
-
-  renderListaServicos();
-  popularSelectServicos();
-  renderCalendario();
-})();
+// Inicializar aplicação
+App.init();

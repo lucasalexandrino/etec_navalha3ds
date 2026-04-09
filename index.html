@@ -1,103 +1,274 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Agenda da Barbearia</title>
-  <link rel="stylesheet" href="css/estilo.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Navalha Pro — Gestão de Barbearia</title>
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <!-- CSS Customizado -->
+  <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
-  <header class="topo">
-    <h1>Navalha — Agenda</h1>
-    <nav class="papeis" role="tablist">
-      <button type="button" class="papel ativo" data-papel="cliente" role="tab" aria-selected="true">Cliente</button>
-      <button type="button" class="papel" data-papel="barbeiro" role="tab" aria-selected="false">Barbeiro</button>
+
+<body class="bg-dark">
+  <!-- TELA DE LOGIN -->
+  <div id="auth-screen" class="auth-container min-vh-100 d-flex align-items-center justify-content-center">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-11 col-sm-10 col-md-8 col-lg-5 col-xl-4">
+          <form id="login-form" class="card border-0 shadow-lg">
+            <div class="card-body p-4 p-md-5 text-center">
+              <div class="mb-4">
+                <div class="logo-icon mb-3">
+                  <i class="bi bi-scissors fs-1 text-warning"></i>
+                </div>
+                <h1 class="display-6 fw-bold mb-2">Navalha Pro</h1>
+                <p class="text-secondary mb-0">Acesse sua conta para continuar</p>
+              </div>
+              
+              <div class="form-group mb-3 text-start">
+                <label for="login-user" class="form-label small fw-semibold">Usuário</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-dark border-secondary"><i class="bi bi-person"></i></span>
+                  <input type="text" id="login-user" class="form-control bg-dark border-secondary text-white" 
+                         placeholder="admin ou cliente" autocomplete="off" required />
+                </div>
+              </div>
+              
+              <div class="form-group mb-4 text-start">
+                <label for="login-pass" class="form-label small fw-semibold">Senha</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-dark border-secondary"><i class="bi bi-lock"></i></span>
+                  <input type="password" id="login-pass" class="form-control bg-dark border-secondary text-white" 
+                         value="123456" required />
+                </div>
+              </div>
+              
+              <button type="submit" class="btn btn-warning w-100 py-2 fw-bold">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
+              </button>
+              
+              <div class="alert alert-secondary mt-4 p-2 small">
+                <i class="bi bi-info-circle"></i> Dica: <strong>admin</strong> (barbeiro) ou <strong>cliente</strong> — senha: 123456
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP PRINCIPAL -->
+  <div id="app" class="hidden">
+    <!-- HEADER -->
+    <nav class="navbar navbar-dark bg-dark border-bottom border-warning sticky-top">
+      <div class="container-fluid px-3 px-md-4">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-scissors fs-3 text-warning"></i>
+          <h1 class="navbar-brand fs-4 fw-bold mb-0">Navalha Pro</h1>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <span class="text-warning small fw-semibold" id="user-display">
+            <i class="bi bi-person-circle me-1"></i>Usuário
+          </span>
+          <button id="btn-logout" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-box-arrow-right"></i> Sair
+          </button>
+        </div>
+      </div>
     </nav>
-  </header>
 
-  <main>
-    <!-- CLIENTE -->
-    <section id="painel-cliente" class="painel ativo" aria-label="Área do cliente">
-      <div class="grid-cliente">
-        <div class="card">
-          <h2>Calendário</h2>
-          <div class="cal-nav">
-            <button type="button" id="cal-mes-ant" aria-label="Mês anterior">◀</button>
-            <span id="cal-titulo-mes"></span>
-            <button type="button" id="cal-prox-mes" aria-label="Próximo mês">▶</button>
+    <main class="container-fluid px-3 px-md-4 py-4">
+      <!-- PAINEL DO CLIENTE -->
+      <section id="painel-cliente" class="painel hidden">
+        <div class="row g-4">
+          <!-- Calendário -->
+          <div class="col-12 col-lg-6">
+            <div class="card bg-dark border-secondary shadow-lg">
+              <div class="card-header bg-dark border-secondary">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                  <h5 class="mb-0 text-warning">
+                    <i class="bi bi-calendar3 me-2"></i>Selecione uma Data
+                  </h5>
+                  <div class="btn-group btn-group-sm">
+                    <button type="button" id="cal-prev" class="btn btn-outline-secondary">
+                      <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <span id="cal-titulo-mes" class="btn btn-secondary disabled">Janeiro 2026</span>
+                    <button type="button" id="cal-next" class="btn btn-outline-secondary">
+                      <i class="bi bi-chevron-right"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="calendar-wrapper">
+                  <div class="calendar-weekdays row g-0 text-center mb-2">
+                    <div class="col text-warning small fw-semibold">Dom</div>
+                    <div class="col text-warning small fw-semibold">Seg</div>
+                    <div class="col text-warning small fw-semibold">Ter</div>
+                    <div class="col text-warning small fw-semibold">Qua</div>
+                    <div class="col text-warning small fw-semibold">Qui</div>
+                    <div class="col text-warning small fw-semibold">Sex</div>
+                    <div class="col text-warning small fw-semibold">Sáb</div>
+                  </div>
+                  <div id="cal-grade" class="calendar-days"></div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="cal-semanas">
-            <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
-          </div>
-          <div id="cal-grade" class="cal-grade"></div>
-        </div>
 
-        <div class="card">
-          <h2>Novo agendamento</h2>
-          <form id="form-agendamento" class="form" novalidate>
-            <label>
-              Nome
-              <input type="text" id="ag-nome" name="nome" autocomplete="name" />
-            </label>
-            <label>
-              WhatsApp
-              <input type="tel" id="ag-whatsapp" name="whatsapp" inputmode="numeric" />
-            </label>
-            <label>
-              Serviço
-              <select id="ag-servico" name="servico"></select>
-            </label>
-            <label>
-              Data
-              <input type="date" id="ag-data" name="data" />
-            </label>
-            <label>
-              Horário
-              <input type="time" id="ag-hora" name="hora" />
-            </label>
-            <button type="submit" class="btn-prim">Confirmar agendamento</button>
-          </form>
-        </div>
-      </div>
-    </section>
-
-    <!-- BARBEIRO -->
-    <section id="painel-barbeiro" class="painel" aria-label="Área do barbeiro" hidden>
-      <div class="grid-barbeiro">
-        <div class="card">
-          <h2>Cadastrar serviço</h2>
-          <form id="form-servico" class="form" novalidate>
-            <label>
-              Nome do serviço
-              <input type="text" id="sv-nome" />
-            </label>
-            <button type="submit" class="btn-prim">Adicionar</button>
-          </form>
-          <h3 class="subtitulo">Serviços cadastrados</h3>
-          <ul id="lista-servicos" class="lista-servicos"></ul>
-        </div>
-
-        <div class="card card-largo">
-          <h2>Agendamentos</h2>
-          <div class="tabela-wrap">
-            <table class="tabela-ag">
-              <thead>
-                <tr>
-                  <th>Data / hora</th>
-                  <th>Cliente</th>
-                  <th>WhatsApp</th>
-                  <th>Serviço</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="tbody-agendamentos"></tbody>
-            </table>
+          <!-- Formulário de Agendamento -->
+          <div class="col-12 col-lg-6">
+            <div class="card bg-dark border-secondary shadow-lg">
+              <div class="card-header bg-dark border-secondary">
+                <h5 class="mb-0 text-warning">
+                  <i class="bi bi-calendar-plus me-2"></i>Agendar Serviço
+                </h5>
+              </div>
+              <div class="card-body">
+                <form id="form-agendamento" class="needs-validation" novalidate>
+                  <div class="mb-3">
+                    <label for="ag-nome" class="form-label small fw-semibold">
+                      <i class="bi bi-person me-1"></i>Nome completo *
+                    </label>
+                    <input type="text" id="ag-nome" class="form-control bg-dark border-secondary text-white" 
+                           placeholder="Digite seu nome" required />
+                    <div class="invalid-feedback" id="error-nome"></div>
+                  </div>
+                  
+                  <div class="mb-3">
+                    <label for="ag-whatsapp" class="form-label small fw-semibold">
+                      <i class="bi bi-whatsapp me-1"></i>WhatsApp *
+                    </label>
+                    <input type="tel" id="ag-whatsapp" class="form-control bg-dark border-secondary text-white" 
+                           placeholder="(00) 00000-0000" required />
+                    <div class="invalid-feedback" id="error-whatsapp"></div>
+                  </div>
+                  
+                  <div class="mb-3">
+                    <label for="ag-servico" class="form-label small fw-semibold">
+                      <i class="bi bi-scissors me-1"></i>Serviço *
+                    </label>
+                    <select id="ag-servico" class="form-select bg-dark border-secondary text-white" required>
+                      <option value="">Carregando serviços...</option>
+                    </select>
+                    <div class="invalid-feedback" id="error-servico"></div>
+                  </div>
+                  
+                  <div class="row g-3">
+                    <div class="col-12 col-sm-6">
+                      <label for="ag-data" class="form-label small fw-semibold">
+                        <i class="bi bi-calendar-date me-1"></i>Data *
+                      </label>
+                      <input type="date" id="ag-data" class="form-control bg-dark border-secondary text-white" required />
+                      <div class="invalid-feedback" id="error-data"></div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                      <label for="ag-hora" class="form-label small fw-semibold">
+                        <i class="bi bi-clock me-1"></i>Horário *
+                      </label>
+                      <input type="time" id="ag-hora" class="form-control bg-dark border-secondary text-white" required />
+                      <div class="invalid-feedback" id="error-hora"></div>
+                    </div>
+                  </div>
+                  
+                  <button type="submit" class="btn btn-warning w-100 mt-4 py-2 fw-bold">
+                    <i class="bi bi-check-circle me-2"></i>Confirmar Horário
+                  </button>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
-  </main>
+      </section>
 
-  <script src="js/app.js"></script>
+      <!-- PAINEL DO BARBEIRO -->
+      <section id="painel-barbeiro" class="painel hidden">
+        <div class="row g-4">
+          <!-- Configurações de Serviços -->
+          <div class="col-12 col-lg-5">
+            <div class="card bg-dark border-secondary shadow-lg">
+              <div class="card-header bg-dark border-secondary">
+                <h5 class="mb-0 text-warning">
+                  <i class="bi bi-gear me-2"></i>Configurações
+                </h5>
+              </div>
+              <div class="card-body">
+                <form id="form-servico">
+                  <div class="mb-3">
+                    <label for="sv-nome" class="form-label small fw-semibold">
+                      <i class="bi bi-plus-circle me-1"></i>Novo Serviço
+                    </label>
+                    <div class="input-group">
+                      <input type="text" id="sv-nome" class="form-control bg-dark border-secondary text-white" 
+                             placeholder="Ex: Corte Degradê" required />
+                      <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-plus-lg"></i> Adicionar
+                      </button>
+                    </div>
+                  </div>
+                </form>
+                
+                <hr class="border-secondary">
+                
+                <label class="form-label small fw-semibold">
+                  <i class="bi bi-list-ul me-1"></i>Serviços disponíveis
+                </label>
+                <div id="lista-servicos" class="services-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Agenda do Dia -->
+          <div class="col-12 col-lg-7">
+            <div class="card bg-dark border-secondary shadow-lg">
+              <div class="card-header bg-dark border-secondary d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-warning">
+                  <i class="bi bi-calendar-day me-2"></i>Agenda de Hoje
+                </h5>
+                <span id="today-date" class="badge bg-secondary"></span>
+              </div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-dark table-hover mb-0">
+                    <thead class="table-secondary">
+                      <tr>
+                        <th><i class="bi bi-clock"></i> Horário</th>
+                        <th><i class="bi bi-person"></i> Cliente</th>
+                        <th><i class="bi bi-scissors"></i> Serviço</th>
+                        <th><i class="bi bi-whatsapp"></i> WhatsApp</th>
+                        <th><i class="bi bi-trash"></i> Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbody-agendamentos">
+                      <tr class="text-center text-secondary">
+                        <td colspan="5">
+                          <i class="bi bi-inbox me-2"></i>Nenhum agendamento para hoje
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast-container" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100"></div>
+  
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/app.js" type="module"></script>
 </body>
+
 </html>
