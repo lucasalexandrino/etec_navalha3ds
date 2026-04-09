@@ -52,6 +52,14 @@
   var cabecalho               = document.querySelector(".cabecalho");
   var logoutContainer         = document.querySelector(".cabecalho-logout");
 
+  var erroNome                  = document.getElementById("erroNome");
+  var erroWhatsapp              = document.getElementById("erroWhatsapp");
+  var erroServico               = document.getElementById("erroServico");
+  var erroData                  = document.getElementById("erroData");
+  var erroHorario               = document.getElementById("erroHorario");
+  var erroNomeServico           = document.getElementById("erroNomeServico");
+  var erroPrecoServico          = document.getElementById("erroPrecoServico");
+
   /* ══════════════════════════════════════
      CONSTANTES
   ══════════════════════════════════════ */
@@ -115,6 +123,143 @@
     var d = hoje();
     d.setDate(d.getDate() + estado.offsetDias);
     return d;
+  }
+
+  /* ══════════════════════════════════════
+     VALIDAÇÃO DE FORMULÁRIOS
+  ══════════════════════════════════════ */
+  function mostrarErroCampo(elementoErro, mensagem) {
+    elementoErro.textContent = mensagem;
+    elementoErro.hidden = false;
+  }
+
+  function esconderErroCampo(elementoErro) {
+    elementoErro.hidden = true;
+  }
+
+  function setCampoInvalido(campo, invalido) {
+    if (invalido) {
+      campo.classList.add("campo-invalido");
+      campo.setAttribute("aria-invalid", "true");
+    } else {
+      campo.classList.remove("campo-invalido");
+      campo.removeAttribute("aria-invalid");
+    }
+  }
+
+  function validarNome() {
+    var valor = campoNomeCliente.value.trim();
+    var invalido = !valor || valor.length < 2 || valor.length > 60 || !/^[a-zA-ZÀ-ÿÇç\s]+$/.test(valor);
+    setCampoInvalido(campoNomeCliente, invalido);
+    if (invalido) {
+      mostrarErroCampo(erroNome, "Nome obrigatório, 2-60 caracteres, apenas letras e espaços.");
+    } else {
+      esconderErroCampo(erroNome);
+    }
+    return !invalido;
+  }
+
+  function validarWhatsapp() {
+    var valor = campoWhatsapp.value.replace(/\D/g, "");
+    var invalido = !valor || valor.length < 10 || valor.length > 11;
+    setCampoInvalido(campoWhatsapp, invalido);
+    if (invalido) {
+      mostrarErroCampo(erroWhatsapp, "WhatsApp obrigatório, 10-11 dígitos.");
+    } else {
+      esconderErroCampo(erroWhatsapp);
+    }
+    return !invalido;
+  }
+
+  function aplicarMascaraWhatsapp() {
+    var valor = campoWhatsapp.value.replace(/\D/g, "");
+    if (valor.length <= 11) {
+      if (valor.length <= 2) {
+        campoWhatsapp.value = valor;
+      } else if (valor.length <= 6) {
+        campoWhatsapp.value = "(" + valor.slice(0, 2) + ") " + valor.slice(2);
+      } else if (valor.length <= 10) {
+        campoWhatsapp.value = "(" + valor.slice(0, 2) + ") " + valor.slice(2, 6) + "-" + valor.slice(6);
+      } else {
+        campoWhatsapp.value = "(" + valor.slice(0, 2) + ") " + valor.slice(2, 7) + "-" + valor.slice(7, 11);
+      }
+    }
+  }
+
+  function validarServico() {
+    var servicos = S.listar();
+    var invalido = servicos.length > 0 && !estado.idServico;
+    if (invalido) {
+      mostrarErroCampo(erroServico, "Selecione um serviço.");
+    } else {
+      esconderErroCampo(erroServico);
+    }
+    return !invalido;
+  }
+
+  function validarData() {
+    var invalido = !estado.diaSelecionado || new Date(estado.diaSelecionado) < hoje();
+    if (invalido) {
+      mostrarErroCampo(erroData, "Selecione uma data futura.");
+    } else {
+      esconderErroCampo(erroData);
+    }
+    return !invalido;
+  }
+
+  function validarHorario() {
+    var invalido = !estado.horario;
+    if (invalido) {
+      mostrarErroCampo(erroHorario, "Selecione um horário.");
+    } else {
+      esconderErroCampo(erroHorario);
+    }
+    return !invalido;
+  }
+
+  function validarConflito() {
+    if (!estado.diaSelecionado || !estado.horario) return true;
+    var dataHoraIso = A.dataHoraLocalParaIso(estado.diaSelecionado, estado.horario);
+    var conflito = A.listar().some(function (ag) {
+      return ag.dataHora === dataHoraIso && ag.profissional === estado.idProfissional;
+    });
+    if (conflito) {
+      mostrarErroCampo(erroHorario, "Este horário já está reservado. Escolha outro.");
+      return false;
+    } else {
+      esconderErroCampo(erroHorario);
+      return true;
+    }
+  }
+
+  function validarNomeServico() {
+    var valor = campoNomeServico.value.trim();
+    var servicos = S.listar();
+    var duplicado = servicos.some(function (s) {
+      return s.nome.toLowerCase() === valor.toLowerCase();
+    });
+    var invalido = !valor || valor.length < 2 || valor.length > 50 || duplicado;
+    setCampoInvalido(campoNomeServico, invalido);
+    if (invalido) {
+      var msg = "Nome obrigatório, 2-50 caracteres";
+      if (duplicado) msg += ", nome já existe.";
+      mostrarErroCampo(erroNomeServico, msg);
+    } else {
+      esconderErroCampo(erroNomeServico);
+    }
+    return !invalido;
+  }
+
+  function validarPrecoServico() {
+    var valor = parseFloat(campoPrecoServico.value);
+    var invalido = isNaN(valor) || valor <= 0 || valor > 9999.99;
+    setCampoInvalido(campoPrecoServico, invalido);
+    if (invalido) {
+      mostrarErroCampo(erroPrecoServico, "Preço obrigatório, maior que zero, máximo R$ 9.999,99.");
+    } else {
+      esconderErroCampo(erroPrecoServico);
+    }
+    return !invalido;
   }
 
   /* ══════════════════════════════════════
@@ -340,44 +485,49 @@
   }
 
   function configurarBotaoConfirmar() {
+    /* máscara aplicada ao digitar — validação só ocorre ao tentar confirmar */
+    campoWhatsapp.addEventListener("input", aplicarMascaraWhatsapp);
+
     botaoConfirmar.addEventListener("click", function () {
       limparMensagens();
 
-      var nome     = (campoNomeCliente.value || "").trim();
-      var whatsapp = (campoWhatsapp.value    || "").trim();
+      /* Roda todas as validações SEM curto-circuito para mostrar todos os erros de uma vez */
+      var r1 = validarNome();
+      var r2 = validarWhatsapp();
+      var r3 = validarServico();
+      var r4 = validarData();
+      var r5 = validarHorario();
+      var r6 = validarConflito();
+      var valido = r1 && r2 && r3 && r4 && r5 && r6;
+      if (!valido) return;
 
-      if (!nome)                 { mostrarErro("Preencha seu nome antes de confirmar.");      campoNomeCliente.focus(); return; }
-      if (!whatsapp)             { mostrarErro("Preencha seu WhatsApp antes de confirmar."); campoWhatsapp.focus();    return; }
-      if (!estado.diaSelecionado){ mostrarErro("Selecione um dia no calendário.");                                     return; }
-      if (!estado.idServico)     { mostrarErro("Escolha um serviço.");                                                 return; }
-      if (!estado.horario)       { mostrarErro("Escolha um horário disponível.");                                      return; }
-
-      var servico     = S.obterPorId(estado.idServico);
-      var prof        = PROFISSIONAIS.find(function (p) { return p.id === estado.idProfissional; });
+      var nome     = campoNomeCliente.value.trim();
+      var whatsapp = campoWhatsapp.value.replace(/\D/g, "");
+      var servico  = S.obterPorId(estado.idServico);
       var dataHoraIso = A.dataHoraLocalParaIso(estado.diaSelecionado, estado.horario);
-
-      if (!dataHoraIso) { mostrarErro("Data ou horário inválido. Tente novamente."); return; }
 
       A.adicionar({
         nomeCliente:  nome,
         whatsapp:     whatsapp,
         dataHora:     dataHoraIso,
         idServico:    estado.idServico,
-        nomeServico:  servico  ? servico.nome  : "",
-        precoServico: servico  ? servico.preco : 0,
-        profissional: prof     ? prof.nome     : "",
+        nomeServico:  servico.nome,
+        precoServico: servico.preco,
+        profissional: estado.idProfissional,
       });
 
-      /* limpa formulário e estado de seleção */
-      campoNomeCliente.value = "";
-      campoWhatsapp.value    = "";
-      estado.horario         = null;
-      estado.diaSelecionado  = null;
+      mostrarSucesso();
 
+      // Resetar estado
+      campoNomeCliente.value = "";
+      campoWhatsapp.value = "";
+      estado.diaSelecionado = null;
+      estado.idServico = null;
+      estado.horario = null;
       renderizarSemana();
+      renderizarServicosChips();
       renderizarHorarios();
       atualizarBotaoConfirmar();
-      mostrarSucesso();
     });
   }
 
@@ -409,10 +559,15 @@
      BARBEIRO — serviços
   ══════════════════════════════════════ */
   function configurarFormularioServico() {
+    campoNomeServico.addEventListener("blur", validarNomeServico);
+    campoPrecoServico.addEventListener("blur", validarPrecoServico);
+
     botaoAdicionarServico.addEventListener("click", function () {
-      var nome  = (campoNomeServico.value  || "").trim();
-      var preco = parseFloat(campoPrecoServico.value) || 0;
-      if (!nome) { campoNomeServico.focus(); return; }
+      var valido = validarNomeServico() && validarPrecoServico();
+      if (!valido) return;
+
+      var nome  = campoNomeServico.value.trim();
+      var preco = parseFloat(campoPrecoServico.value);
       S.adicionar(nome, preco);
       campoNomeServico.value  = "";
       campoPrecoServico.value = "";

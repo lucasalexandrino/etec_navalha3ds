@@ -61,6 +61,7 @@
               <label for="campoNomeCliente" class="rotulo">Nome</label>
               <input type="text" id="campoNomeCliente" name="nome"
                      autocomplete="name" placeholder="Seu nome completo" />
+              <span id="erroNome" class="erro-campo" hidden></span>
             </div>
             <div class="campo-formulario">
               <label for="campoWhatsapp" class="rotulo">WhatsApp</label>
@@ -69,6 +70,7 @@
                      placeholder="Ex.: 14999990000"
                      aria-describedby="ajudaWhatsapp" />
               <p id="ajudaWhatsapp" class="texto-ajuda texto-ajuda-campo">Somente números, com DDD.</p>
+              <span id="erroWhatsapp" class="erro-campo" hidden></span>
             </div>
           </div>
         </div>
@@ -92,6 +94,7 @@
           <div class="semana-nav" role="group" aria-label="Selecionar dia">
             <div class="dias-semana" id="diasSemana"></div>
           </div>
+          <span id="erroData" class="erro-campo" hidden></span>
 
           <!-- serviço -->
           <div class="secao-agendamento">
@@ -103,6 +106,7 @@
               <span id="precoNomeServico"></span>
               <strong id="precoValor"></strong>
             </div>
+            <span id="erroServico" class="erro-campo" hidden></span>
           </div>
 
           <!-- profissional -->
@@ -139,6 +143,7 @@
                    role="group" aria-label="Horários da tarde"></div>
             </div>
           </div>
+          <span id="erroHorario" class="erro-campo" hidden></span>
 
           <p id="mensagemErroAgendamento"   class="mensagem mensagem-erro"
              role="alert"  aria-live="assertive" hidden></p>
@@ -165,11 +170,13 @@
               <label for="campoNomeServico" class="rotulo">Nome do serviço</label>
               <input type="text" id="campoNomeServico" autocomplete="off"
                      placeholder="Ex.: Corte simples" />
+              <span id="erroNomeServico" class="erro-campo" hidden></span>
             </div>
             <div class="campo-formulario">
               <label for="campoPrecoServico" class="rotulo">Preço (R$)</label>
               <input type="number" id="campoPrecoServico" min="0" step="0.01"
                      placeholder="Ex.: 35.00" />
+              <span id="erroPrecoServico" class="erro-campo" hidden></span>
             </div>
             <button type="button" id="botaoAdicionarServico"
                     class="botao-primario">Adicionar serviço</button>

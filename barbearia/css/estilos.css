@@ -300,6 +300,7 @@ main:focus { outline: none; }
   animation: fadeIn .2s ease;
 }
 .preco-destaque strong { font-size: 1rem; font-weight: 700; color: #a5d3ff; }
+.preco-destaque[hidden] { display: none !important; }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-4px); }
@@ -495,4 +496,41 @@ main:focus { outline: none; }
 .botao-logout:focus-visible {
   outline: 3px solid var(--danger);
   outline-offset: 2px;
+}
+
+/* ════════════════════════════════════════
+   VALIDAÇÃO DE FORMULÁRIOS
+════════════════════════════════════════ */
+.campo-invalido {
+  border-color: var(--danger) !important;
+  box-shadow: 0 0 0 3px rgba(248, 81, 73, 0.2) !important;
+}
+
+.erro-campo {
+  font-size: 0.78rem;
+  color: var(--danger);
+  margin: 0.25rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* hidden sempre vence, mesmo com display:flex declarado na classe */
+.erro-campo[hidden] {
+  display: none !important;
+}
+
+.erro-campo::before {
+  content: "!";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
 }
