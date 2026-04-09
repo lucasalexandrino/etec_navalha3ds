@@ -44,6 +44,14 @@
   var listaServicosEl         = document.getElementById("listaServicos");
   var corpoTabela             = document.getElementById("corpoTabelaAgendamentos");
 
+  var telaLogin               = document.getElementById("telaLogin");
+  var formLogin               = document.getElementById("formLogin");
+  var campoUsuario            = document.getElementById("campoUsuario");
+  var campoSenha              = document.getElementById("campoSenha");
+  var mensagemErroLogin       = document.getElementById("mensagemErroLogin");
+  var cabecalho               = document.querySelector(".cabecalho");
+  var logoutContainer         = document.querySelector(".cabecalho-logout");
+
   /* ══════════════════════════════════════
      CONSTANTES
   ══════════════════════════════════════ */
@@ -548,22 +556,83 @@
   }
 
   /* ══════════════════════════════════════
-     INICIALIZAÇÃO
+     AUTENTICAÇÃO
   ══════════════════════════════════════ */
-  function iniciar() {
-    painelCliente.setAttribute("aria-hidden",  "false");
-    painelBarbeiro.setAttribute("aria-hidden", "true");
+  function configurarLogin() {
+    formLogin.addEventListener("submit", function (e) {
+      e.preventDefault();
+      mensagemErroLogin.hidden = true;
+      var usuario = campoUsuario.value.trim();
+      var senha = campoSenha.value.trim();
+      var papel = fazerLogin(usuario, senha);
+      if (papel) {
+        aplicarPapel(papel);
+      } else {
+        mensagemErroLogin.textContent = "Usuário ou senha incorretos.";
+        mensagemErroLogin.hidden = false;
+        campoUsuario.focus();
+      }
+    });
+  }
 
-    configurarAbas();
-    configurarNavegacaoSemana();
-    configurarFiltrosTurno();
-    configurarFormularioServico();
-    configurarBotaoConfirmar();
+  function aplicarPapel(papel) {
+    telaLogin.style.display = "none";
+    cabecalho.style.display = "flex";
+    document.querySelector("main").style.display = "block";
 
+    // Esconder abas
+    document.querySelector(".abas-perfil").style.display = "none";
+
+    // Mostrar painel correspondente
+    if (papel === "cliente") {
+      painelCliente.classList.add("painel-ativo");
+      painelBarbeiro.classList.remove("painel-ativo");
+      painelCliente.setAttribute("aria-hidden", "false");
+      painelBarbeiro.setAttribute("aria-hidden", "true");
+    } else if (papel === "barbeiro") {
+      painelBarbeiro.classList.add("painel-ativo");
+      painelCliente.classList.remove("painel-ativo");
+      painelBarbeiro.setAttribute("aria-hidden", "false");
+      painelCliente.setAttribute("aria-hidden", "true");
+    }
+
+    // Adicionar botão de logout
+    var btnLogout = document.createElement("button");
+    btnLogout.type = "button";
+    btnLogout.className = "botao-logout";
+    btnLogout.textContent = "Sair (" + papel + ")";
+    btnLogout.setAttribute("aria-label", "Fazer logout");
+    btnLogout.addEventListener("click", function () {
+      fazerLogout();
+      location.reload();
+    });
+    logoutContainer.appendChild(btnLogout);
+
+    // Renderizar conteúdo
     renderizarSemana();
     renderizarServicosChips();
     renderizarProfissionais();
     renderizarHorarios();
+    renderizarListaServicos();
+    renderizarTabelaAgendamentos();
+  }
+  function iniciar() {
+    var papel = verificarSessao();
+    if (papel) {
+      aplicarPapel(papel);
+    } else {
+      telaLogin.style.display = "flex";
+      cabecalho.style.display = "none";
+      document.querySelector("main").style.display = "none";
+      configurarLogin();
+      campoUsuario.focus();
+    }
+
+    // Configurações gerais (sempre)
+    configurarNavegacaoSemana();
+    configurarFiltrosTurno();
+    configurarFormularioServico();
+    configurarBotaoConfirmar();
   }
 
   iniciar();

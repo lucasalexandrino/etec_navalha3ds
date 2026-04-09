@@ -435,3 +435,64 @@ main:focus { outline: none; }
 }
 .tabela-agendamentos td { color: var(--text); }
 .tabela-preco { color: var(--azul-claro); font-weight: 700; }
+
+/* ════════════════════════════════════════
+   TELA DE LOGIN
+════════════════════════════════════════ */
+.tela-login {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.login-container {
+  background: var(--card);
+  border: 1px solid var(--card-borda);
+  border-radius: var(--radius);
+  padding: 2rem;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: var(--sombra);
+}
+
+.login-container h1 {
+  color: var(--text);
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.aviso-didatico {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+/* Botão de logout no cabeçalho */
+.botao-logout {
+  background: none;
+  border: none;
+  color: var(--text-sec);
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--radius);
+}
+
+.botao-logout:hover {
+  background: var(--danger-fundo);
+  color: var(--danger);
+}
+
+.botao-logout:focus-visible {
+  outline: 3px solid var(--danger);
+  outline-offset: 2px;
+}
