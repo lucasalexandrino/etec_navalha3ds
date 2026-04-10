@@ -19,7 +19,12 @@ const App = {
     this.cacheDOM();
     this.bindEvents();
     this.loadData();
-    this.checkSession();
+    
+    // Auto login como cliente para iniciar direto
+    const autoUser = Auth.autoLoginAsClient();
+    this.state.user = autoUser;
+    this.renderView();
+    
     this.setupMasks();
     this.setupTodayDate();
   },
@@ -59,17 +64,17 @@ const App = {
   loadData() {
     this.state.services = Storage.getServices();
     this.state.appointments = Storage.getAppointments();
-    
-    if (this.state.services.length === 0) {
-      const defaultServices = ['Corte Masculino', 'Barba Completa', 'Corte + Barba', 'Pezinho e Acabamento', 'Platinado', 'Coloração'];
-      defaultServices.forEach(s => Storage.addService(s));
-      this.state.services = Storage.getServices();
-    }
+    console.log('Dados carregados:', { 
+      services: this.state.services, 
+      appointments: this.state.appointments 
+    });
   },
 
   bindEvents() {
-    // Login
-    this.elements.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
+    // Login (opcional, para trocar de perfil)
+    if (this.elements.loginForm) {
+      this.elements.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
+    }
     
     // Logout
     if (this.elements.btnLogout) {
@@ -133,7 +138,6 @@ const App = {
     }
   },
 
-  // ========== AUTENTICAÇÃO ==========
   handleLogin(e) {
     e.preventDefault();
     const username = this.elements.loginUser.value.trim();
@@ -157,22 +161,13 @@ const App = {
 
   handleLogout() {
     Auth.logout();
-    this.state.user = null;
-    this.elements.authScreen.classList.remove('hidden');
-    this.elements.appScreen.classList.add('hidden');
-    this.elements.loginForm.reset();
-    UI.showToast('Logout realizado com sucesso', 'success');
+    // Auto login como cliente novamente
+    const autoUser = Auth.autoLoginAsClient();
+    this.state.user = autoUser;
+    this.renderView();
+    UI.showToast('Voltando ao modo cliente', 'success');
   },
 
-  checkSession() {
-    const session = Auth.getCurrentUser();
-    if (session) {
-      this.state.user = session;
-      this.renderView();
-    }
-  },
-
-  // ========== RENDERIZAÇÃO ==========
   renderView() {
     this.elements.authScreen.classList.add('hidden');
     this.elements.appScreen.classList.remove('hidden');
@@ -189,7 +184,6 @@ const App = {
     }
   },
 
-  // ========== PAINEL DO CLIENTE ==========
   renderClientePanel() {
     this.updateServiceSelect();
     this.initCalendar();
@@ -221,7 +215,6 @@ const App = {
       this.state.services.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
   },
 
-  // ========== VALIDAÇÕES ==========
   validateNome() {
     const nome = this.elements.agNome.value.trim();
     if (nome.length < 3) {
@@ -301,8 +294,7 @@ const App = {
            this.validateServico();
   },
 
-  // ========== AGENDAMENTO ==========
-  async handleAppointment(e) {
+  handleAppointment(e) {
     e.preventDefault();
     
     if (!this.validateForm()) {
@@ -331,25 +323,30 @@ const App = {
       status: 'agendado'
     };
     
+    // Salvar no localStorage
     Storage.addAppointment(appointment);
     this.state.appointments = Storage.getAppointments();
     
+    console.log('Agendamento realizado:', appointment);
+    console.log('Total no storage:', this.state.appointments);
+    
     UI.showToast(`✅ Agendamento confirmado para ${data} às ${hora}!`, 'success');
+    
+    // Limpar formulário
     this.elements.formAgendamento.reset();
     Calendar.resetSelection();
     this.renderCalendarioAtualizado();
     
-    // Se for barbeiro, atualiza a lista
-    if (this.state.user.role === 'barbeiro') {
-      this.renderTodayAppointments();
-    }
+    // Remover seleção visual do calendário
+    document.querySelectorAll('.calendar-day.selected').forEach(d => {
+      d.classList.remove('selected');
+    });
   },
 
   renderCalendarioAtualizado() {
     Calendar.render(this.elements.calGrade, this.elements.calTitulo);
   },
 
-  // ========== PAINEL DO BARBEIRO ==========
   renderBarbeiroPanel() {
     this.renderServicesList();
     this.renderTodayAppointments();
@@ -414,6 +411,8 @@ const App = {
     
     const today = new Date().toISOString().split('T')[0];
     const todayAppointments = this.state.appointments.filter(a => a.data === today);
+    
+    console.log('Agendamentos de hoje:', todayAppointments);
     
     if (todayAppointments.length === 0) {
       this.elements.tbodyAgendamentos.innerHTML = `

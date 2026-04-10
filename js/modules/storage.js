@@ -9,7 +9,18 @@ export const Storage = {
   // Serviços
   getServices() {
     const data = localStorage.getItem(this.keys.services);
-    return data ? JSON.parse(data) : [];
+    if (data) {
+      return JSON.parse(data);
+    }
+    // Dados padrão para começar
+    const defaultServices = [
+      { id: 1, name: 'Corte Masculino', createdAt: new Date().toISOString() },
+      { id: 2, name: 'Barba Completa', createdAt: new Date().toISOString() },
+      { id: 3, name: 'Corte + Barba', createdAt: new Date().toISOString() },
+      { id: 4, name: 'Pezinho e Acabamento', createdAt: new Date().toISOString() }
+    ];
+    this.setServices(defaultServices);
+    return defaultServices;
   },
 
   setServices(services) {
@@ -18,8 +29,9 @@ export const Storage = {
 
   addService(service) {
     const services = this.getServices();
+    const newId = Math.max(...services.map(s => s.id), 0) + 1;
     const newService = {
-      id: Date.now(),
+      id: newId,
       name: service.trim(),
       createdAt: new Date().toISOString()
     };
@@ -47,13 +59,16 @@ export const Storage = {
 
   addAppointment(appointment) {
     const appointments = this.getAppointments();
+    const newId = Math.max(...appointments.map(a => a.id), 0) + 1;
     const newAppointment = {
-      id: Date.now(),
+      id: newId,
       ...appointment,
       createdAt: new Date().toISOString()
     };
     appointments.push(newAppointment);
     this.setAppointments(appointments);
+    console.log('Agendamento salvo:', newAppointment);
+    console.log('Total agendamentos:', appointments);
     return newAppointment;
   },
 

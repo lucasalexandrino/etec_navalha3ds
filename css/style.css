@@ -1,52 +1,114 @@
-/* ========== VARIÁVEIS E RESET ========== */
+/* ========== VARIÁVEIS - PALETA PRETO/CINZA ========== */
 :root {
-  --bs-body-bg: #0a0c0e;
-  --bs-dark-bg-subtle: #1a1d21;
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #111111;
+  --bg-tertiary: #1a1a1a;
+  --bg-card: #141414;
+  --bg-hover: #1f1f1f;
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --text-muted: #6c6c6c;
+  --border: #2a2a2a;
+  --border-light: #333333;
+  --accent: #3a3a3a;
+  --accent-hover: #4a4a4a;
+  --danger: #dc3545;
+  --danger-hover: #c82333;
+  --success: #28a745;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  font-family: 'Inter', sans-serif;
-  background: linear-gradient(135deg, #0a0c0e 0%, #141618 100%);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
   min-height: 100vh;
 }
 
-/* ========== UTILITÁRIOS ========== */
 .hidden {
   display: none !important;
 }
 
 /* ========== TELA DE LOGIN ========== */
 .auth-container {
-  background: linear-gradient(135deg, #0f1113 0%, #1a1c1f 100%);
-  position: relative;
-  overflow: hidden;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  padding: 1rem;
 }
 
-.auth-container::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
-  pointer-events: none;
+.auth-container .card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
 }
 
-.logo-icon {
-  animation: float 3s ease-in-out infinite;
+.logo-icon i {
+  font-size: 3rem;
+  color: var(--text-primary);
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+/* ========== HEADER ========== */
+.navbar {
+  background: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--border);
+}
+
+.navbar-brand {
+  color: var(--text-primary) !important;
+}
+
+.text-warning {
+  color: var(--text-secondary) !important;
+}
+
+.btn-outline-danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.btn-outline-danger:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: white;
+}
+
+/* ========== CARDS ========== */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.card-header {
+  background: var(--bg-tertiary) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.card-header h5 {
+  color: var(--text-primary);
 }
 
 /* ========== CALENDÁRIO ========== */
 .calendar-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  gap: 8px;
 }
 
 .calendar-day {
@@ -54,10 +116,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #1a1d21;
-  border: 1px solid #2d3238;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  color: #f8f9fa;
+  color: var(--text-primary);
   font-size: 0.9rem;
   font-weight: 500;
   transition: all 0.2s ease;
@@ -65,22 +127,22 @@ body {
 }
 
 .calendar-day:hover:not(.disabled) {
-  background: #d4af37;
-  color: #000;
+  background: var(--accent);
+  color: var(--text-primary);
   transform: scale(1.05);
-  border-color: #d4af37;
+  border-color: var(--text-secondary);
 }
 
 .calendar-day.today {
-  border: 2px solid #d4af37;
-  color: #d4af37;
+  border: 2px solid var(--text-secondary);
+  color: var(--text-primary);
   font-weight: bold;
 }
 
 .calendar-day.selected {
-  background: #d4af37;
-  color: #000;
-  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
+  background: var(--accent);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
 }
 
 .calendar-day.disabled {
@@ -94,43 +156,86 @@ body {
   cursor: default;
 }
 
-.calendar-day.empty:hover {
-  background: transparent;
-  transform: none;
+.calendar-weekdays div {
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.5rem 0;
+}
+
+/* ========== FORMULÁRIOS ========== */
+.form-control, .form-select {
+  background: var(--bg-tertiary) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-primary) !important;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--text-secondary) !important;
+  box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.1) !important;
+  background: var(--bg-tertiary) !important;
+}
+
+.form-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.input-group-text {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+/* ========== BOTÕES ========== */
+.btn-primary-custom {
+  background: var(--accent);
+  border: none;
+  color: var(--text-primary);
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-primary-custom:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.btn-secondary-custom {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary-custom:hover {
+  background: var(--accent);
+  border-color: var(--text-secondary);
 }
 
 /* ========== LISTA DE SERVIÇOS ========== */
-.services-list {
-  max-height: 300px;
-  overflow-y: auto;
-}
-
 .service-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem;
-  background: #1a1d21;
+  background: var(--bg-tertiary);
   border-radius: 8px;
   margin-bottom: 0.5rem;
-  transition: all 0.2s ease;
-  border: 1px solid #2d3238;
-}
-
-.service-item:hover {
-  background: #22262b;
-  border-color: #d4af37;
+  border: 1px solid var(--border);
 }
 
 .service-item span {
-  color: #f8f9fa;
-  font-size: 0.9rem;
+  color: var(--text-primary);
 }
 
 .btn-delete-service {
   background: none;
   border: none;
-  color: #dc3545;
+  color: var(--danger);
   cursor: pointer;
   padding: 0.25rem 0.5rem;
   border-radius: 6px;
@@ -139,38 +244,33 @@ body {
 
 .btn-delete-service:hover {
   background: rgba(220, 53, 69, 0.2);
-  transform: scale(1.1);
 }
 
-/* ========== TABELA DE AGENDAMENTOS ========== */
-.table-responsive::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.table-responsive::-webkit-scrollbar-track {
-  background: #1a1d21;
-  border-radius: 4px;
-}
-
-.table-responsive::-webkit-scrollbar-thumb {
-  background: #d4af37;
-  border-radius: 4px;
-}
-
-.table-responsive::-webkit-scrollbar-thumb:hover {
-  background: #e6c84f;
+/* ========== TABELA ========== */
+.table {
+  color: var(--text-primary);
 }
 
 .table-dark {
-  --bs-table-bg: #1a1d21;
-  --bs-table-border-color: #2d3238;
+  background: var(--bg-tertiary);
+}
+
+.table > :not(caption) > * > * {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-bottom-color: var(--border);
+}
+
+.table thead th {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-weight: 600;
 }
 
 .btn-cancel {
   background: none;
   border: none;
-  color: #dc3545;
+  color: var(--danger);
   cursor: pointer;
   padding: 0.25rem 0.5rem;
   border-radius: 6px;
@@ -184,25 +284,25 @@ body {
 
 /* ========== TOASTS ========== */
 .toast-custom {
-  background: #1a1d21;
-  border-left: 4px solid #d4af37;
-  color: #f8f9fa;
+  background: var(--bg-secondary);
+  border-left: 4px solid var(--text-secondary);
+  color: var(--text-primary);
   padding: 0.75rem 1rem;
   border-radius: 8px;
   margin-bottom: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow);
   animation: slideIn 0.3s ease-out;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 .toast-custom.success {
-  border-left-color: #2ecc71;
+  border-left-color: var(--success);
 }
 
 .toast-custom.error {
-  border-left-color: #e74c3c;
+  border-left-color: var(--danger);
 }
 
 @keyframes slideIn {
@@ -216,70 +316,20 @@ body {
   }
 }
 
-/* ========== FORMULÁRIOS ========== */
-.form-control:focus,
-.form-select:focus {
-  border-color: #d4af37;
-  box-shadow: 0 0 0 0.25rem rgba(212, 175, 55, 0.25);
-  background-color: #1a1d21;
-  color: #f8f9fa;
-}
-
-.form-control.is-invalid,
-.form-select.is-invalid {
-  border-color: #dc3545;
-  background-image: none;
+/* ========== VALIDAÇÃO ========== */
+.is-invalid {
+  border-color: var(--danger) !important;
 }
 
 .invalid-feedback {
+  color: var(--danger);
   font-size: 0.75rem;
   margin-top: 0.25rem;
-}
-
-/* ========== CARDS ========== */
-.card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important;
-}
-
-/* ========== BOTÕES ========== */
-.btn-warning {
-  background: linear-gradient(135deg, #d4af37 0%, #e6c84f 100%);
-  border: none;
-  color: #000;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.btn-warning:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
-  background: linear-gradient(135deg, #e6c84f 0%, #d4af37 100%);
-}
-
-.btn-warning:active {
-  transform: translateY(0);
-}
-
-.btn-outline-danger {
-  transition: all 0.2s ease;
-}
-
-.btn-outline-danger:hover {
-  transform: translateY(-2px);
 }
 
 /* ========== RESPONSIVIDADE ========== */
 @media (max-width: 768px) {
   .calendar-day {
-    font-size: 0.75rem;
-  }
-  
-  .calendar-weekdays div {
     font-size: 0.7rem;
   }
   
@@ -287,68 +337,27 @@ body {
     padding: 1rem;
   }
   
-  .table td, 
-  .table th {
+  .table td, .table th {
     padding: 0.5rem;
     font-size: 0.75rem;
   }
-  
-  .btn-warning,
-  .btn-outline-danger {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.8rem;
-  }
 }
 
-@media (max-width: 576px) {
-  .container-fluid {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-  }
-  
-  .card-header h5 {
-    font-size: 1rem;
-  }
-  
-  .calendar-days {
-    gap: 4px;
-  }
-  
-  .calendar-day {
-    font-size: 0.7rem;
-  }
-}
-
-/* ========== ANIMAÇÕES ========== */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.painel:not(.hidden) {
-  animation: fadeIn 0.3s ease-out;
-}
-
-/* ========== SCROLLBAR PERSONALIZADA ========== */
+/* ========== SCROLLBAR ========== */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a1d21;
+  background: var(--bg-tertiary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d4af37;
-  border-radius: 5px;
+  background: var(--accent);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #e6c84f;
+  background: var(--accent-hover);
 }

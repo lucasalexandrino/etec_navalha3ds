@@ -14,15 +14,17 @@ export const UI = {
     toast.innerHTML = `
       <i class="bi bi-${icon} fs-5"></i>
       <span class="flex-grow-1">${message}</span>
-      <button type="button" class="btn-close btn-close-white btn-sm" data-bs-dismiss="toast"></button>
+      <button type="button" class="btn-close btn-close-white btn-sm" onclick="this.parentElement.remove()"></button>
     `;
     
     container.appendChild(toast);
     
     setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateX(100%)';
-      setTimeout(() => toast.remove(), 300);
+      if (toast.parentElement) {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+      }
     }, 3000);
   },
 
