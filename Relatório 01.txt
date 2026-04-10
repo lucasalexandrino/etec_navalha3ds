@@ -1,0 +1,52 @@
+Relatório:
+
+1ª Tela - A logomarca não está devidamente centralizada. Ela está semi responsiva, ou seja, somente redimensiona as laterais. Quando é de baixo para cima, o campo de login pelo e-mail  desaparece quando mudo o tamanho da tela.
+
+O escrito "BARBEARIA PREMIUM" está muito longe da logo e muito perto do campo de login. Está em tamanho desproporcionalmente menor que a logo. Aumente o tamanho para que ele ocupe o comprimento da logo (eixo x).
+
+Os testes de email e senha no login funcionaram perfeitamente. simulamos clientes e barbeiros com nome e senhas erradas, só nome correto ou só senha correta. Ele se comportou bem. Quando colocamos as senhas e usuários demo, aí ele foi para a página principal. Estamos usando o login e senha demo para CLIENTE. 
+
+PÁGINA PRINCIPAL
+
+Relatório:
+
+A tela de menu à esquerda, além de estar mostrando uma "slidebar" no sentido "y", a logomarca está deslocada para a direita da margem do menu além de estar muito grande (aparece apenas as letras "Nav" e o resto está oculto.
+
+Ainda na tela do menu, aparece  
+CLIENTE Nome
+e logo abaixo há 3 botões para o cliente interagir. São eles: Serviços(este já começa acionado), Agendar e Meus Agendamentos.
+Abaixo, por último, o botão SAIR (Já testado, voltou a tela de login. O endereço do cliente está persistente, mas a senha está em branco, tive que digitar novamente (não é um defeito, é apenas uma observação).
+
+Na página a esquerda do menu (que vamos chamar de PRINCIPAL) aparece o resultado do botão Serviços:
+Nesta tela mostra o cabeçalho NOSSOS SERVIÇOS, além de algumas mensagens e umas "ilhas" (contendo 3 linhas cada)o NOME DO SERVIÇO na linha 1, Preço do serviço na linha 2, e a Duração (estimada) do serviço na linha 3.
+
+As ilhas estão levemente animadas: ao passar o mouse sobre elas, elas se deslocam suavemente um pouquinho para cima, e depois que o cursor sai elas retornam para a mesma posição.
+
+BOTÃO AGENDAR (na função de CLIENTE)
+Acionando o botão Agendar no menu principal (Lado esquerdo), à direita aparece um formulário com o cabeçalho AGENDAR HORÁRIO e abaixo há 7 campos pronto para serem preenchidos e um botão de confirmação do agendamento, a saber:
+
+CAMPO 01- Profissional
+
+NOME DO PROFISSIONAL João Silva — Cortes clássicos  (Funcionando a seleção com nome e estilo de 3 barbeiros)
+
+CAMPO 02- Nome completo
+Seu nome (Funcional)
+
+CAMPO 03- WhatsApp
+11999998888 (DDD + número)  FUNCIONAL
+
+CAMPO 04- Serviço
+Corte masculino — R$ 45,00  (Funcional - apresentou 3 serviços diferentes, cada qual a especialidade de cada um dos 3 barbeiros)
+
+CAMPO 05- Data
+09/04/2026  (Calendário funcionando perfeitamente.)  
+
+CAMPO 06-Horário
+Sem horários nesta data (dia fechado, antecedência mínima ou grade cheia) ( Perfeito, mostra horários normais durante a semana, leva em consideração sábados (meio período), domingos e feriados (fechado)). Outra coisa, passando das 18:00 horas a mensagem de "Sem horários..." está certa.
+
+CAMPO 07-Forma de pagamento
+PIX (simulado, QR na confirmação) FUNCIONANDO com 4 opções de pagamento. Perfeito.
+
+Grade automática: seg–sex 9h–18h e sábado 9h–14h; pausa de almoço 12h–13h bloqueada; 5 min entre atendimentos do mesmo profissional. Antecedência mínima: 1h.
+
+BOTÃO DE CONFIRMAÇÃO- Confirmar agendamento  FUNCIONOU

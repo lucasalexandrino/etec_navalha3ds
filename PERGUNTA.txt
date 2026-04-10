@@ -1,0 +1,46 @@
+PERGUNTA: Auto, o que podemos fazer de melhorias neste projeto?
+
+
+RESPOSTA: Analisando o projeto para entender o contexto e sugerir melhorias concretas.
+Segue um panorama objetivo com base no Contexto.md e no código atual (index.html, js/app.js, css/estilos.css).
+O que o enunciado já pede (prioridade alta)
+
+1.	Login simulado e papéis — Hoje ainda há só as abas Cliente / Barbeiro no header; falta tela de login, 
+sessão (ex.: sessionStorage ou flag no localStorage), mostrar só o painel do papel logado e logout que volte ao login.
+
+2.	Validação de formulários — Os forms usam novalidate, mas não há validação em JS nem mensagens visíveis. 
+Vale cobrir: nome não vazio e tamanho máximo, WhatsApp (só dígitos / mínimo de caracteres), data/hora obrigatórias, 
+opcional bloquear data no passado e horário duplicado.
+
+3.	UX do fluxo — Após “Confirmar agendamento”, um feedback claro (mensagem de sucesso ou toast) ajuda; se não 
+houver serviços cadastrados, o select fica vazio e o cliente ainda pode enviar — convém bloquear ou mostrar aviso.
+
+4.	Acessibilidade mínima — label sem for + id nos inputs dificulta clique na legenda e leitores de tela; abas 
+poderiam usar aria-controls / id nos painéis. Estados de foco já existem nos campos; botões de papel podem ganhar 
+aria-controls nos painéis.
+
+5.	Entregáveis de aula — README com como abrir o projeto e estrutura de pastas; TESTES.md com checklist marcado 
+(citado no Contexto.md).
+Melhorias técnicas e de produto (média prioridade)
+
+6.	Consistência de idioma no código — Comentários em português e propriedades como clientName em inglês; o próprio 
+texto da atividade pede um padrão por equipe (tudo PT ou tudo EN nos identificadores).
+
+7.	Formatação de data/hora — formatarDataHoraBr usa toLocaleString("en-US", …); para “Br” no nome da função, faz 
+sentido usar "pt-BR" (e alinhar com o restante da UI).
+
+8.	Calendário e fuso — isoLocal monta Date e usa toISOString() (UTC). Em alguns fusos isso pode mudar o dia; para 
+protótipo educativo às vezes basta documentar; em evolução, guardar data/hora de forma que não “vire o dia” por UTC.
+
+9.	Segurança / dados — Ao exibir agendamentos, já há escapeHtml nos textos (bom). Manter essa disciplina em qualquer 
+HTML dinâmico novo.
+
+10.	Extras do próprio Contexto.md — Exportar/importar JSON, horário de funcionamento, múltiplos barbeiros, dados de demo, 
+rodapé com texto fictício de privacidade — conforme tempo da turma.
+Resumo
+
+O projeto está limpo e funcional como base (localStorage, calendário, serviços e tabela). O ganho maior agora é alinhar 
+com a atividade: login + papéis + logout, validação com mensagens, README e TESTES.md, e pequenos ajustes de UX/a11y. 
+Se quiser, podemos implementar um pacote desses (por exemplo só login + validação) direto no repositório no próximo 
+passo.
+
