@@ -3,71 +3,107 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Agenda da Barbearia — Navalha</title>
+  <title>Navalha — Barbearia</title>
   <link rel="stylesheet" href="css/estilos.css" />
 </head>
 <body>
   <a href="#conteudoPrincipal" class="link-pular">Ir para o conteúdo principal</a>
 
-  <!-- Tela de login -->
+  <!-- ══════════════ TELA DE LOGIN ══════════════ -->
   <div id="telaLogin" class="tela-login">
-    <div class="login-container">
-      <h1>Login — Barbearia Navalha</h1>
-      <p class="aviso-didatico">Aviso: Em produção real, a autenticação deve ser feita no servidor. Guardar senhas em texto puro no navegador é inseguro e serve apenas para fins de aprendizado neste projeto.</p>
-      <form id="formLogin" class="formulario">
-        <div class="campo-formulario">
-          <label for="campoUsuario" class="rotulo">Usuário</label>
-          <input type="text" id="campoUsuario" name="usuario" autocomplete="username" placeholder="Digite o usuário" />
+
+    <!-- lateral decorativa (desktop) -->
+    <div class="login-lateral" aria-hidden="true">
+      <div class="login-lateral-conteudo">
+        <span class="login-lateral-icone">💈</span>
+        <h2 class="login-lateral-titulo">Barbearia<br>Navalha</h2>
+        <div class="login-lateral-linha"></div>
+        <p class="login-lateral-subtitulo">Agende seu horário com os melhores profissionais da cidade.</p>
+      </div>
+    </div>
+
+    <!-- área do formulário -->
+    <div class="login-form-area">
+      <div class="login-container">
+
+        <div class="login-logo-mobile">
+          <span class="login-logo-mobile-icone">💈</span>
+          <span class="login-logo-mobile-texto">Navalha</span>
         </div>
-        <div class="campo-formulario">
-          <label for="campoSenha" class="rotulo">Senha</label>
-          <input type="password" id="campoSenha" name="senha" autocomplete="current-password" placeholder="Digite a senha" />
-        </div>
-        <button type="submit" class="botao-primario">Entrar</button>
-      </form>
-      <p id="mensagemErroLogin" class="mensagem mensagem-erro" role="alert" aria-live="assertive" hidden></p>
+
+        <h1 class="login-titulo">Bem-vindo</h1>
+        <p class="login-subtitulo">Entre com suas credenciais para continuar.</p>
+
+        <form id="formLogin" class="formulario" novalidate>
+          <div class="campo-formulario">
+            <label for="campoUsuario" class="rotulo">Usuário</label>
+            <input type="text" id="campoUsuario" name="usuario"
+                   autocomplete="username" placeholder="Digite seu usuário" />
+          </div>
+          <div class="campo-formulario">
+            <label for="campoSenha" class="rotulo">Senha</label>
+            <input type="password" id="campoSenha" name="senha"
+                   autocomplete="current-password" placeholder="Digite sua senha" />
+          </div>
+          <p id="mensagemErroLogin" class="mensagem mensagem-erro"
+             role="alert" aria-live="assertive" hidden></p>
+          <button type="submit" class="botao-primario">Entrar</button>
+        </form>
+
+        <p class="aviso-didatico">
+          ⚠️ Em produção real, a autenticação deve ser feita no servidor. Guardar senhas em texto puro no navegador é inseguro — esta abordagem serve apenas para fins didáticos.
+        </p>
+
+      </div>
     </div>
   </div>
 
-  <header class="cabecalho">
+  <!-- ══════════════ APP (pós-login) ══════════════ -->
+  <header class="cabecalho" style="display:none">
     <div class="cabecalho-titulo">
-      <p class="cabecalho-epigrafe">Barbearia</p>
-      <h1>Navalha — Agenda</h1>
+      <span class="cabecalho-logo-icone">💈</span>
+      <div class="cabecalho-textos">
+        <p class="cabecalho-epigrafe">Barbearia</p>
+        <h1>Navalha — Agenda</h1>
+      </div>
     </div>
-    <div class="cabecalho-logout"></div>
-    <nav class="abas-perfil" role="tablist" aria-label="Escolher perfil de uso">
-      <button type="button" id="tabCliente"  class="aba-perfil aba-perfil-ativa"
-              data-perfil="cliente"  role="tab" aria-selected="true"
-              aria-controls="painelCliente"  tabindex="0">Cliente</button>
-      <button type="button" id="tabBarbeiro" class="aba-perfil"
-              data-perfil="barbeiro" role="tab" aria-selected="false"
-              aria-controls="painelBarbeiro" tabindex="-1">Barbeiro</button>
-    </nav>
+
+    <div class="cabecalho-direita">
+      <div class="cabecalho-logout"></div>
+      <nav class="abas-perfil" role="tablist" aria-label="Escolher perfil de uso" style="display:none">
+        <button type="button" id="tabCliente" class="aba-perfil aba-perfil-ativa"
+                data-perfil="cliente" role="tab" aria-selected="true"
+                aria-controls="painelCliente" tabindex="0">Cliente</button>
+        <button type="button" id="tabBarbeiro" class="aba-perfil"
+                data-perfil="barbeiro" role="tab" aria-selected="false"
+                aria-controls="painelBarbeiro" tabindex="-1">Barbeiro</button>
+      </nav>
+    </div>
   </header>
 
-  <main id="conteudoPrincipal" tabindex="-1">
+  <main id="conteudoPrincipal" tabindex="-1" style="display:none">
 
     <!-- ══════════════ PAINEL CLIENTE ══════════════ -->
     <section id="painelCliente" class="painel painel-ativo"
              role="tabpanel" aria-labelledby="tabCliente" aria-label="Área do cliente">
       <div class="grade-cliente">
 
-        <!-- coluna esquerda: dados pessoais -->
+        <!-- coluna: dados pessoais -->
         <div class="cartao">
           <h2 class="titulo-secao">Seus dados</h2>
           <p class="texto-ajuda">Preencha nome e WhatsApp para continuar com o agendamento.</p>
           <div class="formulario">
             <div class="campo-formulario">
-              <label for="campoNomeCliente" class="rotulo">Nome</label>
+              <label for="campoNomeCliente" class="rotulo">Nome completo</label>
               <input type="text" id="campoNomeCliente" name="nome"
-                     autocomplete="name" placeholder="Seu nome completo" />
+                     autocomplete="name" placeholder="Ex.: João Silva" />
               <span id="erroNome" class="erro-campo" hidden></span>
             </div>
             <div class="campo-formulario">
               <label for="campoWhatsapp" class="rotulo">WhatsApp</label>
               <input type="tel" id="campoWhatsapp" name="whatsapp"
                      inputmode="numeric" autocomplete="tel"
-                     placeholder="Ex.: 14999990000"
+                     placeholder="(14) 99999-0000"
                      aria-describedby="ajudaWhatsapp" />
               <p id="ajudaWhatsapp" class="texto-ajuda texto-ajuda-campo">Somente números, com DDD.</p>
               <span id="erroWhatsapp" class="erro-campo" hidden></span>
@@ -75,11 +111,11 @@
           </div>
         </div>
 
-        <!-- coluna direita: seletor de agendamento -->
+        <!-- coluna: seletor de agendamento -->
         <div class="cartao">
           <h2 class="titulo-secao">Novo agendamento</h2>
 
-          <!-- cabeçalho com mês e navegação -->
+          <!-- mês + nav -->
           <div class="mes-header">
             <span id="mesTitulo" class="mes-titulo" aria-live="polite"></span>
             <div class="mes-nav-btns">
@@ -90,7 +126,7 @@
             </div>
           </div>
 
-          <!-- faixa de dias -->
+          <!-- dias -->
           <div class="semana-nav" role="group" aria-label="Selecionar dia">
             <div class="dias-semana" id="diasSemana"></div>
           </div>
@@ -124,7 +160,6 @@
               <button type="button" class="filtro-btn" data-turno="manha">Manhã</button>
               <button type="button" class="filtro-btn" data-turno="tarde">Tarde</button>
             </div>
-
             <div id="blocoManha" class="turno-bloco">
               <div class="turno-header">
                 <span class="turno-nome">Manhã</span>
@@ -133,7 +168,6 @@
               <div class="horarios-grid" id="horariosManha"
                    role="group" aria-label="Horários da manhã"></div>
             </div>
-
             <div id="blocoTarde" class="turno-bloco">
               <div class="turno-header">
                 <span class="turno-nome">Tarde</span>
@@ -142,10 +176,10 @@
               <div class="horarios-grid" id="horariosTarde"
                    role="group" aria-label="Horários da tarde"></div>
             </div>
+            <span id="erroHorario" class="erro-campo" hidden></span>
           </div>
-          <span id="erroHorario" class="erro-campo" hidden></span>
 
-          <p id="mensagemErroAgendamento"   class="mensagem mensagem-erro"
+          <p id="mensagemErroAgendamento"    class="mensagem mensagem-erro"
              role="alert"  aria-live="assertive" hidden></p>
           <p id="mensagemSucessoAgendamento" class="mensagem mensagem-sucesso"
              role="status" aria-live="polite"    hidden></p>
@@ -159,7 +193,7 @@
 
     <!-- ══════════════ PAINEL BARBEIRO ══════════════ -->
     <section id="painelBarbeiro" class="painel"
-             role="tabpanel" aria-labelledby="tabBarbeiro" aria-label="Área do barbeiro" hidden>
+             role="tabpanel" aria-labelledby="tabBarbeiro" aria-label="Área do barbeiro">
       <div class="grade-barbeiro">
 
         <div class="cartao">

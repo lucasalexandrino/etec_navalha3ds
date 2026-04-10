@@ -734,19 +734,23 @@
     telaLogin.style.display = "none";
     cabecalho.style.display = "flex";
     document.querySelector("main").style.display = "block";
-
-    // Esconder abas
-    document.querySelector(".abas-perfil").style.display = "none";
+    /* abas ficam sempre ocultas — acesso direto pelo papel */
+    var navAbas = document.querySelector(".abas-perfil");
+    if (navAbas) navAbas.style.display = "none";
 
     // Mostrar painel correspondente
     if (papel === "cliente") {
       painelCliente.classList.add("painel-ativo");
       painelBarbeiro.classList.remove("painel-ativo");
+      painelCliente.removeAttribute("hidden");
+      painelBarbeiro.setAttribute("hidden", "true");
       painelCliente.setAttribute("aria-hidden", "false");
       painelBarbeiro.setAttribute("aria-hidden", "true");
     } else if (papel === "barbeiro") {
       painelBarbeiro.classList.add("painel-ativo");
       painelCliente.classList.remove("painel-ativo");
+      painelBarbeiro.removeAttribute("hidden");
+      painelCliente.setAttribute("hidden", "true");
       painelBarbeiro.setAttribute("aria-hidden", "false");
       painelCliente.setAttribute("aria-hidden", "true");
     }
@@ -755,7 +759,7 @@
     var btnLogout = document.createElement("button");
     btnLogout.type = "button";
     btnLogout.className = "botao-logout";
-    btnLogout.textContent = "Sair (" + papel + ")";
+    btnLogout.innerHTML = "&#x2192; Sair&nbsp;(" + papel + ")";
     btnLogout.setAttribute("aria-label", "Fazer logout");
     btnLogout.addEventListener("click", function () {
       fazerLogout();
