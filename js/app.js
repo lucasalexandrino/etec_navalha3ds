@@ -1,615 +1,104 @@
-(function () {
+﻿(function () {
   "use strict";
 
-  var KEY_SERVICOS = "barbearia_servicos";
-  var KEY_AG = "barbearia_agendamentos";
-  var KEY_CLIENTES = "barbearia_clientes";
-  var KEY_SESSAO = "barbearia_sessao";
+  var API_BASE = "/api";
+  var SESSION_KEY = "barbearia_sessao";
 
-  /* Credenciais de demonstração — em produção viriam do servidor */
-  var BARBEIRO_USUARIO = "barbeiro";
-  var BARBEIRO_SENHA = "navalha";
+  function showError(id, message) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = message;
+    el.classList.remove("hidden");
+  }
 
-  function load(key, padrao) {
+  function hideError(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = "";
+    el.classList.add("hidden");
+  }
+
+  function saveSession(session) {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  }
+
+  function loadSession() {
     try {
-      var raw = localStorage.getItem(key);
-      if (!raw) return padrao;
-      return JSON.parse(raw);
+      var raw = localStorage.getItem(SESSION_KEY);
+      return raw ? JSON.parse(raw) : null;
     } catch (e) {
-      return padrao;
+      return null;
     }
   }
 
-  function save(key, data) {
-    localStorage.setItem(key, JSON.stringify(data));
+  function clearSession() {
+    localStorage.removeItem(SESSION_KEY);
   }
 
-  function uid() {
-    return String(Date.now()) + "-" + Math.random().toString(36).slice(2, 9);
+  function getSession() {
+    return loadSession();
   }
 
-  function normEmail(s) {
-    return String(s || "").trim().toLowerCase();
-  }
-
-  function getServicos() {
-    var s = load(KEY_SERVICOS, []);
-    return Array.isArray(s) ? s : [];
-  }
-
-  function getAgendamentos() {
-    var a = load(KEY_AG, []);
-    return Array.isArray(a) ? a : [];
-  }
-
-  function getClientes() {
-    var c = load(KEY_CLIENTES, []);
-    return Array.isArray(c) ? c : [];
-  }
-
-  function getSessao() {
-    var s = load(KEY_SESSAO, null);
-    if (!s || typeof s !== "object") return null;
-    return s;
-  }
-
-  function setSessao(obj) {
-    save(KEY_SESSAO, obj);
-  }
-
-  function limparSessao() {
-    localStorage.removeItem(KEY_SESSAO);
-  }
-
-  function getClienteAtual() {
-    var sess = getSessao();
-    if (!sess || sess.tipo !== "cliente" || !sess.clientId) return null;
-    var list = getClientes();
-    return list.find(function (u) {
-      return u.id === sess.clientId;
-    }) || null;
-  }
-
-  function formatarDataHoraBr(iso) {
-    var d = new Date(iso);
-    if (isNaN(d.getTime())) return iso;
-    return d.toLocaleString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
-
-  function isoLocal(dataStr, horaStr) {
-    if (!dataStr || !horaStr) return "";
-    var d = new Date(dataStr + "T" + horaStr + ":00");
-    if (isNaN(d.getTime())) return "";
-    return d.toISOString();
-  }
-
-  function escapeHtml(t) {
-    if (!t) return "";
-    var div = document.createElement("div");
-    div.textContent = t;
-    return div.innerHTML;
-  }
-
-  /* ——— Expediente: Seg–Sex 9h–18h (slots até 17:30), Sáb 9h–13h (até 12:30), Dom fechado ——— */
-  function minutosValidosNoDia(d) {
-    var dow = d.getDay();
-    if (dow === 0) return [];
-    var start = 9 * 60;
-    var endMin = dow === 6 ? 12 * 60 + 30 : 17 * 60 + 30;
-    var out = [];
-    for (var t = start; t <= endMin; t += 30) {
-      out.push(t);
+  async function fetchJson(url, options) {
+    options = options || {};
+    options.headers = options.headers || {};
+    var session = getSession();
+    if (session && session.token) {
+      options.headers.Authorization = "Bearer " + session.token;
     }
-    return out;
-  }
-
-  function slotOcupado(dataStr, horaStr) {
-    var alvo = isoLocal(dataStr, horaStr);
-    if (!alvo) return false;
-    return getAgendamentos().some(function (a) {
-      return a.datetime === alvo;
-    });
-  }
-
-  function renderHorariosLivresEntrada() {
-    var ul = document.getElementById("lista-horarios-livres");
-    var vazio = document.getElementById("lista-horarios-vazio");
-    if (!ul) return;
-    ul.innerHTML = "";
-    var agora = new Date();
-    var maxDias = 14;
-    var maxItens = 36;
-    var itens = [];
-    var base = new Date();
-    base.setHours(0, 0, 0, 0);
-
-    for (var diaOffset = 0; diaOffset < maxDias && itens.length < maxItens; diaOffset++) {
-      var dia = new Date(base);
-      dia.setDate(base.getDate() + diaOffset);
-      var mins = minutosValidosNoDia(dia);
-      for (var i = 0; i < mins.length && itens.length < maxItens; i++) {
-        var total = mins[i];
-        var hh = Math.floor(total / 60);
-        var mm = total % 60;
-        var slotDate = new Date(dia);
-        slotDate.setHours(hh, mm, 0, 0);
-        if (slotDate.getTime() <= agora.getTime()) continue;
-        var y = slotDate.getFullYear();
-        var m = String(slotDate.getMonth() + 1).padStart(2, "0");
-        var dd = String(slotDate.getDate()).padStart(2, "0");
-        var dataStr = y + "-" + m + "-" + dd;
-        var horaStr = String(hh).padStart(2, "0") + ":" + String(mm).padStart(2, "0");
-        if (slotOcupado(dataStr, horaStr)) continue;
-        itens.push({
-          label:
-            slotDate.toLocaleDateString("pt-BR", {
-              weekday: "short",
-              day: "2-digit",
-              month: "short",
-            }) +
-            " — " +
-            horaStr,
-        });
-      }
+    var response = await fetch(url, options);
+    if (!response.ok) {
+      var error = "Erro de comunicação.";
+      try {
+        var payload = await response.json();
+        if (payload && payload.error) {
+          error = payload.error;
+        }
+      } catch (e) {}
+      throw new Error(error);
     }
-
-    itens.forEach(function (item) {
-      var li = document.createElement("li");
-      li.textContent = item.label;
-      ul.appendChild(li);
-    });
-    if (vazio) {
-      vazio.classList.toggle("hidden", itens.length > 0);
-    }
+    return response.json();
   }
 
-  /* ——— Navegação entre telas ——— */
-  var telas = [
-    "tela-entrada",
-    "tela-cadastro",
-    "tela-login-cliente",
-    "tela-login-barbeiro",
-    "painel-cliente",
-    "painel-barbeiro",
-  ];
-
-  function mostrarTela(id) {
-    telas.forEach(function (tid) {
-      var el = document.getElementById(tid);
-      if (!el) return;
-      var ativo = tid === id;
-      el.hidden = !ativo;
-      el.classList.toggle("tela-ativa", ativo);
-      if (tid === "painel-cliente" || tid === "painel-barbeiro") {
-        el.classList.toggle("ativo", ativo);
-      }
+  function showScreen(id) {
+    var screens = [
+      "tela-entrada",
+      "tela-cadastro",
+      "tela-login-cliente",
+      "tela-login-barbeiro",
+      "tela-login-admin",
+      "painel-cliente",
+      "painel-barbeiro",
+      "painel-admin",
+    ];
+    screens.forEach(function (screen) {
+      var element = document.getElementById(screen);
+      if (!element) return;
+      element.hidden = screen !== id;
+      element.classList.toggle("tela-ativa", screen === id);
+      element.classList.toggle("ativo", screen === id);
     });
-    atualizarHeaderAuth();
+    updateHeader();
     if (id === "tela-entrada") {
-      renderHorariosLivresEntrada();
+      renderHomeAvailability();
     }
     if (id === "painel-cliente") {
-      aplicarDadosClienteNoForm();
-      renderCalendario();
-      popularSelectServicos();
+      populateSelectServicos();
+      populateSelectBarbers();
+      renderCalendar();
+      renderClientBookings();
+      renderHomeAvailability();
     }
     if (id === "painel-barbeiro") {
-      renderBarbeiro();
+      renderBarberBookings();
+    }
+    if (id === "painel-admin") {
+      renderAdminBarbers();
+      renderAdminClients();
+      renderAdminBookings();
     }
   }
 
-  function estaLogado() {
-    var sess = getSessao();
-    if (!sess) return false;
-    if (sess.tipo === "barbeiro") return true;
-    if (sess.tipo === "cliente" && getClienteAtual()) return true;
-    return false;
-  }
-
-  function atualizarHeaderAuth() {
-    var logado = estaLogado();
-    var visitante = document.getElementById("topo-visitante");
-    var acoes = document.getElementById("topo-acoes");
-    if (visitante) visitante.classList.toggle("hidden", logado);
-    if (acoes) acoes.classList.toggle("hidden", !logado);
-  }
-
-  function atualizarTopoSaudacao() {
-    var span = document.getElementById("topo-saudacao");
-    if (!span) return;
-    var sess = getSessao();
-    if (!sess) {
-      span.textContent = "";
-      return;
-    }
-    if (sess.tipo === "cliente") {
-      var c = getClienteAtual();
-      span.textContent = c ? "Olá, " + c.nome.split(" ")[0] + " (cliente)" : "Cliente";
-    } else if (sess.tipo === "barbeiro") {
-      span.textContent = "Modo barbeiro";
-    }
-  }
-
-  function abrirEntrada() {
-    limparSessao();
-    atualizarTopoSaudacao();
-    mostrarTela("tela-entrada");
-  }
-
-  function entrarCliente(clientId) {
-    setSessao({ tipo: "cliente", clientId: clientId });
-    atualizarTopoSaudacao();
-    mostrarTela("painel-cliente");
-  }
-
-  function entrarBarbeiro() {
-    setSessao({ tipo: "barbeiro" });
-    atualizarTopoSaudacao();
-    mostrarTela("painel-barbeiro");
-  }
-
-  /* ——— Header logout ——— */
-  var btnLogout = document.getElementById("btn-logout");
-  if (btnLogout) {
-    btnLogout.addEventListener("click", function () {
-      abrirEntrada();
-    });
-  }
-
-  var btnLogoInicio = document.getElementById("btn-logo-inicio");
-  if (btnLogoInicio) {
-    btnLogoInicio.addEventListener("click", function () {
-      mostrarTela("tela-entrada");
-    });
-  }
-
-  /* ——— Entrada: botões ——— */
-  var btnCadastro = document.getElementById("btn-ir-cadastro");
-  if (btnCadastro) {
-    btnCadastro.addEventListener("click", function () {
-      mostrarTela("tela-cadastro");
-    });
-  }
-  var btnLoginCliente = document.getElementById("btn-ir-login-cliente");
-  if (btnLoginCliente) {
-    btnLoginCliente.addEventListener("click", function () {
-      mostrarTela("tela-login-cliente");
-    });
-  }
-  var btnLoginBarbeiro = document.getElementById("btn-ir-login-barbeiro");
-  if (btnLoginBarbeiro) {
-    btnLoginBarbeiro.addEventListener("click", function () {
-      mostrarTela("tela-login-barbeiro");
-    });
-  }
-
-  var bvC = document.getElementById("btn-voltar-cadastro");
-  if (bvC) bvC.addEventListener("click", abrirEntrada);
-  var bvLc = document.getElementById("btn-voltar-login-cliente");
-  if (bvLc) bvLc.addEventListener("click", abrirEntrada);
-  var bvLb = document.getElementById("btn-voltar-login-barbeiro");
-  if (bvLb) bvLb.addEventListener("click", abrirEntrada);
-
-  /* ——— Cadastro ——— */
-  var formCadastro = document.getElementById("form-cadastro");
-  var cadastroErro = document.getElementById("cadastro-erro");
-
-  if (formCadastro) {
-    formCadastro.addEventListener("submit", function (e) {
-      e.preventDefault();
-      if (cadastroErro) {
-        cadastroErro.textContent = "";
-        cadastroErro.classList.add("hidden");
-      }
-      var nome = document.getElementById("cd-nome").value.trim();
-      var email = normEmail(document.getElementById("cd-email").value);
-      var whatsapp = document.getElementById("cd-whatsapp").value.trim();
-      var senha = document.getElementById("cd-senha").value;
-      var senha2 = document.getElementById("cd-senha2").value;
-      if (nome.length < 2) {
-        if (cadastroErro) {
-          cadastroErro.textContent = "Informe um nome válido.";
-          cadastroErro.classList.remove("hidden");
-        }
-        return;
-      }
-      if (!email || email.indexOf("@") < 0) {
-        if (cadastroErro) {
-          cadastroErro.textContent = "E-mail inválido.";
-          cadastroErro.classList.remove("hidden");
-        }
-        return;
-      }
-      if (senha !== senha2) {
-        if (cadastroErro) {
-          cadastroErro.textContent = "As senhas não coincidem.";
-          cadastroErro.classList.remove("hidden");
-        }
-        return;
-      }
-      var clientes = getClientes();
-      if (clientes.some(function (c) { return normEmail(c.email) === email; })) {
-        if (cadastroErro) {
-          cadastroErro.textContent = "Este e-mail já está cadastrado. Use Entrar.";
-          cadastroErro.classList.remove("hidden");
-        }
-        return;
-      }
-      var novo = { id: uid(), nome: nome, email: email, whatsapp: whatsapp, senha: senha };
-      clientes.push(novo);
-      save(KEY_CLIENTES, clientes);
-      entrarCliente(novo.id);
-      formCadastro.reset();
-    });
-  }
-
-  /* ——— Login cliente ——— */
-  var formLoginCliente = document.getElementById("form-login-cliente");
-  var loginClienteErro = document.getElementById("login-cliente-erro");
-
-  if (formLoginCliente) {
-    formLoginCliente.addEventListener("submit", function (e) {
-      e.preventDefault();
-      if (loginClienteErro) {
-        loginClienteErro.textContent = "";
-        loginClienteErro.classList.add("hidden");
-      }
-      var email = normEmail(document.getElementById("lc-email").value);
-      var senha = document.getElementById("lc-senha").value;
-      var c = getClientes().find(function (u) {
-        return normEmail(u.email) === email && u.senha === senha;
-      });
-      if (!c) {
-        if (loginClienteErro) {
-          loginClienteErro.textContent = "E-mail ou senha incorretos.";
-          loginClienteErro.classList.remove("hidden");
-        }
-        return;
-      }
-      entrarCliente(c.id);
-      formLoginCliente.reset();
-    });
-  }
-
-  /* ——— Login barbeiro ——— */
-  var formLoginBarbeiro = document.getElementById("form-login-barbeiro");
-  var loginBarbeiroErro = document.getElementById("login-barbeiro-erro");
-
-  if (formLoginBarbeiro) {
-    formLoginBarbeiro.addEventListener("submit", function (e) {
-      e.preventDefault();
-      if (loginBarbeiroErro) {
-        loginBarbeiroErro.textContent = "";
-        loginBarbeiroErro.classList.add("hidden");
-      }
-      var u = document.getElementById("lb-usuario").value.trim();
-      var s = document.getElementById("lb-senha").value;
-      if (u !== BARBEIRO_USUARIO || s !== BARBEIRO_SENHA) {
-        if (loginBarbeiroErro) {
-          loginBarbeiroErro.textContent = "Usuário ou senha incorretos.";
-          loginBarbeiroErro.classList.remove("hidden");
-        }
-        return;
-      }
-      entrarBarbeiro();
-      formLoginBarbeiro.reset();
-    });
-  }
-
-  /* ——— Serviços ——— */
-  var formServico = document.getElementById("form-servico");
-  var svNome = document.getElementById("sv-nome");
-  var listaServicos = document.getElementById("lista-servicos");
-  var selectServico = document.getElementById("ag-servico");
-
-  function renderListaServicos() {
-    if (!listaServicos) return;
-    var servicos = getServicos();
-    listaServicos.innerHTML = "";
-    servicos.forEach(function (s) {
-      var li = document.createElement("li");
-      li.textContent = s.name;
-      var del = document.createElement("button");
-      del.type = "button";
-      del.className = "btn-icone";
-      del.textContent = "Excluir";
-      del.setAttribute("data-id", s.id);
-      del.addEventListener("click", function () {
-        var id = del.getAttribute("data-id");
-        var rest = getServicos().filter(function (x) {
-          return x.id !== id;
-        });
-        save(KEY_SERVICOS, rest);
-        renderListaServicos();
-        popularSelectServicos();
-      });
-      li.appendChild(del);
-      listaServicos.appendChild(li);
-    });
-  }
-
-  function popularSelectServicos() {
-    if (!selectServico) return;
-    var servicos = getServicos();
-    var val = selectServico.value;
-    selectServico.innerHTML = "";
-    if (servicos.length === 0) {
-      var ph = document.createElement("option");
-      ph.value = "";
-      ph.textContent = "Nenhum serviço — o barbeiro deve cadastrar";
-      selectServico.appendChild(ph);
-      selectServico.disabled = true;
-      return;
-    }
-    selectServico.disabled = false;
-    servicos.forEach(function (s) {
-      var o = document.createElement("option");
-      o.value = s.id;
-      o.textContent = s.name;
-      selectServico.appendChild(o);
-    });
-    if (val && servicos.some(function (s) { return s.id === val; })) {
-      selectServico.value = val;
-    }
-  }
-
-  if (formServico) {
-    formServico.addEventListener("submit", function (e) {
-      e.preventDefault();
-      var nome = svNome.value.trim();
-      if (!nome) return;
-      var servicos = getServicos();
-      servicos.push({ id: uid(), name: nome });
-      save(KEY_SERVICOS, servicos);
-      svNome.value = "";
-      renderListaServicos();
-      popularSelectServicos();
-    });
-  }
-
-  /* ——— Agendamentos ——— */
-  var formAg = document.getElementById("form-agendamento");
-  var agNome = document.getElementById("ag-nome");
-  var agWhatsapp = document.getElementById("ag-whatsapp");
-  var agData = document.getElementById("ag-data");
-  var agHora = document.getElementById("ag-hora");
-  var tbodyAg = document.getElementById("tbody-agendamentos");
-  var agendamentoErro = document.getElementById("agendamento-erro");
-
-  function aplicarDadosClienteNoForm() {
-    var c = getClienteAtual();
-    if (!c) return;
-    agNome.value = c.nome;
-    agWhatsapp.value = c.whatsapp || "";
-  }
-
-  if (formAg) {
-    formAg.addEventListener("submit", function (e) {
-      e.preventDefault();
-      if (agendamentoErro) {
-        agendamentoErro.textContent = "";
-        agendamentoErro.classList.add("hidden");
-      }
-      var sess = getSessao();
-      if (!sess || sess.tipo !== "cliente") {
-        if (agendamentoErro) {
-          agendamentoErro.textContent = "Faça login como cliente para agendar.";
-          agendamentoErro.classList.remove("hidden");
-        }
-        return;
-      }
-      var cliente = getClienteAtual();
-      if (!cliente) {
-        abrirEntrada();
-        return;
-      }
-      var servicos = getServicos();
-      var sid = selectServico.value;
-      if (!sid || servicos.length === 0) {
-        if (agendamentoErro) {
-          agendamentoErro.textContent = "Não há serviços disponíveis. Aguarde o barbeiro cadastrar.";
-          agendamentoErro.classList.remove("hidden");
-        }
-        return;
-      }
-      var data = agData.value;
-      var hora = agHora.value;
-      if (!data || !hora) {
-        if (agendamentoErro) {
-          agendamentoErro.textContent = "Preencha data e horário.";
-          agendamentoErro.classList.remove("hidden");
-        }
-        return;
-      }
-      var iso = isoLocal(data, hora);
-      if (!iso) {
-        if (agendamentoErro) {
-          agendamentoErro.textContent = "Data ou horário inválidos.";
-          agendamentoErro.classList.remove("hidden");
-        }
-        return;
-      }
-      if (slotOcupado(data, hora)) {
-        if (agendamentoErro) {
-          agendamentoErro.textContent = "Este horário já foi agendado. Escolha outro.";
-          agendamentoErro.classList.remove("hidden");
-        }
-        return;
-      }
-      var nomeVal = agNome.value.trim();
-      var zapVal = agWhatsapp.value.trim();
-      if (nomeVal.length < 2) {
-        if (agendamentoErro) {
-          agendamentoErro.textContent = "Informe seu nome.";
-          agendamentoErro.classList.remove("hidden");
-        }
-        return;
-      }
-      var svc = servicos.find(function (s) { return s.id === sid; });
-      var lista = getAgendamentos();
-      lista.push({
-        id: uid(),
-        userId: cliente.id,
-        clientName: nomeVal,
-        whatsapp: zapVal,
-        datetime: iso,
-        serviceId: sid,
-        serviceName: svc ? svc.name : "",
-      });
-      save(KEY_AG, lista);
-      renderCalendario();
-      renderHorariosLivresEntrada();
-      if (agendamentoErro) agendamentoErro.classList.add("hidden");
-    });
-  }
-
-  function renderBarbeiro() {
-    renderListaServicos();
-    if (!tbodyAg) return;
-    var ags = getAgendamentos().slice().sort(function (a, b) {
-      var ta = new Date(a.datetime).getTime();
-      var tb = new Date(b.datetime).getTime();
-      return (isNaN(ta) ? 0 : ta) - (isNaN(tb) ? 0 : tb);
-    });
-    tbodyAg.innerHTML = "";
-    ags.forEach(function (a) {
-      var tr = document.createElement("tr");
-      tr.innerHTML =
-        "<td>" +
-        formatarDataHoraBr(a.datetime) +
-        "</td><td>" +
-        escapeHtml(a.clientName) +
-        "</td><td>" +
-        escapeHtml(a.whatsapp) +
-        "</td><td>" +
-        escapeHtml(a.serviceName) +
-        "</td><td></td>";
-      var tdBtn = tr.lastElementChild;
-      var rm = document.createElement("button");
-      rm.type = "button";
-      rm.className = "btn-icone";
-      rm.textContent = "Cancelar";
-      rm.addEventListener("click", function () {
-        var rest = getAgendamentos().filter(function (x) {
-          return x.id !== a.id;
-        });
-        save(KEY_AG, rest);
-        renderBarbeiro();
-        renderCalendario();
-        renderHorariosLivresEntrada();
-      });
-      tdBtn.appendChild(rm);
-      tbodyAg.appendChild(tr);
-    });
-  }
-
-  /* ——— Calendário cliente ——— */
   var calTitulo = document.getElementById("cal-titulo-mes");
   var calGrade = document.getElementById("cal-grade");
   var calMesAnt = document.getElementById("cal-mes-ant");
@@ -619,42 +108,50 @@
 
   function diasComEventoNoMes(y, m) {
     var set = {};
-    getAgendamentos().forEach(function (a) {
-      var d = new Date(a.datetime);
-      if (d.getFullYear() === y && d.getMonth() === m) {
-        set[d.getDate()] = true;
-      }
+    var session = getSession();
+    if (!session || session.role !== "client") return set;
+    apiGetBookings("client", { userId: session.user.id }).then(function (bookings) {
+      bookings.forEach(function (booking) {
+        var d = new Date(booking.date + "T" + booking.time + ":00");
+        if (d.getFullYear() === y && d.getMonth() === m) {
+          set[d.getDate()] = true;
+        }
+      });
+      renderCalendar();
     });
     return set;
   }
 
-  function renderCalendario() {
+  function renderCalendar() {
     if (!calTitulo || !calGrade) return;
-    var hoje = new Date();
-    var primeiro = new Date(anoCal, mesCal, 1);
-    var ultimoDia = new Date(anoCal, mesCal + 1, 0).getDate();
-    var inicioSemana = primeiro.getDay();
-    calTitulo.textContent = primeiro.toLocaleDateString("pt-BR", {
+    var today = new Date();
+    var first = new Date(anoCal, mesCal, 1);
+    var lastDay = new Date(anoCal, mesCal + 1, 0).getDate();
+    var startWeek = first.getDay();
+    calTitulo.textContent = first.toLocaleDateString("pt-BR", {
       month: "long",
       year: "numeric",
     });
     calGrade.innerHTML = "";
-    var marcacoes = diasComEventoNoMes(anoCal, mesCal);
-
-    for (var i = 0; i < inicioSemana; i++) {
-      calGrade.appendChild(celulaVaziaCal());
-    }
-
-    for (var dia = 1; dia <= ultimoDia; dia++) {
-      var ehHoje =
-        dia === hoje.getDate() &&
-        mesCal === hoje.getMonth() &&
-        anoCal === hoje.getFullYear();
-      var y = anoCal;
-      var m = mesCal;
-      var tem = !!marcacoes[dia];
-      calGrade.appendChild(diaCel(dia, false, ehHoje, tem, y, m));
-    }
+    apiGetBookings("client", { userId: getSession()?.user?.id || "" }).then(function (bookings) {
+      var markers = {};
+      bookings.forEach(function (booking) {
+        var d = new Date(booking.date + "T" + booking.time + ":00");
+        if (d.getFullYear() === anoCal && d.getMonth() === mesCal) {
+          markers[d.getDate()] = true;
+        }
+      });
+      for (var i = 0; i < startWeek; i++) {
+        calGrade.appendChild(celulaVaziaCal());
+      }
+      for (var day = 1; day <= lastDay; day++) {
+        var isToday =
+          day === today.getDate() &&
+          mesCal === today.getMonth() &&
+          anoCal === today.getFullYear();
+        calGrade.appendChild(diaCel(day, false, isToday, !!markers[day], anoCal, mesCal));
+      }
+    });
   }
 
   function celulaVaziaCal() {
@@ -666,23 +163,19 @@
     return btn;
   }
 
-  function diaCel(n, fora, hoje, temEvento, y, m) {
+  function diaCel(day, fora, hoje, temEvento, year, month) {
     var btn = document.createElement("button");
     btn.type = "button";
     btn.className = "cal-dia";
-    btn.textContent = String(n);
-    if (fora) {
-      btn.classList.add("fora");
-      btn.disabled = true;
-    } else {
-      if (hoje) btn.classList.add("hoje");
-      if (temEvento) btn.classList.add("tem-evento");
-      btn.addEventListener("click", function () {
-        var mm = String(m + 1).padStart(2, "0");
-        var dd = String(n).padStart(2, "0");
-        agData.value = y + "-" + mm + "-" + dd;
-      });
-    }
+    btn.textContent = String(day);
+    if (hoje) btn.classList.add("hoje");
+    if (temEvento) btn.classList.add("tem-evento");
+    btn.addEventListener("click", function () {
+      var m = String(month + 1).padStart(2, "0");
+      var d = String(day).padStart(2, "0");
+      var dateInput = document.getElementById("ag-data");
+      if (dateInput) dateInput.value = year + "-" + m + "-" + d;
+    });
     return btn;
   }
 
@@ -693,9 +186,10 @@
         mesCal = 11;
         anoCal--;
       }
-      renderCalendario();
+      renderCalendar();
     });
   }
+
   if (calProxMes) {
     calProxMes.addEventListener("click", function () {
       mesCal++;
@@ -703,33 +197,660 @@
         mesCal = 0;
         anoCal++;
       }
-      renderCalendario();
+      renderCalendar();
     });
   }
 
-  /* ——— Início: estado da sessão ou entrada ——— */
-  var h = new Date();
-  if (agData) {
-    agData.value =
-      h.getFullYear() + "-" + String(h.getMonth() + 1).padStart(2, "0") + "-" + String(h.getDate()).padStart(2, "0");
-  }
-  if (agHora) {
-    agHora.value = "09:00";
-  }
-
-  var sessIni = getSessao();
-  if (sessIni && sessIni.tipo === "cliente" && getClienteAtual()) {
-    atualizarTopoSaudacao();
-    mostrarTela("painel-cliente");
-  } else if (sessIni && sessIni.tipo === "barbeiro") {
-    atualizarTopoSaudacao();
-    mostrarTela("painel-barbeiro");
-  } else {
-    limparSessao();
-    atualizarTopoSaudacao();
-    mostrarTela("tela-entrada");
+  function updateHeader() {
+    var session = getSession();
+    var visitor = document.getElementById("topo-visitante");
+    var actions = document.getElementById("topo-acoes");
+    if (visitor) visitor.classList.toggle("hidden", !!session);
+    if (actions) actions.classList.toggle("hidden", !session);
+    var greeting = document.getElementById("topo-saudacao");
+    if (!greeting) return;
+    if (!session) {
+      greeting.textContent = "";
+      return;
+    }
+    if (session.role === "client") {
+      greeting.textContent = "Olá, " + (session.user.nome || "cliente").split(" ")[0] + " (cliente)";
+    } else if (session.role === "barber") {
+      greeting.textContent = "Olá, " + (session.user.name || "barbeiro") + " (barbeiro)";
+    } else if (session.role === "admin") {
+      greeting.textContent = "Olá, administrador";
+    }
   }
 
-  renderListaServicos();
-  popularSelectServicos();
+  async function apiGetServices() {
+    return fetchJson(API_BASE + "/services");
+  }
+
+  async function apiGetBarbers() {
+    return fetchJson(API_BASE + "/barbers");
+  }
+
+  async function apiGetAvailability(days) {
+    return fetchJson(API_BASE + "/availability?days=" + encodeURIComponent(days));
+  }
+
+  async function apiGetBookings(role, query) {
+    var params = new URLSearchParams({ role: role });
+    if (query) {
+      Object.keys(query).forEach(function (key) {
+        if (query[key]) params.set(key, query[key]);
+      });
+    }
+    return fetchJson(API_BASE + "/bookings?" + params.toString());
+  }
+
+  async function apiCreateBooking(payload) {
+    return fetchJson(API_BASE + "/bookings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async function apiCancelBooking(id, role, query) {
+    var params = new URLSearchParams({ role: role });
+    if (query) {
+      Object.keys(query).forEach(function (key) {
+        if (query[key]) params.set(key, query[key]);
+      });
+    }
+    return fetchJson(API_BASE + "/bookings/" + encodeURIComponent(id) + "?" + params.toString(), {
+      method: "DELETE",
+    });
+  }
+
+  async function apiRegisterClient(payload) {
+    return fetchJson(API_BASE + "/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async function apiLogin(payload) {
+    return fetchJson(API_BASE + "/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async function apiLoginBarber(payload) {
+    return fetchJson(API_BASE + "/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async function apiCreateBarber(payload) {
+    return fetchJson(API_BASE + "/admin/barbers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async function apiGetClients(adminSenha) {
+    var session = getSession();
+    if (!session || session.role !== "admin") {
+      throw new Error("Acesso de administrador necessário.");
+    }
+    var adminPass = adminSenha || session.adminSenha;
+    if (!adminPass) {
+      adminPass = prompt("Digite a senha do administrador para carregar a lista de clientes:");
+    }
+    if (!adminPass) {
+      throw new Error("Senha do administrador necessária.");
+    }
+    var params = new URLSearchParams({ adminEmail: session.user.email, adminSenha: adminPass });
+    return fetchJson(API_BASE + "/clients?" + params.toString());
+  }
+
+  async function apiDeleteClient(clientId, adminSenha) {
+    var session = getSession();
+    if (!session || session.role !== "admin") {
+      throw new Error("Acesso de administrador necessário.");
+    }
+    var adminPass = adminSenha || session.adminSenha;
+    if (!adminPass) {
+      adminPass = prompt("Digite a senha do administrador para confirmar a remoção do cliente:");
+    }
+    if (!adminPass) {
+      throw new Error("Senha do administrador necessária.");
+    }
+    var params = new URLSearchParams({ adminEmail: session.user.email, adminSenha: adminPass });
+    return fetchJson(API_BASE + "/clients/" + encodeURIComponent(clientId) + "?" + params.toString(), {
+      method: "DELETE",
+    });
+  }
+
+  async function renderHomeAvailability() {
+    var list = document.getElementById("lista-horarios-livres");
+    var empty = document.getElementById("lista-horarios-vazio");
+    if (!list) return;
+    list.innerHTML = "";
+    try {
+      var items = await apiGetAvailability(14);
+      items.forEach(function (slot) {
+        var li = document.createElement("li");
+        li.textContent = slot.label;
+        list.appendChild(li);
+      });
+      if (empty) empty.classList.toggle("hidden", items.length > 0);
+    } catch (err) {
+      if (empty) {
+        empty.textContent = "Não foi possível carregar horários disponíveis.";
+        empty.classList.remove("hidden");
+      }
+    }
+  }
+
+  async function populateSelectServicos() {
+    var select = document.getElementById("ag-servico");
+    if (!select) return;
+    try {
+      var services = await apiGetServices();
+      select.innerHTML = "";
+      if (!services.length) {
+        var option = document.createElement("option");
+        option.value = "";
+        option.textContent = "Nenhum serviço disponível";
+        select.appendChild(option);
+        select.disabled = true;
+        return;
+      }
+      select.disabled = false;
+      services.forEach(function (service) {
+        var option = document.createElement("option");
+        option.value = service.id;
+        option.textContent = service.name;
+        select.appendChild(option);
+      });
+    } catch (err) {
+      select.innerHTML = "<option>Erro ao carregar serviços</option>";
+      select.disabled = true;
+    }
+  }
+
+  async function populateSelectBarbers() {
+    var select = document.getElementById("ag-barbeiro");
+    if (!select) return;
+    try {
+      var barbers = await apiGetBarbers();
+      select.innerHTML = "";
+      if (!barbers.length) {
+        var option = document.createElement("option");
+        option.value = "";
+        option.textContent = "Nenhum barbeiro cadastrado";
+        select.appendChild(option);
+        select.disabled = true;
+        return;
+      }
+      select.disabled = false;
+      barbers.forEach(function (barber) {
+        var option = document.createElement("option");
+        option.value = barber.id;
+        option.textContent = barber.name;
+        select.appendChild(option);
+      });
+    } catch (err) {
+      select.innerHTML = "<option>Erro ao carregar barbeiros</option>";
+      select.disabled = true;
+    }
+  }
+
+  function setDefaultAppointment() {
+    var dateInput = document.getElementById("ag-data");
+    var timeInput = document.getElementById("ag-hora");
+    if (dateInput) {
+      var today = new Date().toISOString().slice(0, 10);
+      dateInput.value = today;
+    }
+    if (timeInput) {
+      timeInput.value = "09:00";
+    }
+  }
+
+  async function renderClientBookings() {
+    var tbody = document.getElementById("tbody-meus-agendamentos");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    var session = getSession();
+    if (!session || session.role !== "client") return;
+    try {
+      var bookings = await apiGetBookings("client", { userId: session.user.id });
+      bookings.sort(function (a, b) {
+        return new Date(a.date + "T" + a.time + ":00") - new Date(b.date + "T" + b.time + ":00");
+      });
+      if (!bookings.length) {
+        tbody.innerHTML = "<tr><td colspan=4>Nenhum agendamento encontrado.</td></tr>";
+        return;
+      }
+      bookings.forEach(function (booking) {
+        var tr = document.createElement("tr");
+        tr.innerHTML = "<td>" + new Date(booking.date + "T" + booking.time + ":00").toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) + "</td>" +
+          "<td>" + (booking.barberName || "-") + "</td>" +
+          "<td>" + (booking.serviceName || "-") + "</td>" +
+          "<td></td>";
+        var td = tr.lastElementChild;
+        var button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn-icone";
+        button.textContent = "Cancelar";
+        button.addEventListener("click", async function () {
+          try {
+            await apiCancelBooking(booking.id, "client", { userId: session.user.id });
+            await renderClientBookings();
+            await renderHomeAvailability();
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+        td.appendChild(button);
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      tbody.innerHTML = "<tr><td colspan=4>Erro ao carregar agendamentos.</td></tr>";
+    }
+  }
+
+  async function renderBarberBookings() {
+    var tbody = document.getElementById("tbody-agendamentos");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    var session = getSession();
+    if (!session || session.role !== "barber") return;
+    try {
+      var bookings = await apiGetBookings("barber", { barberId: session.user.id });
+      bookings.sort(function (a, b) {
+        return new Date(a.date + "T" + a.time + ":00") - new Date(b.date + "T" + b.time + ":00");
+      });
+      if (!bookings.length) {
+        tbody.innerHTML = "<tr><td colspan=5>Nenhum agendamento encontrado.</td></tr>";
+        return;
+      }
+      bookings.forEach(function (booking) {
+        var tr = document.createElement("tr");
+        tr.innerHTML = "<td>" + new Date(booking.date + "T" + booking.time + ":00").toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) + "</td>" +
+          "<td>" + (booking.clientName || "-") + "</td>" +
+          "<td>" + (booking.whatsapp || "-") + "</td>" +
+          "<td>" + (booking.serviceName || "-") + "</td>" +
+          "<td></td>";
+        var td = tr.lastElementChild;
+        var button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn-icone";
+        button.textContent = "Cancelar";
+        button.addEventListener("click", async function () {
+          try {
+            await apiCancelBooking(booking.id, "barber", { barberId: session.user.id });
+            await renderBarberBookings();
+            await renderHomeAvailability();
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+        td.appendChild(button);
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      tbody.innerHTML = "<tr><td colspan=5>Erro ao carregar agendamentos.</td></tr>";
+    }
+  }
+
+  async function renderAdminBarbers() {
+    var list = document.getElementById("lista-barbeiros");
+    if (!list) return;
+    list.innerHTML = "";
+    try {
+      var barbers = await apiGetBarbers();
+      if (!barbers.length) {
+        list.innerHTML = "<li>Nenhum barbeiro cadastrado.</li>";
+        return;
+      }
+      barbers.forEach(function (barber) {
+        var li = document.createElement("li");
+        li.textContent = barber.name + " (" + barber.username + ")";
+        list.appendChild(li);
+      });
+    } catch (err) {
+      list.innerHTML = "<li>Erro ao carregar barbeiros.</li>";
+    }
+  }
+
+  async function renderAdminClients() {
+    var tbody = document.getElementById("tbody-clientes");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    var session = getSession();
+    if (!session || session.role !== "admin") return;
+    try {
+      var clients = await apiGetClients();
+      if (!clients.length) {
+        tbody.innerHTML = "<tr><td colspan=4>Nenhum cliente cadastrado.</td></tr>";
+        return;
+      }
+      clients.forEach(function (client) {
+        var tr = document.createElement("tr");
+        tr.innerHTML = "<td>" + client.nome + "</td>" +
+          "<td>" + client.email + "</td>" +
+          "<td>" + (client.whatsapp || "-") + "</td>" +
+          "<td></td>";
+        var td = tr.lastElementChild;
+        var button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn-icone";
+        button.textContent = "Remover";
+        button.addEventListener("click", async function () {
+          var adminSenha = prompt("Digite a senha do administrador para confirmar a exclusão:");
+          if (!adminSenha) return;
+          try {
+            await apiDeleteClient(client.id, adminSenha);
+            await renderAdminClients();
+            await renderAdminBookings();
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+        td.appendChild(button);
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      tbody.innerHTML = "<tr><td colspan=4>Erro ao carregar clientes.</td></tr>";
+    }
+  }
+
+  async function renderAdminBookings() {
+    var tbody = document.getElementById("tbody-todos-agendamentos");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    try {
+      var bookings = await apiGetBookings("admin", {});
+      bookings.sort(function (a, b) {
+        return new Date(a.date + "T" + a.time + ":00") - new Date(b.date + "T" + b.time + ":00");
+      });
+      if (!bookings.length) {
+        tbody.innerHTML = "<tr><td colspan=5>Nenhum agendamento registrado.</td></tr>";
+        return;
+      }
+      bookings.forEach(function (booking) {
+        var tr = document.createElement("tr");
+        tr.innerHTML = "<td>" + new Date(booking.date + "T" + booking.time + ":00").toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) + "</td>" +
+          "<td>" + (booking.clientName || "-") + "</td>" +
+          "<td>" + (booking.barberName || "-") + "</td>" +
+          "<td>" + (booking.serviceName || "-") + "</td>" +
+          "<td></td>";
+        var td = tr.lastElementChild;
+        var button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn-icone";
+        button.textContent = "Cancelar";
+        button.addEventListener("click", async function () {
+          try {
+            await apiCancelBooking(booking.id, "admin", {});
+            await renderAdminBookings();
+            await renderHomeAvailability();
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+        td.appendChild(button);
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      tbody.innerHTML = "<tr><td colspan=5>Erro ao carregar agendamentos.</td></tr>";
+    }
+  }
+
+  function getFormValues(ids) {
+    var values = {};
+    ids.forEach(function (id) {
+      var input = document.getElementById(id);
+      values[id] = input ? input.value.trim() : "";
+    });
+    return values;
+  }
+
+  document.getElementById("btn-logo-inicio")?.addEventListener("click", function () {
+    showScreen("tela-entrada");
+  });
+  document.getElementById("btn-ir-cadastro")?.addEventListener("click", function () {
+    showScreen("tela-cadastro");
+  });
+  document.getElementById("btn-ir-login-cliente")?.addEventListener("click", function () {
+    showScreen("tela-login-cliente");
+  });
+  document.getElementById("btn-ir-login-barbeiro")?.addEventListener("click", function () {
+    showScreen("tela-login-barbeiro");
+  });
+  document.getElementById("btn-ir-login-admin")?.addEventListener("click", function () {
+    showScreen("tela-login-admin");
+  });
+  document.getElementById("btn-voltar-cadastro")?.addEventListener("click", function () {
+    showScreen("tela-entrada");
+  });
+  document.getElementById("btn-voltar-login-cliente")?.addEventListener("click", function () {
+    showScreen("tela-entrada");
+  });
+  document.getElementById("btn-voltar-login-barbeiro")?.addEventListener("click", function () {
+    showScreen("tela-entrada");
+  });
+  document.getElementById("btn-voltar-login-admin")?.addEventListener("click", function () {
+    showScreen("tela-entrada");
+  });
+  document.getElementById("btn-logout")?.addEventListener("click", function () {
+    clearSession();
+    updateHeader();
+    showScreen("tela-entrada");
+  });
+
+  document.getElementById("form-cadastro")?.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    hideError("cadastro-erro");
+    var values = getFormValues(["cd-nome", "cd-email", "cd-whatsapp", "cd-senha", "cd-senha2"]);
+    if (!values["cd-nome"] || values["cd-nome"].length < 2) {
+      showError("cadastro-erro", "Informe um nome válido.");
+      return;
+    }
+    if (!values["cd-email"] || values["cd-email"].indexOf("@") < 0) {
+      showError("cadastro-erro", "E-mail inválido.");
+      return;
+    }
+    if (values["cd-senha"] !== values["cd-senha2"]) {
+      showError("cadastro-erro", "As senhas não coincidem.");
+      return;
+    }
+    try {
+      var result = await apiRegisterClient({
+        nome: values["cd-nome"],
+        email: values["cd-email"],
+        whatsapp: values["cd-whatsapp"],
+        senha: values["cd-senha"],
+      });
+      saveSession(result);
+      updateHeader();
+      showScreen("painel-cliente");
+      setDefaultAppointment();
+      await populateSelectServicos();
+      await populateSelectBarbers();
+      await renderClientBookings();
+      event.target.reset();
+    } catch (err) {
+      showError("cadastro-erro", err.message);
+    }
+  });
+
+  document.getElementById("form-login-cliente")?.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    hideError("login-cliente-erro");
+    var values = getFormValues(["lc-email", "lc-senha"]);
+    try {
+      var result = await apiLogin({ email: values["lc-email"], senha: values["lc-senha"] });
+      if (result.role !== "client") {
+        showError("login-cliente-erro", "Use credenciais de cliente.");
+        return;
+      }
+      saveSession(result);
+      updateHeader();
+      showScreen("painel-cliente");
+      setDefaultAppointment();
+      await populateSelectServicos();
+      await populateSelectBarbers();
+      await renderClientBookings();
+      event.target.reset();
+    } catch (err) {
+      showError("login-cliente-erro", err.message);
+    }
+  });
+
+  document.getElementById("form-login-barbeiro")?.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    hideError("login-barbeiro-erro");
+    var values = getFormValues(["lb-email", "lb-senha"]);
+    try {
+      var result = await apiLoginBarber({ email: values["lb-email"], senha: values["lb-senha"] });
+      if (result.role !== "barber") {
+        showError("login-barbeiro-erro", "Credenciais inválidas para barbeiro.");
+        return;
+      }
+      saveSession(result);
+      updateHeader();
+      showScreen("painel-barbeiro");
+      await renderBarberBookings();
+      event.target.reset();
+    } catch (err) {
+      showError("login-barbeiro-erro", err.message);
+    }
+  });
+
+  document.getElementById("form-login-admin")?.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    hideError("login-admin-erro");
+    var values = getFormValues(["la-email", "la-senha"]);
+    try {
+      var result = await apiLogin({ email: values["la-email"], senha: values["la-senha"] });
+      if (result.role !== "admin") {
+        showError("login-admin-erro", "Credenciais inválidas para administrador.");
+        return;
+      }
+      result.adminSenha = values["la-senha"];
+      saveSession(result);
+      updateHeader();
+      showScreen("painel-admin");
+      await renderAdminBarbers();
+      await renderAdminClients();
+      await renderAdminBookings();
+      event.target.reset();
+    } catch (err) {
+      showError("login-admin-erro", err.message);
+    }
+  });
+
+  document.getElementById("form-agendamento")?.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    hideError("agendamento-erro");
+    var session = getSession();
+    if (!session || session.role !== "client") {
+      showError("agendamento-erro", "Faça login como cliente para agendar.");
+      return;
+    }
+    var values = getFormValues(["ag-nome", "ag-whatsapp", "ag-servico", "ag-barbeiro", "ag-data", "ag-hora"]);
+    if (!values["ag-nome"]) {
+      showError("agendamento-erro", "Informe seu nome.");
+      return;
+    }
+    if (!values["ag-servico"]) {
+      showError("agendamento-erro", "Escolha um serviço.");
+      return;
+    }
+    if (!values["ag-barbeiro"]) {
+      showError("agendamento-erro", "Escolha um barbeiro.");
+      return;
+    }
+    if (!values["ag-data"] || !values["ag-hora"]) {
+      showError("agendamento-erro", "Preencha data e horário.");
+      return;
+    }
+    try {
+      await apiCreateBooking({
+        clientId: session.user.id,
+        barberId: values["ag-barbeiro"],
+        serviceId: values["ag-servico"],
+        date: values["ag-data"],
+        time: values["ag-hora"],
+        clientName: values["ag-nome"],
+        whatsapp: values["ag-whatsapp"],
+      });
+      await renderClientBookings();
+      await renderHomeAvailability();
+    } catch (err) {
+      showError("agendamento-erro", err.message);
+    }
+  });
+
+  document.getElementById("form-criar-barbeiro")?.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    hideError("admin-erro");
+    var values = getFormValues(["ab-nome", "ab-usuario", "ab-senha"]);
+    if (!values["ab-nome"] || !values["ab-usuario"] || !values["ab-senha"]) {
+      showError("admin-erro", "Preencha todos os campos.");
+      return;
+    }
+    var session = getSession();
+    if (!session || session.role !== "admin") {
+      showError("admin-erro", "Acesso de administrador necessário.");
+      return;
+    }
+    try {
+      var adminPassword = prompt("Digite novamente a senha do administrador para confirmar");
+      await apiCreateBarber({
+        name: values["ab-nome"],
+        username: values["ab-usuario"],
+        password: values["ab-senha"],
+        adminEmail: session.user.email,
+        adminSenha: adminPassword || "",
+      });
+      document.getElementById("ab-nome").value = "";
+      document.getElementById("ab-usuario").value = "";
+      document.getElementById("ab-senha").value = "";
+      await renderAdminBarbers();
+      await populateSelectBarbers();
+    } catch (err) {
+      showError("admin-erro", err.message);
+    }
+  });
+
+  async function init() {
+    updateHeader();
+    setDefaultAppointment();
+    await populateSelectServicos();
+    await populateSelectBarbers();
+    var session = getSession();
+    if (!session) {
+      showScreen("tela-entrada");
+      return;
+    }
+    if (session.role === "client") {
+      showScreen("painel-cliente");
+      await renderClientBookings();
+    } else if (session.role === "barber") {
+      showScreen("painel-barbeiro");
+      await renderBarberBookings();
+    } else if (session.role === "admin") {
+      showScreen("painel-admin");
+      await renderAdminBarbers();
+      await renderAdminClients();
+      await renderAdminBookings();
+    } else {
+      showScreen("tela-entrada");
+    }
+  }
+
+  window.addEventListener("load", init);
 })();

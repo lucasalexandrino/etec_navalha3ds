@@ -10,7 +10,7 @@
   <header class="topo">
     <div class="topo-marca">
       <button type="button" class="topo-logo-btn" id="btn-logo-inicio" aria-label="Ir para a página inicial" title="Página inicial">
-        <img class="logo" src="img/Logo_Navalha.png" alt="Barbearia Navalha" decoding="async" />
+        <img class="logo" src="img/Logo.png" alt="Barbearia Navalha" decoding="async" />
       </button>
     </div>
 
@@ -36,6 +36,7 @@
         <button type="button" class="btn-prim btn-compacto" id="btn-ir-cadastro">Cadastro</button>
         <button type="button" class="btn-sec btn-compacto" id="btn-ir-login-cliente">Entrar</button>
         <button type="button" class="btn-barbeiro btn-compacto" id="btn-ir-login-barbeiro">Barbeiro</button>
+        <button type="button" class="btn-sec btn-compacto" id="btn-ir-login-admin">Administrador</button>
       </div>
       <div id="topo-acoes" class="topo-acoes hidden">
         <span id="topo-saudacao" class="topo-saudacao" aria-live="polite"></span>
@@ -60,7 +61,7 @@
       </div>
 
       <p class="aviso-demo">
-        Uso educativo: login e senhas são simulados no navegador (localStorage). Em produção real a autenticação seria no servidor.
+        Uso educativo: a autenticação e os agendamentos são gerenciados por um backend local. Use os logins de demonstração para testar.
       </p>
     </section>
 
@@ -121,19 +122,37 @@
     <section id="tela-login-barbeiro" class="tela" hidden aria-label="Login do barbeiro">
       <div class="card card-form-centro">
         <h2>Área restrita — barbeiro</h2>
-        <p class="muted-small">Cancelar agendamentos e gerir serviços exige login. Usuário e senha padrão de demonstração: <code>barbeiro</code> / <code>navalha</code></p>
+        <p class="muted-small">Cancelar agendamentos exige login. Use o e-mail do barbeiro e a senha de demonstração: <code>barbeiro@navalha.com</code> / <code>navalha</code></p>
         <form id="form-login-barbeiro" class="form" novalidate>
           <label>
-            Usuário
-            <input type="text" id="lb-usuario" name="usuario" autocomplete="username" required />
-          </label>
-          <label>
-            Senha
+            E-mail
+            <input type="email" id="lb-email" name="email" autocomplete="username" required />
             <input type="password" id="lb-senha" name="senha" autocomplete="current-password" required />
           </label>
           <p id="login-barbeiro-erro" class="msg-erro hidden" role="alert"></p>
           <button type="submit" class="btn-prim">Entrar na área do barbeiro</button>
           <button type="button" class="btn-link" id="btn-voltar-login-barbeiro">← Voltar ao início</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- LOGIN ADMIN -->
+    <section id="tela-login-admin" class="tela" hidden aria-label="Login do administrador">
+      <div class="card card-form-centro">
+        <h2>Entrar — administrador</h2>
+        <p class="muted-small">Use o login de administração para gerir barbeiros e visualizar todos os agendamentos.</p>
+        <form id="form-login-admin" class="form" novalidate>
+          <label>
+            E-mail
+            <input type="email" id="la-email" name="email" autocomplete="username" required />
+          </label>
+          <label>
+            Senha
+            <input type="password" id="la-senha" name="senha" autocomplete="current-password" required />
+          </label>
+          <p id="login-admin-erro" class="msg-erro hidden" role="alert"></p>
+          <button type="submit" class="btn-prim">Entrar na administração</button>
+          <button type="button" class="btn-link" id="btn-voltar-login-admin">← Voltar ao início</button>
         </form>
       </div>
     </section>
@@ -167,6 +186,10 @@
               <input type="tel" id="ag-whatsapp" name="whatsapp" inputmode="numeric" />
             </label>
             <label>
+              Barbeiro
+              <select id="ag-barbeiro" name="barbeiro"></select>
+            </label>
+            <label>
               Serviço
               <select id="ag-servico" name="servico"></select>
             </label>
@@ -183,26 +206,30 @@
           </form>
         </div>
       </div>
+      <div class="card">
+        <h2>Meus agendamentos</h2>
+        <div class="tabela-wrap">
+          <table class="tabela-ag">
+            <thead>
+              <tr>
+                <th>Data / hora</th>
+                <th>Barbeiro</th>
+                <th>Serviço</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tbody-meus-agendamentos"></tbody>
+          </table>
+        </div>
+      </div>
     </section>
 
     <!-- BARBEIRO (após login) -->
     <section id="painel-barbeiro" class="painel" aria-label="Área do barbeiro" hidden>
       <div class="grid-barbeiro">
-        <div class="card">
-          <h2>Cadastrar serviço</h2>
-          <form id="form-servico" class="form" novalidate>
-            <label>
-              Nome do serviço
-              <input type="text" id="sv-nome" />
-            </label>
-            <button type="submit" class="btn-prim">Adicionar</button>
-          </form>
-          <h3 class="subtitulo">Serviços cadastrados</h3>
-          <ul id="lista-servicos" class="lista-servicos"></ul>
-        </div>
-
         <div class="card card-largo">
-          <h2>Agendamentos</h2>
+          <h2>Agendamentos do barbeiro</h2>
+          <p class="muted-small">Visualize sua agenda diária e cancele atendimentos quando necessário.</p>
           <div class="tabela-wrap">
             <table class="tabela-ag">
               <thead>
@@ -215,6 +242,71 @@
                 </tr>
               </thead>
               <tbody id="tbody-agendamentos"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN (após login) -->
+    <section id="painel-admin" class="painel" aria-label="Área do administrador" hidden>
+      <div class="grid-barbeiro">
+        <div class="card">
+          <h2>Cadastrar barbeiro</h2>
+          <p class="muted-small">Cadastre barbeiros que poderão atender clientes na Barbearia Navalha.</p>
+          <form id="form-criar-barbeiro" class="form" novalidate>
+            <label>
+              Nome do barbeiro
+              <input type="text" id="ab-nome" required />
+            </label>
+            <label>
+              Usuário
+              <input type="text" id="ab-usuario" required />
+            </label>
+            <label>
+              Senha
+              <input type="password" id="ab-senha" required />
+            </label>
+            <p id="admin-erro" class="msg-erro hidden" role="alert"></p>
+            <button type="submit" class="btn-prim">Cadastrar barbeiro</button>
+          </form>
+          <h3 class="subtitulo">Barbeiros cadastrados</h3>
+          <ul id="lista-barbeiros" class="lista-servicos"></ul>
+        </div>
+
+        <div class="card">
+          <h2>Clientes cadastrados</h2>
+          <p class="muted-small">Gerencie contas de clientes e remova usuários quando necessário.</p>
+          <div class="tabela-wrap">
+            <table class="tabela-ag">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>E-mail</th>
+                  <th>WhatsApp</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="tbody-clientes"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card card-largo">
+          <h2>Todos os agendamentos</h2>
+          <p class="muted-small">Painel principal do administrador com visão completa dos atendimentos.</p>
+          <div class="tabela-wrap">
+            <table class="tabela-ag">
+              <thead>
+                <tr>
+                  <th>Data / hora</th>
+                  <th>Cliente</th>
+                  <th>Barbeiro</th>
+                  <th>Serviço</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="tbody-todos-agendamentos"></tbody>
             </table>
           </div>
         </div>

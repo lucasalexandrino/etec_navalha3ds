@@ -263,6 +263,43 @@ a.topo-servico-pill:focus-visible {
   margin-bottom: 0.25rem;
 }
 
+.horarios-disponiveis-card {
+  margin-top: 0.5rem;
+}
+
+.horarios-disponiveis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.btn-time-slot {
+  padding: 0.8rem 0.9rem;
+  border-radius: 12px;
+  background: rgba(255, 123, 0, 0.12);
+  border: 1px solid rgba(255, 123, 0, 0.3);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+}
+
+.btn-time-slot:hover {
+  background: rgba(255, 123, 0, 0.22);
+}
+
+.btn-time-slot.selected {
+  background: linear-gradient(135deg, rgba(255, 123, 0, 0.95), rgba(255, 175, 55, 0.92));
+  color: #121820;
+  border-color: transparent;
+}
+
+.help-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
 .aviso-demo {
   margin: 1.5rem 0 0;
   font-size: 0.78rem;
@@ -306,7 +343,8 @@ main {
   display: none;
 }
 
-.painel.ativo {
+.painel.ativo,
+.painel.tela-ativa {
   display: block;
 }
 
@@ -588,92 +626,4 @@ main {
 .link-voltar:hover {
   text-decoration: underline;
   color: var(--accent-hover);
-}
-
-.hero {
-  display: grid;
-  gap: 2rem;
-  padding: 2rem;
-  border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 123, 0, 0.12);
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
-}
-
-.hero-copy {
-  max-width: 43rem;
-}
-
-.hero-copy h1 {
-  margin: 0 0 1rem;
-  font-size: clamp(2rem, 2.4vw, 3rem);
-  line-height: 1.05;
-}
-
-.hero-copy p {
-  margin: 0 0 1.5rem;
-  color: var(--muted);
-  max-width: 32rem;
-}
-
-.hero-details {
-  display: grid;
-  gap: 1rem;
-}
-
-.feature-card {
-  background: rgba(0, 0, 0, 0.45);
-  border: 1px solid rgba(255, 123, 0, 0.14);
-  border-radius: 18px;
-  padding: 1.25rem;
-}
-
-.feature-card strong {
-  display: block;
-  margin-bottom: 0.75rem;
-  color: var(--accent);
-}
-
-.hero-cta {
-  width: fit-content;
-}
-
-.panel-header {
-  margin-bottom: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-}
-
-@media (min-width: 720px) {
-  .panel-header {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-end;
-  }
-}
-
-.grid-admin {
-  display: grid;
-  gap: 1.25rem;
-}
-
-@media (min-width: 900px) {
-  .grid-admin {
-    grid-template-columns: minmax(320px, 360px) minmax(320px, 1fr);
-  }
-}
-
-.btn-compacto {
-  padding: 0.45rem 0.85rem;
-  border-radius: 12px;
-}
-
-.eyebrow {
-  display: inline-block;
-  margin-bottom: 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--accent);
-  font-size: 0.8rem;
 }

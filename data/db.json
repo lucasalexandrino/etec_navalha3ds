@@ -1,0 +1,88 @@
+{
+  "clients": [
+    {
+      "id": "cliente-1775944699991-76towv",
+      "nome": "Aurélio Viana",
+      "email": "aureliovianadev@gmail.com",
+      "whatsapp": "14991584796",
+      "senha": "12345678"
+    },
+    {
+      "id": "cliente-1775946337059-5m1dqf",
+      "nome": "Daniela Conduta",
+      "email": "daniela@gmail.com",
+      "whatsapp": "149968579899",
+      "senha": "12345678"
+    }
+  ],
+  "barbers": [
+    {
+      "id": "barbeiro-1",
+      "name": "Barbeiro Demo",
+      "email": "barbeiro@navalha.com",
+      "password": "navalha"
+    },
+    {
+      "id": "barbeiro-1775946380792-d3re9k",
+      "name": "Lucas Alexandrino",
+      "email": "admlucas@gmail.com",
+      "password": "12345678"
+    }
+  ],
+  "services": [
+    {
+      "id": "servico-1",
+      "name": "Corte de cabelo"
+    },
+    {
+      "id": "servico-2",
+      "name": "Barba"
+    },
+    {
+      "id": "servico-3",
+      "name": "Hidratação"
+    },
+    {
+      "id": "servico-4",
+      "name": "Sobrancelha"
+    },
+    {
+      "id": "servico-5",
+      "name": "Limpeza de pele"
+    },
+    {
+      "id": "servico-6",
+      "name": "Descoloração"
+    },
+    {
+      "id": "servico-7",
+      "name": "Pintura de cabelo"
+    }
+  ],
+  "bookings": [
+    {
+      "id": "agendamento-1775946287098-4dfcn4",
+      "clientId": "cliente-1775944699991-76towv",
+      "clientName": "Aurélio Viana",
+      "whatsapp": "14991584796",
+      "barberId": "barbeiro-1",
+      "barberName": "Barbeiro Demo",
+      "serviceId": "servico-2",
+      "serviceName": "Barba",
+      "date": "2026-04-17",
+      "time": "15:00"
+    },
+    {
+      "id": "agendamento-1775946435543-ef0ohi",
+      "clientId": "cliente-1775946337059-5m1dqf",
+      "clientName": "Daniela Conduta",
+      "whatsapp": "149968579899",
+      "barberId": "barbeiro-1",
+      "barberName": "Barbeiro Demo",
+      "serviceId": "servico-1",
+      "serviceName": "Corte de cabelo",
+      "date": "2026-04-17",
+      "time": "15:30"
+    }
+  ]
+}

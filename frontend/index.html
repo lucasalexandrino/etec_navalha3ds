@@ -1,0 +1,321 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barbearia Navalha</title>
+  <link rel="stylesheet" href="css/estilos.css" />
+</head>
+<body>
+  <header class="topo">
+    <div class="topo-marca">
+      <img class="logo" src="img/Logo.png" alt="Barbearia Navalha" decoding="async" />
+      <div class="marca-texto">
+        <p class="marca-label">Barbearia Navalha</p>
+        <strong class="marca-slogan">Agendamento inteligente para cortes e barba</strong>
+      </div>
+    </div>
+    <div class="topo-direita">
+      <div id="topo-visitante" class="topo-visitante">
+        <button type="button" class="btn-prim btn-compacto" id="btn-entrar">Entrar</button>
+      </div>
+      <div id="topo-acoes" class="topo-acoes hidden">
+        <span id="topo-saudacao" class="topo-saudacao" aria-live="polite"></span>
+        <button type="button" id="btn-logout" class="btn-sec btn-compacto">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="tela-entrada" class="tela tela-ativa" aria-label="Página inicial">
+      <div class="hero">
+        <div class="hero-copy">
+          <span class="eyebrow">Barbearia Navalha</span>
+          <h1>O seu agendamento profissional em um único lugar</h1>
+          <p>Escolha barbeiro, serviço, data e horário com controle de agenda em tempo real. Ideal para clientes, barbeiros e administração.</p>
+          <button type="button" class="btn-prim hero-cta" id="btn-entrar-hero">Entrar</button>
+        </div>
+        <div class="hero-details">
+          <div class="feature-card">
+            <strong>Atendimento planejado</strong>
+            <p>Horários bloqueados automaticamente quando ocupados para evitar conflitos.</p>
+          </div>
+          <div class="feature-card">
+            <strong>Controle total</strong>
+            <p>Administração completa com cadastro de barbeiros, serviços e visualização de todos os agendamentos.</p>
+          </div>
+          <div class="feature-card">
+            <strong>Agenda pessoal</strong>
+            <p>Barbeiros visualizam apenas sua agenda e gerenciam cancelamentos de forma segura.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tela-login" class="tela" hidden aria-label="Login">
+      <div class="card card-form-centro">
+        <h2>Entrar</h2>
+        <p class="muted-small">Use seu e-mail e senha para acessar o painel.</p>
+        <form id="form-login" class="form" novalidate>
+          <label>
+            E-mail
+            <input type="email" id="login-email" name="email" autocomplete="username" required />
+          </label>
+          <label>
+            Senha
+            <input type="password" id="login-senha" name="senha" autocomplete="current-password" required />
+          </label>
+          <p id="login-erro" class="msg-erro hidden" role="alert"></p>
+          <button type="submit" class="btn-prim">Entrar</button>
+        </form>
+        <p class="muted-small">Não tem conta? <button type="button" class="btn-link" id="btn-link-cadastro">Cadastre-se</button></p>
+      </div>
+    </section>
+
+    <section id="tela-cadastro" class="tela" hidden aria-label="Cadastro de cliente">
+      <div class="card card-form-centro">
+        <h2>Criar conta</h2>
+        <p class="muted-small">Cadastre-se para agendar horários com segurança.</p>
+        <form id="form-cadastro" class="form" novalidate>
+          <label>
+            Nome completo
+            <input type="text" id="cd-nome" name="nome" autocomplete="name" required maxlength="120" />
+          </label>
+          <label>
+            E-mail
+            <input type="email" id="cd-email" name="email" autocomplete="email" required maxlength="120" />
+          </label>
+          <label>
+            WhatsApp
+            <input type="tel" id="cd-whatsapp" name="whatsapp" inputmode="numeric" autocomplete="tel" required maxlength="20" />
+          </label>
+          <label>
+            Senha
+            <input type="password" id="cd-senha" name="senha" autocomplete="new-password" required minlength="4" maxlength="72" />
+          </label>
+          <label>
+            Confirmar senha
+            <input type="password" id="cd-senha2" name="senha2" autocomplete="new-password" required minlength="4" maxlength="72" />
+          </label>
+          <p id="cadastro-erro" class="msg-erro hidden" role="alert"></p>
+          <button type="submit" class="btn-prim">Cadastrar</button>
+        </form>
+        <p class="muted-small">Já tem conta? <button type="button" class="btn-link" id="btn-link-login">Entrar</button></p>
+      </div>
+    </section>
+
+    <section id="painel-cliente" class="painel" hidden aria-label="Área do cliente">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Painel do cliente</p>
+          <h2>Agende seu atendimento</h2>
+        </div>
+      </div>
+      <div class="grid-cliente">
+        <div class="card">
+          <h3>Novo agendamento</h3>
+          <form id="form-agendamento" class="form" novalidate>
+            <label>
+              Barbeiro
+              <select id="ag-barbeiro" name="barbeiro"></select>
+            </label>
+            <label>
+              Serviço
+              <select id="ag-servico" name="servico"></select>
+            </label>
+            <label>
+              Data
+              <input type="date" id="ag-data" name="data" />
+            </label>
+            <label>
+              Horário
+              <input type="time" id="ag-hora" name="hora" step="1800" />
+            </label>
+            <div class="horarios-disponiveis-card">
+              <p class="muted-small">Selecione o barbeiro e a data para ver os horários disponíveis.</p>
+              <div id="ag-horarios-disponiveis" class="horarios-disponiveis"></div>
+            </div>
+            <p id="agendamento-erro" class="msg-erro hidden" role="alert"></p>
+            <button type="submit" class="btn-prim">Agendar horário</button>
+          </form>
+        </div>
+        <div class="card card-horarios-livres">
+          <h3>Calendário de disponibilidade</h3>
+          <div class="cal-nav">
+            <button type="button" id="cal-mes-ant" aria-label="Mês anterior">←</button>
+            <span id="cal-titulo-mes" class="cal-mes-label"></span>
+            <button type="button" id="cal-prox-mes" aria-label="Próximo mês">→</button>
+          </div>
+          <div class="cal-semanas">
+            <span>Dom</span>
+            <span>Seg</span>
+            <span>Ter</span>
+            <span>Qua</span>
+            <span>Qui</span>
+            <span>Sex</span>
+            <span>Sáb</span>
+          </div>
+          <div id="cal-grade" class="cal-grade"></div>
+          <h3 class="subtitulo">Próximos horários livres</h3>
+          <p class="muted-small">Mostramos os horários abertos nos próximos dias para facilitar sua escolha.</p>
+          <ul id="lista-horarios-livres" class="lista-horarios-livres"></ul>
+          <p id="lista-horarios-vazio" class="muted-small hidden">Nenhum horário livre encontrado.</p>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Meus agendamentos</h3>
+        <div class="tabela-wrap">
+          <table class="tabela-ag">
+            <thead>
+              <tr>
+                <th>Data / hora</th>
+                <th>Barbeiro</th>
+                <th>Serviço</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tbody-meus-agendamentos"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="painel-barbeiro" class="painel" hidden aria-label="Área do barbeiro">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Painel do barbeiro</p>
+          <h2>Agenda pessoal do barbeiro</h2>
+        </div>
+      </div>
+      <div class="card card-largo">
+        <h3>Seus agendamentos</h3>
+        <div class="tabela-wrap">
+          <table class="tabela-ag">
+            <thead>
+              <tr>
+                <th>Data / hora</th>
+                <th>Cliente</th>
+                <th>WhatsApp</th>
+                <th>Serviço</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tbody-agendamentos"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="painel-admin" class="painel" hidden aria-label="Área do administrador">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Painel do administrador</p>
+          <h2>Controle total</h2>
+        </div>
+      </div>
+      <div class="grid-admin">
+        <div class="card admin-block">
+          <h3>Cadastrar barbeiro</h3>
+          <form id="form-criar-barbeiro" class="form" novalidate>
+            <label>
+              Nome do barbeiro
+              <input type="text" id="ab-nome" required />
+            </label>
+            <label>
+              E-mail
+              <input type="email" id="ab-email" required />
+            </label>
+            <label>
+              Senha
+              <input type="password" id="ab-senha" required />
+            </label>
+            <p id="admin-barbeiro-erro" class="msg-erro hidden" role="alert"></p>
+            <button type="submit" class="btn-prim">Cadastrar barbeiro</button>
+          </form>
+          <h4 class="subtitulo">Barbeiros cadastrados</h4>
+          <ul id="lista-barbeiros" class="lista-servicos"></ul>
+        </div>
+
+        <div class="card admin-block">
+          <h3>Adicionar serviço</h3>
+          <form id="form-criar-servico" class="form" novalidate>
+            <label>
+              Nome do serviço
+              <input type="text" id="as-nome" required />
+            </label>
+            <p id="admin-servico-erro" class="msg-erro hidden" role="alert"></p>
+            <button type="submit" class="btn-prim">Adicionar serviço</button>
+          </form>
+          <h4 class="subtitulo">Serviços cadastrados</h4>
+          <ul id="lista-servicos-admin" class="lista-servicos"></ul>
+        </div>
+
+        <div class="card card-largo admin-block">
+          <h3>Clientes</h3>
+          <div class="tabela-wrap">
+            <table class="tabela-ag">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>E-mail</th>
+                  <th>WhatsApp</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="tbody-clientes"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card card-largo admin-block">
+          <h3>Todos os agendamentos</h3>
+          <div class="tabela-wrap">
+            <table class="tabela-ag">
+              <thead>
+                <tr>
+                  <th>Data / hora</th>
+                  <th>Cliente</th>
+                  <th>Barbeiro</th>
+                  <th>Serviço</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="tbody-todos-agendamentos"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <div class="rodape-inner">
+      <div class="rodape-col">
+        <h2 class="rodape-titulo">Endereço</h2>
+        <p class="rodape-texto">
+          Rua das Navalhas, 100 — Centro<br />
+          São Paulo — SP<br />
+          CEP 01000-000
+        </p>
+      </div>
+      <div class="rodape-col">
+        <h2 class="rodape-titulo">Contato</h2>
+        <p class="rodape-texto">
+          WhatsApp: (11) 99999-0000<br />
+          Instagram: @barbearianavalha
+        </p>
+      </div>
+      <div class="rodape-col">
+        <h2 class="rodape-titulo">Funcionamento</h2>
+        <p class="rodape-texto">
+          Segunda a sexta: 9h às 18h<br />
+          Sábado: 9h às 13h<br />
+          Domingo: fechado
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
