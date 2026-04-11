@@ -4,16 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0c0c0f" />
     <title>Navalha — Gestão de Barbearia</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./css/styles.css" />
   </head>
-  <body>
+  <body class="isAppChrome">
+    <a class="skipLink" href="#mainContent">Pular para o conteúdo</a>
     <div class="appShell" id="appShell">
       <header class="topBar" aria-label="Barra superior">
         <div class="brand">
@@ -32,7 +34,12 @@
         </div>
       </header>
 
-      <main class="main" id="main">
+      <nav id="appSubNav" class="appSubNav" hidden aria-label="Seções da área logada"></nav>
+
+      <main class="main" id="mainContent" tabindex="-1">
+        <nav id="navCrumb" class="navCrumb" hidden aria-label="Você está em">
+          <ol class="navCrumbList" id="navCrumbList"></ol>
+        </nav>
         <!-- LOGIN -->
         <section class="panel" id="viewLogin" aria-label="Login">
           <div class="panelHeader">
@@ -48,9 +55,9 @@
               Escolha o serviço, veja os horários disponíveis e confirme em poucos cliques.
             </div>
             <div class="heroBadges">
-              <span class="heroBadge">Agenda em tempo real</span>
-              <span class="heroBadge">Pagamento facilitado</span>
-              <span class="heroBadge">Painel administrativo</span>
+              <span class="heroBadge">Pix, cartão, dinheiro e boleto</span>
+              <span class="heroBadge">Painel do barbeiro</span>
+              <span class="heroBadge">Admin com serviços e KPIs</span>
             </div>
           </section>
 
@@ -78,15 +85,20 @@
               </div>
 
               <div class="row" style="margin-top:10px; flex-wrap:wrap">
-                <button class="btn btnGhost btnSm" id="btnLoginAdmin" type="button">Entrar como Admin</button>
-                <button class="btn btnGhost btnSm" id="btnLoginUsuario" type="button">Entrar como Usuário</button>
+                <a class="btn btnGhost btnSm" href="admin/index.html">Painel administrativo</a>
+                <button class="btn btnGhost btnSm" id="btnLoginUsuario" type="button">Entrar como Cliente</button>
+                <button class="btn btnGhost btnSm" id="btnLoginBarbeiro" type="button">Entrar como Barbeiro</button>
               </div>
 
               <div class="hint">
-                <div class="hintTitle">Credenciais</div>
+                <div class="hintTitle">Credenciais (demo)</div>
                 <div class="hintBody">
-                  <div><strong>Admin:</strong> <code>admin@navalha.com</code> / <code>1234</code></div>
-                  <div><strong>Usuário:</strong> <code>usuario@navalha.com</code> / <code>1234</code></div>
+                  <div>
+                    <strong>Admin:</strong> <code>admin@navalha.com</code> / <code>1234</code>
+                    (login em <a href="admin/index.html">admin/index.html</a>)
+                  </div>
+                  <div><strong>Cliente:</strong> <code>usuario@navalha.com</code> / <code>1234</code></div>
+                  <div><strong>Barbeiro (Rafa):</strong> <code>barbeiro@navalha.com</code> / <code>1234</code></div>
                 </div>
               </div>
             </form>
@@ -110,15 +122,6 @@
             </div>
           </section>
 
-          <div class="tabs" role="tablist" aria-label="Navegação do cliente">
-            <button class="tab isActive" id="tabClienteAgendar" type="button" role="tab" aria-selected="true">
-              Agendar
-            </button>
-            <button class="tab" id="tabClienteHistorico" type="button" role="tab" aria-selected="false">
-              Histórico
-            </button>
-          </div>
-
           <div id="clienteViewAgendar">
             <div class="grid2">
               <section class="card" aria-label="Novo agendamento">
@@ -129,7 +132,16 @@
                   <span class="flowStep">Pagar</span>
                 </div>
 
+                <p class="jumpLinks" aria-label="Atalhos nesta página">
+                  <span class="jumpLinksLabel">Ir para:</span>
+                  <a class="jumpLinksA" href="#secClienteEscolhas">Barbeiro e serviço</a>
+                  <a class="jumpLinksA" href="#clienteHorariosField">Horários</a>
+                  <a class="jumpLinksA" href="#secClientePagamento">Pagamento</a>
+                  <a class="jumpLinksA" href="#secClienteConfirmar">Confirmar</a>
+                </p>
+
                 <div class="stack">
+                  <div id="secClienteEscolhas" class="anchorSection">
                   <div class="field">
                     <label for="clienteBarbeiro">Barbeiro</label>
                     <select id="clienteBarbeiro" required></select>
@@ -144,8 +156,9 @@
                     <label for="clienteServico">Serviço</label>
                     <select id="clienteServico" required></select>
                   </div>
+                  </div>
 
-                  <div class="field" id="clienteHorariosField">
+                  <div class="field anchorSection" id="clienteHorariosField">
                     <label>Horários</label>
                     <div class="slots" id="slotsContainer" role="list"></div>
                     <div class="fieldHelp" id="slotsHelp"></div>
@@ -153,13 +166,14 @@
 
                   <div class="divider"></div>
 
-                  <div class="field">
+                  <div class="field anchorSection" id="secClientePagamento">
                     <label for="clientePagamento">Forma de pagamento</label>
                     <select id="clientePagamento" required>
                       <option value="Pix">Pix</option>
-                      <option value="Dinheiro">Dinheiro</option>
+                      <option value="Dinheiro">Dinheiro (na chegada)</option>
                       <option value="CartaoCredito">Cartão (Crédito)</option>
                       <option value="CartaoDebito">Cartão (Débito)</option>
+                      <option value="Boleto">Boleto bancário</option>
                     </select>
                   </div>
 
@@ -182,9 +196,11 @@
                     </div>
                   </div>
 
+                  <div class="anchorSection" id="secClienteConfirmar">
                   <button class="btn btnPrimary" id="btnAgendar" type="button" disabled>
                     Confirmar agendamento
                   </button>
+                  </div>
                   <div class="hint" id="agendamentoHint"></div>
                 </div>
               </section>
@@ -192,9 +208,9 @@
               <section class="card" aria-label="Dicas rápidas">
                 <div class="cardTitle">Dicas rápidas</div>
                 <div class="hint" style="margin-top:0">
-                  - Selecione <strong>barbeiro</strong> e <strong>serviço</strong> para liberar os horários.<br />
-                  - Horários <strong>ocupados</strong> e <strong>passados</strong> ficam indisponíveis automaticamente.<br />
-                  - O atendimento inclui <strong>10 min</strong> de limpeza entre horários.
+                  - Agendamento apenas em <strong>dias úteis</strong> (segunda a sexta), das <strong>9h às 18h</strong>.<br />
+                  - É necessária antecedência mínima de <strong>1 hora</strong> em relação ao horário atual.<br />
+                  - Horários <strong>ocupados</strong> e <strong>passados</strong> ficam indisponíveis; há <strong>10 min</strong> de limpeza entre atendimentos.
                 </div>
               </section>
             </div>
@@ -211,8 +227,9 @@
                       <th>Hora</th>
                       <th>Serviço</th>
                       <th>Barbeiro</th>
-                      <th>Pagamento</th>
-                      <th>Status</th>
+                      <th>Forma pgto.</th>
+                      <th>Status pgto.</th>
+                      <th>Atendimento</th>
                     </tr>
                   </thead>
                   <tbody id="clienteHistoricoBody"></tbody>
@@ -222,130 +239,253 @@
           </div>
         </section>
 
-        <!-- ADMIN -->
-        <section class="panel" id="viewAdmin" aria-label="Área do admin" hidden>
+        <!-- BARBEIRO -->
+        <section class="panel" id="viewBarbeiro" aria-label="Área do barbeiro" hidden>
           <div class="panelHeader">
-            <h2 class="panelTitle">Área Administrativa</h2>
-            <p class="panelSubtitle">Acompanhe faturamento, pendências e controle a agenda do dia.</p>
+            <h2 class="panelTitle">Painel do Barbeiro</h2>
+            <p class="panelSubtitle">
+              Visualize a semana, ajuste horários e serviços, veja dados do cliente e marque atendimentos como concluídos.
+            </p>
           </div>
 
-          <section class="heroBanner" aria-label="Resumo operacional">
-            <div class="heroTitle">Visão operacional</div>
-            <div class="heroText">Acompanhe receita, pendências e ações da agenda de forma rápida e objetiva.</div>
+          <section class="heroBanner" aria-label="Resumo do painel">
+            <div class="heroTitle">Agenda profissional</div>
+            <div class="heroText">
+              Você enxerga apenas os seus horários. Conflitos são bloqueados ao editar; valores em dinheiro podem ser ajustados após o corte.
+            </div>
             <div class="heroBadges">
-              <span class="heroBadge">KPIs do Dia</span>
-              <span class="heroBadge">Pendências</span>
-              <span class="heroBadge">Ações Rápidas</span>
+              <span class="heroBadge">Visão semanal</span>
+              <span class="heroBadge">Cliente e histórico</span>
+              <span class="heroBadge">Concluído com hora real</span>
             </div>
           </section>
 
-          <div class="card">
-            <div class="row rowWrap">
-              <div class="field">
-                <label for="adminData">Dia</label>
-                <input id="adminData" type="date" />
+          <div id="barbeiroViewSemana">
+            <p class="jumpLinks" aria-label="Atalhos">
+              <span class="jumpLinksLabel">Ir para:</span>
+              <a class="jumpLinksA" href="#barbeiroWeekCard">Grade da semana</a>
+            </p>
+            <section class="card anchorSection" id="barbeiroWeekCard" aria-label="Agenda semanal">
+              <div class="cardTitle">Semana (segunda a sexta)</div>
+              <div class="weekToolbar">
+                <div class="field" style="margin:0">
+                  <label>Navegação</label>
+                  <div class="row">
+                    <button class="btn btnGhost btnSm" id="btnBarbeiroSemanaPrev" type="button">← Anterior</button>
+                    <button class="btn btnGhost btnSm" id="btnBarbeiroSemanaNext" type="button">Próxima →</button>
+                  </div>
+                </div>
+                <div class="weekLabel" id="barbeiroSemanaLabel"></div>
               </div>
-              <div class="field">
-                <label for="adminBarbeiro">Barbeiro</label>
-                <select id="adminBarbeiro"></select>
-              </div>
-              <div class="field">
-                <label>&nbsp;</label>
-                <button class="btn btnGhost" id="btnAdminHoje" type="button">Hoje</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="kpis" aria-label="Indicadores">
-            <div class="kpi">
-              <div class="kpiLabel">Total faturado</div>
-              <div class="kpiValue" id="kpiTotal">R$ 0,00</div>
-              <div class="kpiHint" id="kpiTotalHint">Pagos no dia selecionado</div>
-            </div>
-            <div class="kpi">
-              <div class="kpiLabel">Pix</div>
-              <div class="kpiValue" id="kpiPix">R$ 0,00</div>
-              <div class="kpiHint">Somente pagamentos marcados como Pago</div>
-            </div>
-            <div class="kpi">
-              <div class="kpiLabel">Dinheiro</div>
-              <div class="kpiValue" id="kpiDinheiro">R$ 0,00</div>
-              <div class="kpiHint">Somente pagamentos marcados como Pago</div>
-            </div>
-            <div class="kpi">
-              <div class="kpiLabel">Cartão</div>
-              <div class="kpiValue" id="kpiCartao">R$ 0,00</div>
-              <div class="kpiHint">Crédito + Débito</div>
-            </div>
-          </div>
-
-          <div class="tabs" role="tablist" aria-label="Navegação do admin">
-            <button class="tab isActive" id="tabAdminDashboard" type="button" role="tab" aria-selected="true">
-              Dashboard
-            </button>
-            <button class="tab" id="tabAdminAgenda" type="button" role="tab" aria-selected="false">
-              Agenda
-            </button>
-          </div>
-
-          <div id="adminViewDashboard">
-            <section class="card" aria-label="Pendências">
-              <div class="cardTitle">Pagamentos pendentes</div>
-              <div class="list" id="adminPendentes"></div>
-              <div class="hint">
-                Destaque em laranja/vermelho indica urgência (agendamento no passado ou muito próximo).
-              </div>
+              <div class="weekGrid" id="barbeiroWeekGrid" aria-label="Grade semanal"></div>
             </section>
           </div>
 
-          <div id="adminViewAgenda" hidden>
-            <section class="card" aria-label="Todos os agendamentos">
-              <div class="cardTitle">Agendamentos do dia</div>
-              <div class="tableWrap">
-                <table class="table" aria-label="Agendamentos do dia">
-                  <thead>
-                    <tr>
-                      <th>Hora</th>
-                      <th>Cliente</th>
-                      <th>Serviço</th>
-                      <th>Barbeiro</th>
-                      <th>Valor</th>
-                      <th>Pagamento</th>
-                      <th>Status</th>
-                      <th>Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody id="adminAgendamentosBody"></tbody>
-                </table>
-              </div>
+          <div id="barbeiroViewHoje" hidden>
+            <p class="jumpLinks" aria-label="Atalhos">
+              <span class="jumpLinksLabel">Ir para:</span>
+              <a class="jumpLinksA" href="#barbeiroHojeCard">Lista de hoje</a>
+            </p>
+            <section class="card anchorSection" id="barbeiroHojeCard" aria-label="Atendimentos de hoje">
+              <div class="cardTitle">Hoje — próximos e em andamento</div>
+              <div class="list barbeiroHojeList" id="barbeiroHojeList"></div>
             </section>
           </div>
         </section>
       </main>
     </div>
 
-    <!-- MODAL PIX -->
-    <dialog class="modal" id="modalPix" aria-label="Pagamento Pix">
+    <!-- MODAL PIX (estilo app / sheet) -->
+    <dialog class="modal modalSheet" id="modalPix" aria-labelledby="pixModalTitle">
+      <div class="modalCard modalCardSheet pixSheet">
+        <div class="pixSheetHandle" aria-hidden="true"></div>
+
+        <div id="pixPanelPagamento">
+          <div class="pixSheetHead">
+            <div>
+              <div class="pixBrandRow">
+                <span class="pixBrandIcon" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L4 6v6c0 5 3.5 9.5 8 11 4.5-1.5 8-6 8-11V6l-8-4z" fill="url(#g)" />
+                    <defs>
+                      <linearGradient id="g" x1="4" y1="2" x2="20" y2="22" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#4ade80" />
+                        <stop offset="1" stop-color="#22c55e" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </span>
+                <span class="pixBrandText">Pix</span>
+              </div>
+              <h2 class="pixSheetTitle" id="pixModalTitle">Pagar agendamento</h2>
+              <p class="pixSheetSub">Demo: simule o retorno do banco sem sair do site.</p>
+            </div>
+            <button type="button" class="btn btnIconGhost" id="btnPixFechar" aria-label="Fechar">✕</button>
+          </div>
+
+          <div class="pixAmountBlock">
+            <span class="pixAmountLabel">Valor a pagar</span>
+            <div class="pixAmount" id="pixValorGrande">R$ 0,00</div>
+            <span class="pixAmountMeta" id="pixIdResumo">Pedido —</span>
+          </div>
+
+          <div class="pixQrShell">
+            <div class="pixQrInner">
+              <canvas id="pixCanvas" width="220" height="220" aria-label="QR Code de demonstração"></canvas>
+            </div>
+            <p class="pixQrHint">Escaneie no app do seu banco</p>
+          </div>
+
+          <div class="pixCopyBlock">
+            <label class="pixCopyLabel" for="pixCopiaPayload">Pix copia e cola</label>
+            <div class="pixCopyRow">
+              <textarea id="pixCopiaPayload" class="pixCopiaField" readonly rows="2" aria-readonly="true"></textarea>
+              <button type="button" class="btn btnSecondarySolid" id="btnPixCopiarPayload">Copiar</button>
+            </div>
+          </div>
+
+          <div class="pixMetaGrid">
+            <div class="pixMetaCell">
+              <span class="pixMetaK">Chave</span>
+              <span class="pixMetaV" id="pixChave">—</span>
+              <button type="button" class="btn btnLinkish" id="btnPixCopiarChave">Copiar chave</button>
+            </div>
+            <div class="pixMetaCell">
+              <span class="pixMetaK">ID do pedido</span>
+              <span class="pixMetaV pixMetaMono" id="pixId">—</span>
+            </div>
+          </div>
+
+          <ol class="pixSteps" aria-label="Como pagar">
+            <li>Copie o código ou escaneie o QR.</li>
+            <li>Confira o valor no app do banco.</li>
+            <li>Use o botão abaixo para simular a confirmação (demo).</li>
+          </ol>
+
+          <div class="pixActions">
+            <button type="button" class="btn btnPixSim" id="btnPixSimularPago">
+              Simular pagamento aprovado
+            </button>
+            <button type="button" class="btn btnGhost btnFull" id="btnPixDeixarPendente">
+              Fechar e deixar pendente
+            </button>
+          </div>
+        </div>
+
+        <div id="pixPanelSucesso" class="pixSuccessPanel" hidden>
+          <div class="pixSuccessIcon" aria-hidden="true">✓</div>
+          <h2 class="pixSuccessTitle">Pagamento simulado</h2>
+          <p class="pixSuccessMsg">O status foi atualizado para <strong>Pago</strong> neste dispositivo (demo).</p>
+          <p class="pixSuccessValor" id="pixSucessoValor"></p>
+          <button type="button" class="btn btnPrimary btnFull" id="btnPixSucessoOk">Concluir</button>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- MODAL BOLETO -->
+    <dialog class="modal modalSheet" id="modalBoleto" aria-label="Boleto bancário">
+      <div class="modalCard modalCardSheet pixSheet">
+        <div class="pixSheetHandle" aria-hidden="true"></div>
+        <div class="pixSheetHead">
+          <div>
+            <div class="pixBrandRow">
+              <span class="pixBrandIcon boletoTone" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.6" />
+                  <path d="M7 10h10M7 14h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                </svg>
+              </span>
+              <span class="pixBrandText">Boleto</span>
+            </div>
+            <h2 class="pixSheetTitle">Pagamento por boleto</h2>
+            <p class="pixSheetSub">Linha fictícia para demonstração.</p>
+          </div>
+          <button type="button" class="btn btnIconGhost" id="btnBoletoFechar" aria-label="Fechar">✕</button>
+        </div>
+        <div class="pixAmountBlock">
+          <span class="pixAmountLabel">Valor</span>
+          <div class="pixAmount" id="boletoValorGrande"></div>
+        </div>
+        <div class="pixCopyBlock">
+          <label class="pixCopyLabel" for="boletoLinha">Linha digitável</label>
+          <div class="linhaBoleto" id="boletoLinha" tabindex="0"></div>
+          <button type="button" class="btn btnSecondarySolid btnFull" id="btnBoletoCopiar">Copiar linha</button>
+        </div>
+        <div class="pixActions" style="margin-top:14px">
+          <button type="button" class="btn btnPrimary btnFull" id="btnBoletoSimularPago">Simular compensação (demo)</button>
+          <button type="button" class="btn btnGhost btnFull" id="btnBoletoPendente">Fechar e deixar pendente</button>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- MODAL DETALHE CLIENTE -->
+    <dialog class="modal" id="modalClienteDetalhe" aria-label="Detalhes do cliente">
       <form method="dialog" class="modalCard">
         <div class="modalHeader">
           <div>
-            <div class="modalTitle">Pix — QR Code</div>
-            <div class="modalSubtitle">Simulação (fictício). Em produção, isso viria do servidor/PSP.</div>
+            <div class="modalTitle" id="cliDetTitulo">Cliente</div>
+            <div class="modalSubtitle" id="cliDetSub"></div>
           </div>
           <button class="btn btnGhost btnSm" value="close" aria-label="Fechar">Fechar</button>
         </div>
-
         <div class="modalBody">
-          <div class="qrWrap">
-            <canvas id="pixCanvas" width="240" height="240" aria-label="QR Code fictício"></canvas>
-            <div class="qrMeta">
-              <div class="qrLine"><span class="qrLabel">Chave</span><span class="qrValue" id="pixChave"></span></div>
-              <div class="qrLine"><span class="qrLabel">Valor</span><span class="qrValue" id="pixValor"></span></div>
-              <div class="qrLine"><span class="qrLabel">Identificador</span><span class="qrValue" id="pixId"></span></div>
+          <div class="summary">
+            <div class="summaryRow"><span class="summaryLabel">WhatsApp</span><span class="summaryValue" id="cliDetWhatsapp">—</span></div>
+            <div class="summaryRow"><span class="summaryLabel">E-mail</span><span class="summaryValue" id="cliDetEmail">—</span></div>
+            <div class="summaryRow"><span class="summaryLabel">Total de agendamentos</span><span class="summaryValue" id="cliDetTotal">—</span></div>
+            <div class="summaryRow"><span class="summaryLabel">Última visita</span><span class="summaryValue" id="cliDetUltima">—</span></div>
+          </div>
+          <div class="cardTitle" style="margin-top:14px">Histórico recente</div>
+          <div class="tableWrap">
+            <table class="table" style="min-width:520px">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Serviço</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="cliDetHistoricoBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- MODAL EDITAR AGENDAMENTO -->
+    <dialog class="modal" id="modalEditarAgendamento" aria-label="Editar agendamento">
+      <form id="formEditarAgendamento" class="modalCard">
+        <div class="modalHeader">
+          <div>
+            <div class="modalTitle">Editar agendamento</div>
+            <div class="modalSubtitle" id="editAgSub">Ajuste horário, serviço ou valor (dinheiro).</div>
+          </div>
+          <button class="btn btnGhost btnSm" type="button" id="btnEditAgFechar" aria-label="Fechar">Fechar</button>
+        </div>
+        <div class="modalBody">
+          <input type="hidden" id="editAgId" />
+          <div class="field">
+            <label for="editAgServico">Serviço</label>
+            <select id="editAgServico" required></select>
+          </div>
+          <div class="grid2" style="grid-template-columns:1fr 1fr; gap:12px">
+            <div class="field">
+              <label for="editAgData">Data</label>
+              <input id="editAgData" type="date" required />
+            </div>
+            <div class="field">
+              <label for="editAgHora">Hora de início</label>
+              <input id="editAgHora" type="time" step="600" required />
             </div>
           </div>
-          <div class="hint">
-            O pagamento fica como <strong>Pendente</strong> até o admin marcar como <strong>Pago</strong>.
+          <div class="field" id="editAgValorField">
+            <label for="editAgValor">Valor cobrado (R$) — apenas dinheiro</label>
+            <input id="editAgValor" type="text" inputmode="decimal" placeholder="55,00" />
+            <div class="fieldHelp" id="editAgValorHelp"></div>
+          </div>
+          <div class="row" style="justify-content:flex-end; margin-top:8px">
+            <button class="btn btnGhost" type="button" id="btnEditAgCancelar">Cancelar</button>
+            <button class="btn btnPrimary" type="submit">Salvar alterações</button>
           </div>
         </div>
       </form>

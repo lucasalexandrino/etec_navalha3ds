@@ -18,31 +18,48 @@ const state = {
     horarioInicio: null,
     metodoPagamento: "Pix",
   },
+
+  barbeiroSemanaOffset: Number(localStorage.getItem("navalha_ui_barberWeekOffset") || "0") || 0,
+
+  pixModalAgendamentoId: null,
+  boletoModalAgendamentoId: null,
 };
 
+function migrarAgendamento(a) {
+  if (a.concluidoEmIso === undefined) a.concluidoEmIso = null;
+  if (!Array.isArray(a.historicoLog)) a.historicoLog = [];
+  return a;
+}
+
+state.agendamentos = state.agendamentos.map(migrarAgendamento);
+storage.salvarAgendamentos(state.agendamentos);
+
+/** Evita rolar a página durante o boot inicial (várias abas são “aplicadas” antes do primeiro paint). */
+let bootNavegacaoConcluido = false;
+
 const el = {
-  // Views
+  mainContent: ui.qs("#mainContent"),
   viewLogin: ui.qs("#viewLogin"),
   viewCliente: ui.qs("#viewCliente"),
-  viewAdmin: ui.qs("#viewAdmin"),
+  viewBarbeiro: ui.qs("#viewBarbeiro"),
+
+  appSubNav: ui.qs("#appSubNav"),
+  navCrumb: ui.qs("#navCrumb"),
+  navCrumbList: ui.qs("#navCrumbList"),
 
   sessionChip: ui.qs("#sessionChip"),
   sessionChipLabel: ui.qs("#sessionChipLabel"),
   btnLogout: ui.qs("#btnLogout"),
 
-  // Login
   formLogin: ui.qs("#formLogin"),
   loginEmail: ui.qs("#loginEmail"),
   loginSenha: ui.qs("#loginSenha"),
   loginEmailHelp: ui.qs("#loginEmailHelp"),
   loginSenhaHelp: ui.qs("#loginSenhaHelp"),
   btnPreencherDemo: ui.qs("#btnPreencherDemo"),
-  btnLoginAdmin: ui.qs("#btnLoginAdmin"),
   btnLoginUsuario: ui.qs("#btnLoginUsuario"),
+  btnLoginBarbeiro: ui.qs("#btnLoginBarbeiro"),
 
-  // Cliente
-  tabClienteAgendar: ui.qs("#tabClienteAgendar"),
-  tabClienteHistorico: ui.qs("#tabClienteHistorico"),
   clienteViewAgendar: ui.qs("#clienteViewAgendar"),
   clienteViewHistorico: ui.qs("#clienteViewHistorico"),
   clienteHorariosField: ui.qs("#clienteHorariosField"),
@@ -58,27 +75,60 @@ const el = {
   agendamentoHint: ui.qs("#agendamentoHint"),
   clienteHistoricoBody: ui.qs("#clienteHistoricoBody"),
 
-  // Admin
-  tabAdminDashboard: ui.qs("#tabAdminDashboard"),
-  tabAdminAgenda: ui.qs("#tabAdminAgenda"),
-  adminViewDashboard: ui.qs("#adminViewDashboard"),
-  adminViewAgenda: ui.qs("#adminViewAgenda"),
-  adminData: ui.qs("#adminData"),
-  adminBarbeiro: ui.qs("#adminBarbeiro"),
-  btnAdminHoje: ui.qs("#btnAdminHoje"),
-  kpiTotal: ui.qs("#kpiTotal"),
-  kpiPix: ui.qs("#kpiPix"),
-  kpiDinheiro: ui.qs("#kpiDinheiro"),
-  kpiCartao: ui.qs("#kpiCartao"),
-  adminPendentes: ui.qs("#adminPendentes"),
-  adminAgendamentosBody: ui.qs("#adminAgendamentosBody"),
+  barbeiroViewSemana: ui.qs("#barbeiroViewSemana"),
+  barbeiroViewHoje: ui.qs("#barbeiroViewHoje"),
+  barbeiroSemanaLabel: ui.qs("#barbeiroSemanaLabel"),
+  barbeiroWeekGrid: ui.qs("#barbeiroWeekGrid"),
+  barbeiroHojeList: ui.qs("#barbeiroHojeList"),
+  btnBarbeiroSemanaPrev: ui.qs("#btnBarbeiroSemanaPrev"),
+  btnBarbeiroSemanaNext: ui.qs("#btnBarbeiroSemanaNext"),
 
-  // Pix
   modalPix: ui.qs("#modalPix"),
   pixCanvas: ui.qs("#pixCanvas"),
   pixChave: ui.qs("#pixChave"),
-  pixValor: ui.qs("#pixValor"),
   pixId: ui.qs("#pixId"),
+  pixPanelPagamento: ui.qs("#pixPanelPagamento"),
+  pixPanelSucesso: ui.qs("#pixPanelSucesso"),
+  pixValorGrande: ui.qs("#pixValorGrande"),
+  pixIdResumo: ui.qs("#pixIdResumo"),
+  pixCopiaPayload: ui.qs("#pixCopiaPayload"),
+  pixSucessoValor: ui.qs("#pixSucessoValor"),
+  btnPixFechar: ui.qs("#btnPixFechar"),
+  btnPixCopiarPayload: ui.qs("#btnPixCopiarPayload"),
+  btnPixCopiarChave: ui.qs("#btnPixCopiarChave"),
+  btnPixSimularPago: ui.qs("#btnPixSimularPago"),
+  btnPixDeixarPendente: ui.qs("#btnPixDeixarPendente"),
+  btnPixSucessoOk: ui.qs("#btnPixSucessoOk"),
+
+  modalBoleto: ui.qs("#modalBoleto"),
+  boletoValorGrande: ui.qs("#boletoValorGrande"),
+  boletoLinha: ui.qs("#boletoLinha"),
+  btnBoletoFechar: ui.qs("#btnBoletoFechar"),
+  btnBoletoCopiar: ui.qs("#btnBoletoCopiar"),
+  btnBoletoSimularPago: ui.qs("#btnBoletoSimularPago"),
+  btnBoletoPendente: ui.qs("#btnBoletoPendente"),
+
+  modalClienteDetalhe: ui.qs("#modalClienteDetalhe"),
+  cliDetTitulo: ui.qs("#cliDetTitulo"),
+  cliDetSub: ui.qs("#cliDetSub"),
+  cliDetWhatsapp: ui.qs("#cliDetWhatsapp"),
+  cliDetEmail: ui.qs("#cliDetEmail"),
+  cliDetTotal: ui.qs("#cliDetTotal"),
+  cliDetUltima: ui.qs("#cliDetUltima"),
+  cliDetHistoricoBody: ui.qs("#cliDetHistoricoBody"),
+
+  modalEditarAgendamento: ui.qs("#modalEditarAgendamento"),
+  formEditarAgendamento: ui.qs("#formEditarAgendamento"),
+  editAgSub: ui.qs("#editAgSub"),
+  editAgId: ui.qs("#editAgId"),
+  editAgServico: ui.qs("#editAgServico"),
+  editAgData: ui.qs("#editAgData"),
+  editAgHora: ui.qs("#editAgHora"),
+  editAgValorField: ui.qs("#editAgValorField"),
+  editAgValor: ui.qs("#editAgValor"),
+  editAgValorHelp: ui.qs("#editAgValorHelp"),
+  btnEditAgFechar: ui.qs("#btnEditAgFechar"),
+  btnEditAgCancelar: ui.qs("#btnEditAgCancelar"),
 };
 
 function validarLogin({ email, senha }) {
@@ -107,10 +157,110 @@ function obterUsuarioAtual() {
   return state.usuarios.find((u) => u.id === state.sessao.usuarioId) || null;
 }
 
+function obterBarbeiroIdDoUsuario(usuario) {
+  if (!usuario || usuario.nivelAcesso !== "Barbeiro") return null;
+  return usuario.barbeiroId || null;
+}
+
+function podeGerenciarAgendamento(usuario, ag) {
+  if (!usuario || !ag) return false;
+  if (usuario.nivelAcesso === "Admin") return true;
+  if (usuario.nivelAcesso === "Barbeiro") return usuario.barbeiroId === ag.barbeiroId;
+  return false;
+}
+
 function formatarDataYmdParaBR(ymd) {
   if (!ymd) return "—";
   const [y, m, d] = ymd.split("-");
   return `${d}/${m}/${y}`;
+}
+
+function dataYmdDeDate(d) {
+  const y = d.getFullYear();
+  const mo = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${mo}-${day}`;
+}
+
+function inicioSemanaSegunda(base = new Date()) {
+  const x = new Date(base.getFullYear(), base.getMonth(), base.getDate(), 0, 0, 0, 0);
+  const dow = x.getDay();
+  const diff = dow === 0 ? -6 : 1 - dow;
+  x.setDate(x.getDate() + diff);
+  return x;
+}
+
+function somarDias(date, dias) {
+  const x = new Date(date.getTime());
+  x.setDate(x.getDate() + dias);
+  return x;
+}
+
+function nomeDiaSemanaCurto(data) {
+  return data.toLocaleDateString("pt-BR", { weekday: "short" });
+}
+
+function logAgendamento(ag, msg) {
+  ag.historicoLog.push(`${new Date().toISOString()} — ${msg}`);
+}
+
+function gerarPixCopiaEColaDemo({ chave, agId, valorCentavos }) {
+  const valorFmt = scheduler.formatarMoedaBR(valorCentavos);
+  return `[Demonstração — não é código Pix real]\nReferência: ${agId}\nValor: ${valorFmt}\nChave: ${chave}\nEm produção: payload EMV gerado pelo PSP/banco.`;
+}
+
+async function copiarParaAreaDeTransferencia(texto) {
+  const t = String(texto || "");
+  if (!t) return;
+  try {
+    await navigator.clipboard.writeText(t);
+    ui.toast({ titulo: "Copiado", msg: "Conteúdo na área de transferência.", tipo: "ok" });
+  } catch {
+    ui.toast({
+      titulo: "Copie manualmente",
+      msg: "Seu navegador não permitiu acesso à área de transferência.",
+      tipo: "warn",
+    });
+  }
+}
+
+function registrarPagamentoDemo(agendamentoId, msgLog) {
+  const a = state.agendamentos.find((x) => x.id === agendamentoId);
+  if (!a || a.statusPagamento === "Cancelado") return false;
+  if (a.statusPagamento === "Pago") return true;
+  a.statusPagamento = "Pago";
+  a.pagoEmIso = new Date().toISOString();
+  logAgendamento(a, msgLog);
+  salvarAgendamentos();
+  return true;
+}
+
+function refrescarAposPagamentoDemo() {
+  const u = obterUsuarioAtual();
+  if (u?.nivelAcesso === "Cliente") renderClienteHistorico();
+}
+
+function resetPainelPixModal() {
+  state.pixModalAgendamentoId = null;
+  el.pixPanelPagamento.hidden = false;
+  el.pixPanelSucesso.hidden = true;
+}
+
+function parseMoedaBRLParaCentavos(str) {
+  const limpo = String(str || "")
+    .trim()
+    .replace(/\s/g, "")
+    .replace(/[^\d,.-]/g, "");
+  if (!limpo) return null;
+  const normalizado = limpo.includes(",") ? limpo.replace(/\./g, "").replace(",", ".") : limpo;
+  const v = Number(normalizado);
+  if (!Number.isFinite(v) || v < 0) return null;
+  return Math.round(v * 100);
+}
+
+function formatarCentavosInputBR(centavos) {
+  const v = (centavos || 0) / 100;
+  return v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function carregarSelects() {
@@ -130,35 +280,125 @@ function carregarSelects() {
     el.clienteBarbeiro.appendChild(o);
   }
 
-  ui.limpar(el.adminBarbeiro);
-  const oTodos = document.createElement("option");
-  oTodos.value = "Todos";
-  oTodos.textContent = "Todos";
-  el.adminBarbeiro.appendChild(oTodos);
-  for (const b of state.barbeiros) {
-    const o = document.createElement("option");
-    o.value = b.id;
-    o.textContent = b.nome;
-    el.adminBarbeiro.appendChild(o);
-  }
-
   ui.limpar(el.clienteServico);
   el.clienteServico.appendChild(optPadrao("Selecione..."));
   for (const s of state.servicos) {
     const o = document.createElement("option");
     o.value = s.id;
-    o.textContent = `${s.nome} • ${s.duracaoMinutos} min • ${scheduler.formatarMoedaBR(
-      s.precoCentavos
-    )}`;
+    o.textContent = `${s.nome} • ${s.duracaoMinutos} min • ${scheduler.formatarMoedaBR(s.precoCentavos)}`;
     el.clienteServico.appendChild(o);
   }
 }
 
-function setTabActive(btnOn, btnOff) {
-  btnOn.classList.add("isActive");
-  btnOff.classList.remove("isActive");
-  btnOn.setAttribute("aria-selected", "true");
-  btnOff.setAttribute("aria-selected", "false");
+function preencherSelectServicos(targetSelect) {
+  ui.limpar(targetSelect);
+  for (const s of state.servicos) {
+    const o = document.createElement("option");
+    o.value = s.id;
+    o.textContent = `${s.nome} (${s.duracaoMinutos} min)`;
+    targetSelect.appendChild(o);
+  }
+}
+
+function rolagemTopoApp() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function syncAppSubNavActive() {
+  const usuario = obterUsuarioAtual();
+  if (!usuario || el.appSubNav.hidden) return;
+
+  let key = "";
+  if (usuario.nivelAcesso === "Cliente") {
+    const t = localStorage.getItem("navalha_ui_clienteTab") || "Agendar";
+    key = `cliente:${t === "Historico" ? "Historico" : "Agendar"}`;
+  } else if (usuario.nivelAcesso === "Barbeiro") {
+    const t = localStorage.getItem("navalha_ui_barberTab") || "Semana";
+    key = `barbeiro:${t === "Hoje" ? "Hoje" : "Semana"}`;
+  }
+
+  el.appSubNav.querySelectorAll(".appSubNavBtn").forEach((btn) => {
+    const on = btn.dataset.nav === key;
+    btn.classList.toggle("isActive", on);
+    btn.setAttribute("aria-current", on ? "page" : "false");
+  });
+}
+
+function atualizarMigalhas() {
+  const usuario = obterUsuarioAtual();
+  ui.limpar(el.navCrumbList);
+  if (!usuario || el.navCrumb.hidden) return;
+
+  const push = (texto, atual = false) => {
+    const li = document.createElement("li");
+    li.className = "navCrumbItem";
+    if (atual) {
+      li.appendChild(document.createTextNode(texto));
+      li.classList.add("navCrumbItemCurrent");
+      li.setAttribute("aria-current", "page");
+    } else {
+      li.textContent = texto;
+    }
+    el.navCrumbList.appendChild(li);
+  };
+
+  push("Navalha");
+
+  if (usuario.nivelAcesso === "Cliente") {
+    push("Cliente");
+    const t = localStorage.getItem("navalha_ui_clienteTab") || "Agendar";
+    push(t === "Historico" ? "Histórico" : "Agendar", true);
+  } else if (usuario.nivelAcesso === "Barbeiro") {
+    push("Barbeiro");
+    const t = localStorage.getItem("navalha_ui_barberTab") || "Semana";
+    push(t === "Hoje" ? "Hoje" : "Semana", true);
+  }
+}
+
+function refreshNavegacaoContexto() {
+  syncAppSubNavActive();
+  atualizarMigalhas();
+  if (bootNavegacaoConcluido) rolagemTopoApp();
+}
+
+function renderAppNavigation() {
+  const usuario = obterUsuarioAtual();
+  if (!usuario) {
+    document.documentElement.classList.remove("hasAppSubNav");
+    el.appSubNav.hidden = true;
+    el.navCrumb.hidden = true;
+    el.appSubNav.replaceChildren();
+    ui.limpar(el.navCrumbList);
+    return;
+  }
+
+  document.documentElement.classList.add("hasAppSubNav");
+  el.appSubNav.hidden = false;
+  el.navCrumb.hidden = false;
+
+  const track = document.createElement("div");
+  track.className = "appSubNavTrack";
+
+  const mk = (dataNav, label) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "appSubNavBtn";
+    b.dataset.nav = dataNav;
+    b.textContent = label;
+    track.appendChild(b);
+  };
+
+  if (usuario.nivelAcesso === "Cliente") {
+    mk("cliente:Agendar", "Agendar");
+    mk("cliente:Historico", "Histórico");
+  } else if (usuario.nivelAcesso === "Barbeiro") {
+    mk("barbeiro:Semana", "Semana");
+    mk("barbeiro:Hoje", "Hoje");
+  }
+
+  el.appSubNav.replaceChildren(track);
+  syncAppSubNavActive();
+  atualizarMigalhas();
 }
 
 function setClienteTab(tab) {
@@ -167,18 +407,23 @@ function setClienteTab(tab) {
   const isAgendar = t === "Agendar";
   ui.setHidden(el.clienteViewAgendar, !isAgendar);
   ui.setHidden(el.clienteViewHistorico, isAgendar);
-  if (isAgendar) setTabActive(el.tabClienteAgendar, el.tabClienteHistorico);
-  else setTabActive(el.tabClienteHistorico, el.tabClienteAgendar);
+  if (isAgendar) {
+    renderSlotsCliente();
+  } else {
+    renderClienteHistorico();
+  }
+  refreshNavegacaoContexto();
 }
 
-function setAdminTab(tab) {
-  const t = tab === "Agenda" ? "Agenda" : "Dashboard";
-  localStorage.setItem("navalha_ui_adminTab", t);
-  const isDash = t === "Dashboard";
-  ui.setHidden(el.adminViewDashboard, !isDash);
-  ui.setHidden(el.adminViewAgenda, isDash);
-  if (isDash) setTabActive(el.tabAdminDashboard, el.tabAdminAgenda);
-  else setTabActive(el.tabAdminAgenda, el.tabAdminDashboard);
+function setBarbeiroTab(tab) {
+  const t = tab === "Hoje" ? "Hoje" : "Semana";
+  localStorage.setItem("navalha_ui_barberTab", t);
+  const semana = t === "Semana";
+  ui.setHidden(el.barbeiroViewSemana, !semana);
+  ui.setHidden(el.barbeiroViewHoje, semana);
+  if (semana) renderBarbeiroSemana();
+  else renderBarbeiroHoje();
+  refreshNavegacaoContexto();
 }
 
 function renderSessaoTopBar() {
@@ -188,18 +433,25 @@ function renderSessaoTopBar() {
     return;
   }
   ui.setHidden(el.sessionChip, false);
-  el.sessionChipLabel.textContent = `${usuario.nome} • ${usuario.nivelAcesso}`;
+  const extra = usuario.nivelAcesso === "Barbeiro" ? ` • ${obterBarbeiroPorId(usuario.barbeiroId)?.nome ?? ""}` : "";
+  el.sessionChipLabel.textContent = `${usuario.nome} • ${usuario.nivelAcesso}${extra}`;
 }
 
 function renderViews() {
   const usuario = obterUsuarioAtual();
+  if (usuario?.nivelAcesso === "Admin") {
+    window.location.href = new URL("admin/index.html", window.location.href).href;
+    return;
+  }
+
   const logado = Boolean(usuario);
 
   ui.setHidden(el.viewLogin, logado);
   ui.setHidden(el.viewCliente, !logado || usuario.nivelAcesso !== "Cliente");
-  ui.setHidden(el.viewAdmin, !logado || usuario.nivelAcesso !== "Admin");
+  ui.setHidden(el.viewBarbeiro, !logado || usuario.nivelAcesso !== "Barbeiro");
 
   renderSessaoTopBar();
+  renderAppNavigation();
   if (!usuario) return;
 
   if (usuario.nivelAcesso === "Cliente") {
@@ -208,25 +460,20 @@ function renderViews() {
     inicializarEstadoClienteInputs();
     atualizarResumoCliente();
     renderSlotsCliente();
-  } else {
-    configurarDefaultsAdmin();
-    renderAdmin();
+  } else if (usuario.nivelAcesso === "Barbeiro") {
+    renderBarbeiroSemana();
+    renderBarbeiroHoje();
   }
 }
 
 function configurarDefaultsCliente() {
   if (!el.clienteData.value) el.clienteData.value = obterHojeYmd();
-  // Defaults “inteligentes” para reduzir cliques
   if (!el.clienteBarbeiro.value && state.barbeiros.length > 0) el.clienteBarbeiro.value = state.barbeiros[0].id;
   if (!el.clienteServico.value && state.servicos.length > 0) el.clienteServico.value = state.servicos[0].id;
 }
 
 function obterHojeYmd() {
-  const a = new Date();
-  const y = a.getFullYear();
-  const m = String(a.getMonth() + 1).padStart(2, "0");
-  const d = String(a.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  return dataYmdDeDate(new Date());
 }
 
 function obterServicoPorId(id) {
@@ -243,6 +490,10 @@ function listarAgendamentosPorBarbeiroDia({ barbeiroId, dataYmd }) {
     if (a.dataYmd !== dataYmd) return false;
     return true;
   });
+}
+
+function listarAgendamentosDoBarbeiro(barbeiroId) {
+  return state.agendamentos.filter((a) => a.barbeiroId === barbeiroId);
 }
 
 function atualizarResumoCliente() {
@@ -272,18 +523,28 @@ function renderSlotsCliente() {
     return;
   }
 
+  if (!scheduler.ehDiaUtil(dataYmd)) {
+    ui.setFieldHelp(
+      el.slotsHelp,
+      "Agendamentos só são permitidos de segunda a sexta. Escolha outra data.",
+      true
+    );
+    return;
+  }
+
   const existentes = listarAgendamentosPorBarbeiroDia({ barbeiroId, dataYmd });
   const slots = scheduler.gerarSlotsDia({ dataYmd, duracaoMinutos: servico.duracaoMinutos });
 
   let primeiroLivreBtn = null;
   for (const s of slots) {
     const hora = scheduler.formatarHora(s.inicio);
+    const okAntecedencia = scheduler.antecedenciaRespeitada({ inicio: s.inicio });
     const conflita = scheduler.verificarConflito({
       novoInicio: s.inicio,
       novoFimSemLimpeza: s.fimSemLimpeza,
       agendamentosExistentes: existentes,
     });
-    const desabilitado = s.noPassado || conflita;
+    const desabilitado = s.noPassado || conflita || !okAntecedencia;
 
     const btn = document.createElement("button");
     btn.type = "button";
@@ -292,7 +553,11 @@ function renderSlotsCliente() {
     btn.dataset.hora = hora;
     btn.disabled = desabilitado;
 
-    const meta = conflita ? "Ocupado" : s.noPassado ? "Passado" : "Livre";
+    let meta = "Livre";
+    if (conflita) meta = "Ocupado";
+    else if (s.noPassado) meta = "Passado";
+    else if (!okAntecedencia) meta = "< 1h";
+
     btn.innerHTML = `${hora}<span class="slotMeta">${meta}</span>`;
     btn.addEventListener("click", () => {
       if (btn.disabled) return;
@@ -307,16 +572,23 @@ function renderSlotsCliente() {
     el.slotsContainer.appendChild(btn);
   }
 
-  // Sugestão UX: guia para o próximo horário livre
   if (primeiroLivreBtn) {
     ui.setFieldHelp(el.slotsHelp, "Dica: o primeiro horário livre está pronto para seleção.");
-    // Micro interação: scroll suave até a lista de horários
     window.setTimeout(() => {
       el.clienteHorariosField?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
   } else {
     ui.setFieldHelp(el.slotsHelp, "Sem horários livres para este filtro. Tente outra data/serviço.", true);
   }
+}
+
+function pillAtendimento(ag) {
+  if (ag.statusPagamento === "Cancelado") return `<span class="pill pillDanger">Cancelado</span>`;
+  if (ag.concluidoEmIso)
+    return `<span class="pill pillOk">Concluído</span><div class="slotMeta" style="margin-top:4px">${new Date(
+      ag.concluidoEmIso
+    ).toLocaleString("pt-BR")}</div>`;
+  return `<span class="pill pillMuted">Agendado</span>`;
 }
 
 function renderClienteHistorico() {
@@ -342,12 +614,13 @@ function renderClienteHistorico() {
       <td>${barbeiro?.nome ?? "—"}</td>
       <td>${formatarMetodoPagamentoLabel(a.metodoPagamento)}</td>
       <td>${renderPillStatus(a.statusPagamento)}</td>
+      <td>${pillAtendimento(a)}</td>
     `;
     el.clienteHistoricoBody.appendChild(tr);
   }
   if (meus.length === 0) {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="6" style="color:var(--muted)">Nenhum agendamento ainda.</td>`;
+    tr.innerHTML = `<td colspan="7" style="color:var(--muted)">Nenhum agendamento ainda.</td>`;
     el.clienteHistoricoBody.appendChild(tr);
   }
 }
@@ -355,6 +628,7 @@ function renderClienteHistorico() {
 function formatarMetodoPagamentoLabel(metodo) {
   if (metodo === "CartaoCredito") return "Cartão (Crédito)";
   if (metodo === "CartaoDebito") return "Cartão (Débito)";
+  if (metodo === "Boleto") return "Boleto";
   return metodo;
 }
 
@@ -385,7 +659,23 @@ function agendarHorario() {
     return;
   }
 
+  if (!scheduler.ehDiaUtil(dataYmd)) {
+    ui.toast({ titulo: "Data inválida", msg: "Use um dia útil (segunda a sexta).", tipo: "danger" });
+    renderSlotsCliente();
+    return;
+  }
+
   const inicio = scheduler.criarDataLocalPorDiaHora(dataYmd, hora);
+  if (!scheduler.antecedenciaRespeitada({ inicio })) {
+    ui.toast({
+      titulo: "Antecedência mínima",
+      msg: `É necessário agendar com pelo menos ${scheduler.antecedenciaAgendamentoMinutos} minutos de antecedência.`,
+      tipo: "danger",
+    });
+    renderSlotsCliente();
+    return;
+  }
+
   const fimSemLimpeza = scheduler.somarMinutos(inicio, servico.duracaoMinutos);
   const existentes = listarAgendamentosPorBarbeiroDia({ barbeiroId, dataYmd });
   const conflita = scheduler.verificarConflito({
@@ -425,29 +715,52 @@ function agendarHorario() {
     statusPagamento: "Pendente",
     pagoEmIso: null,
     canceladoEmIso: null,
+    concluidoEmIso: null,
+    historicoLog: [],
   };
+
+  logAgendamento(agendamento, "Criado pelo cliente");
 
   state.agendamentos.push(agendamento);
   salvarAgendamentos();
 
   ui.toast({ titulo: "Agendamento criado", msg: "Horário reservado com sucesso.", tipo: "ok" });
 
-  if (metodoPagamento === "Pix") {
-    abrirModalPix(agendamento);
-  }
+  if (metodoPagamento === "Pix") abrirModalPix(agendamento);
+  if (metodoPagamento === "Boleto") abrirModalBoleto(agendamento);
 
   renderClienteHistorico();
   renderSlotsCliente();
 }
 
 function abrirModalPix(agendamento) {
-  const chave = "navalha-pix-chave-ficticia";
+  state.pixModalAgendamentoId = agendamento.id;
+  el.pixPanelPagamento.hidden = false;
+  el.pixPanelSucesso.hidden = true;
+
+  const chave = "navalha@demo-pix.com.br";
   const id = agendamento.id;
   el.pixChave.textContent = chave;
-  el.pixValor.textContent = scheduler.formatarMoedaBR(agendamento.valorCentavos);
+  el.pixValorGrande.textContent = scheduler.formatarMoedaBR(agendamento.valorCentavos);
   el.pixId.textContent = id;
+  el.pixIdResumo.textContent = `Pedido · ${id.length > 12 ? "…" + id.slice(-10) : id}`;
+  el.pixCopiaPayload.value = gerarPixCopiaEColaDemo({
+    chave,
+    agId: id,
+    valorCentavos: agendamento.valorCentavos,
+  });
   desenharQrFicticio(el.pixCanvas, `${chave}|${id}|${agendamento.valorCentavos}`);
   el.modalPix.showModal();
+}
+
+function abrirModalBoleto(ag) {
+  state.boletoModalAgendamentoId = ag.id;
+  el.boletoValorGrande.textContent = scheduler.formatarMoedaBR(ag.valorCentavos);
+  const base = ag.id.replace(/\D/g, "").slice(-14).padStart(14, "0");
+  el.boletoLinha.textContent = `23793.38128 ${base.slice(0, 5)}.${base.slice(5)} ${base}1 8 ${String(
+    ag.valorCentavos
+  ).padStart(10, "0")}12`;
+  el.modalBoleto.showModal();
 }
 
 function desenharQrFicticio(canvas, payload) {
@@ -489,10 +802,7 @@ function desenharQrFicticio(canvas, payload) {
   ctx.fillStyle = "#111827";
   for (let y = 0; y < n; y++) {
     for (let x = 0; x < n; x++) {
-      const inFinder =
-        (x < 7 && y < 7) ||
-        (x >= n - 7 && y < 7) ||
-        (x < 7 && y >= n - 7);
+      const inFinder = (x < 7 && y < 7) || (x >= n - 7 && y < 7) || (x < 7 && y >= n - 7);
       if (inFinder) continue;
 
       const on = rand() > 0.55;
@@ -502,175 +812,349 @@ function desenharQrFicticio(canvas, payload) {
   }
 }
 
-function configurarDefaultsAdmin() {
-  if (!el.adminData.value) el.adminData.value = obterHojeYmd();
-  if (!el.adminBarbeiro.value) el.adminBarbeiro.value = "Todos";
+function obterSegundaDaSemanaCorrente() {
+  const base = inicioSemanaSegunda(new Date());
+  return somarDias(base, state.barbeiroSemanaOffset * 7);
 }
 
-function filtrarAgendamentosAdmin({ dataYmd, barbeiroFiltro }) {
-  return state.agendamentos.filter((a) => {
-    if (a.dataYmd !== dataYmd) return false;
-    if (barbeiroFiltro && barbeiroFiltro !== "Todos" && a.barbeiroId !== barbeiroFiltro) return false;
-    return true;
-  });
+function atualizarLabelSemanaBarbeiro() {
+  const mon = obterSegundaDaSemanaCorrente();
+  const fri = somarDias(mon, 4);
+  el.barbeiroSemanaLabel.textContent = `${formatarDataYmdParaBR(dataYmdDeDate(mon))} — ${formatarDataYmdParaBR(
+    dataYmdDeDate(fri)
+  )}`;
 }
 
-function renderAdmin() {
-  const dataYmd = el.adminData.value || obterHojeYmd();
-  const barbeiroFiltro = el.adminBarbeiro.value || "Todos";
-  const lista = filtrarAgendamentosAdmin({ dataYmd, barbeiroFiltro }).slice();
-  lista.sort((a, b) => new Date(a.inicioIso) - new Date(b.inicioIso));
+function renderBarbeiroSemana() {
+  const usuario = obterUsuarioAtual();
+  const bid = obterBarbeiroIdDoUsuario(usuario);
+  if (!bid) return;
 
-  renderAdminKpis(lista);
-  renderAdminPendentes(lista);
-  renderAdminTabela(lista);
+  atualizarLabelSemanaBarbeiro();
+  ui.limpar(el.barbeiroWeekGrid);
+
+  const mon = obterSegundaDaSemanaCorrente();
+  for (let i = 0; i < 5; i++) {
+    const dia = somarDias(mon, i);
+    const ymd = dataYmdDeDate(dia);
+
+    const col = document.createElement("div");
+    col.className = "weekDay";
+    col.innerHTML = `
+      <div class="weekDayTitle">${nomeDiaSemanaCurto(dia)}</div>
+      <div class="weekDayDate">${formatarDataYmdParaBR(ymd)}</div>
+    `;
+
+    const lista = listarAgendamentosPorBarbeiroDia({ barbeiroId: bid, dataYmd: ymd })
+      .filter((a) => a.statusPagamento !== "Cancelado")
+      .slice()
+      .sort((a, b) => new Date(a.inicioIso) - new Date(b.inicioIso));
+
+    if (lista.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "slotMeta";
+      empty.textContent = "Sem horários";
+      col.appendChild(empty);
+    } else {
+      for (const a of lista) {
+        const servico = obterServicoPorId(a.servicoId);
+        const inicio = new Date(a.inicioIso);
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "apptChip";
+        chip.innerHTML = `${scheduler.formatarHora(inicio)} • ${a.clienteNome}<span class="apptChipMeta">${servico?.nome ?? "—"} • ${formatarMetodoPagamentoLabel(
+          a.metodoPagamento
+        )}</span>`;
+        chip.addEventListener("click", () => abrirMenuBarbeiroAgendamento(a));
+        col.appendChild(chip);
+      }
+    }
+
+    el.barbeiroWeekGrid.appendChild(col);
+  }
 }
 
-function renderAdminKpis(lista) {
-  const pagos = lista.filter((a) => a.statusPagamento === "Pago");
+function renderBarbeiroHoje() {
+  const usuario = obterUsuarioAtual();
+  const bid = obterBarbeiroIdDoUsuario(usuario);
+  if (!bid) return;
 
-  const somaTotal = pagos.reduce((acc, a) => acc + (a.valorCentavos || 0), 0);
-  const somaPix = pagos
-    .filter((a) => scheduler.normalizarMetodoPagamento(a.metodoPagamento) === "Pix")
-    .reduce((acc, a) => acc + (a.valorCentavos || 0), 0);
-  const somaDinheiro = pagos
-    .filter((a) => scheduler.normalizarMetodoPagamento(a.metodoPagamento) === "Dinheiro")
-    .reduce((acc, a) => acc + (a.valorCentavos || 0), 0);
-  const somaCartao = pagos
-    .filter((a) => scheduler.normalizarMetodoPagamento(a.metodoPagamento) === "Cartao")
-    .reduce((acc, a) => acc + (a.valorCentavos || 0), 0);
+  const hoje = obterHojeYmd();
+  const lista = listarAgendamentosPorBarbeiroDia({ barbeiroId: bid, dataYmd: hoje })
+    .filter((a) => a.statusPagamento !== "Cancelado")
+    .slice()
+    .sort((a, b) => new Date(a.inicioIso) - new Date(b.inicioIso));
 
-  el.kpiTotal.textContent = scheduler.formatarMoedaBR(somaTotal);
-  el.kpiPix.textContent = scheduler.formatarMoedaBR(somaPix);
-  el.kpiDinheiro.textContent = scheduler.formatarMoedaBR(somaDinheiro);
-  el.kpiCartao.textContent = scheduler.formatarMoedaBR(somaCartao);
-}
-
-function calcularUrgenciaPendente(ag) {
-  const agora = new Date();
-  const inicio = new Date(ag.inicioIso);
-  const diffMin = Math.round((inicio - agora) / 60000);
-  if (inicio < agora) return "danger";
-  if (diffMin <= 120) return "warn";
-  return "none";
-}
-
-function renderAdminPendentes(lista) {
-  const pendentes = lista.filter((a) => a.statusPagamento === "Pendente");
-  ui.limpar(el.adminPendentes);
-
-  if (pendentes.length === 0) {
-    el.adminPendentes.innerHTML = `<div class="hint">Nenhuma pendência no filtro atual.</div>`;
+  ui.limpar(el.barbeiroHojeList);
+  if (lista.length === 0) {
+    el.barbeiroHojeList.innerHTML = `<div class="hint">Nenhum agendamento para hoje.</div>`;
     return;
   }
 
-  for (const a of pendentes) {
+  for (const a of lista) {
     const servico = obterServicoPorId(a.servicoId);
-    const barbeiro = obterBarbeiroPorId(a.barbeiroId);
     const inicio = new Date(a.inicioIso);
-    const urgencia = calcularUrgenciaPendente(a);
-
     const item = document.createElement("div");
-    item.className = `listItem${
-      urgencia === "danger" ? " listItemUrgencyDanger" : urgencia === "warn" ? " listItemUrgencyWarn" : ""
-    }`;
+    item.className = "listItem";
 
     const main = document.createElement("div");
     main.className = "listItemMain";
     main.innerHTML = `
       <div class="listItemTitle">${scheduler.formatarHora(inicio)} • ${a.clienteNome}</div>
-      <div class="listItemMeta">${servico?.nome ?? "—"} • ${barbeiro?.nome ?? "—"} • ${scheduler.formatarMoedaBR(
-        a.valorCentavos
-      )} • ${formatarMetodoPagamentoLabel(a.metodoPagamento)}</div>
+      <div class="listItemMeta">${servico?.nome ?? "—"} • ${scheduler.formatarMoedaBR(a.valorCentavos)} • ${formatarMetodoPagamentoLabel(
+      a.metodoPagamento
+    )} • ${a.concluidoEmIso ? "Concluído" : "Aberto"}</div>
     `;
 
     const actions = document.createElement("div");
     actions.className = "row";
 
-    const btnPago = document.createElement("button");
-    btnPago.type = "button";
-    btnPago.className = "btn btnPrimary btnSm";
-    btnPago.textContent = "Marcar como Pago";
-    btnPago.addEventListener("click", () => marcarPago(a.id));
+    const btnDet = document.createElement("button");
+    btnDet.type = "button";
+    btnDet.className = "btn btnGhost btnSm";
+    btnDet.textContent = "Cliente";
+    btnDet.addEventListener("click", () => abrirDetalheCliente(a.clienteUsuarioId));
 
-    actions.appendChild(btnPago);
+    const btnEdit = document.createElement("button");
+    btnEdit.type = "button";
+    btnEdit.className = "btn btnGhost btnSm";
+    btnEdit.textContent = "Editar";
+    btnEdit.addEventListener("click", () => abrirModalEditarAgendamento(a));
+
+    const btnOk = document.createElement("button");
+    btnOk.type = "button";
+    btnOk.className = "btn btnPrimary btnSm";
+    btnOk.textContent = a.concluidoEmIso ? "Concluído" : "Concluir";
+    btnOk.disabled = Boolean(a.concluidoEmIso);
+    btnOk.addEventListener("click", () => marcarConcluidoBarbeiro(a.id));
+
+    const btnCan = document.createElement("button");
+    btnCan.type = "button";
+    btnCan.className = "btn btnDanger btnSm";
+    btnCan.textContent = "Cancelar";
+    btnCan.addEventListener("click", () => cancelarAgendamento(a.id));
+
+    actions.appendChild(btnDet);
+    actions.appendChild(btnEdit);
+    actions.appendChild(btnOk);
+    actions.appendChild(btnCan);
+
     item.appendChild(main);
     item.appendChild(actions);
-    el.adminPendentes.appendChild(item);
+    el.barbeiroHojeList.appendChild(item);
   }
 }
 
-function renderAdminTabela(lista) {
-  ui.limpar(el.adminAgendamentosBody);
-  for (const a of lista) {
-    const inicio = new Date(a.inicioIso);
-    const servico = obterServicoPorId(a.servicoId);
-    const barbeiro = obterBarbeiroPorId(a.barbeiroId);
+function abrirMenuBarbeiroAgendamento(ag) {
+  void (async () => {
+    const dlg = document.createElement("dialog");
+    dlg.className = "modal";
+    dlg.innerHTML = `
+      <form method="dialog" class="modalCard">
+        <div class="modalHeader">
+          <div>
+            <div class="modalTitle">Agendamento</div>
+            <div class="modalSubtitle">${formatarDataYmdParaBR(ag.dataYmd)} • ${scheduler.formatarHora(
+              new Date(ag.inicioIso)
+            )} • ${ag.clienteNome}</div>
+          </div>
+          <button type="submit" class="btn btnGhost btnSm" value="fechar">Fechar</button>
+        </div>
+        <div class="modalBody">
+          <div class="row" style="flex-wrap:wrap; justify-content:flex-end">
+            <button type="submit" class="btn btnGhost btnSm" value="cli">Cliente</button>
+            <button type="submit" class="btn btnGhost btnSm" value="edit">Editar</button>
+            <button type="submit" class="btn btnPrimary btnSm" value="done">Concluir</button>
+            <button type="submit" class="btn btnDanger btnSm" value="cancel">Cancelar</button>
+          </div>
+        </div>
+      </form>`;
+    document.body.appendChild(dlg);
+    dlg.addEventListener("close", async () => {
+      const v = dlg.returnValue;
+      dlg.remove();
+      if (v === "cli") abrirDetalheCliente(ag.clienteUsuarioId);
+      if (v === "edit") abrirModalEditarAgendamento(ag);
+      if (v === "done") marcarConcluidoBarbeiro(ag.id);
+      if (v === "cancel") await cancelarAgendamento(ag.id);
+    });
+    dlg.showModal();
+  })();
+}
 
+function abrirDetalheCliente(clienteUsuarioId) {
+  const u = state.usuarios.find((x) => x.id === clienteUsuarioId);
+  const ags = state.agendamentos
+    .filter((a) => a.clienteUsuarioId === clienteUsuarioId)
+    .slice()
+    .sort((a, b) => new Date(b.inicioIso) - new Date(a.inicioIso));
+
+  el.cliDetTitulo.textContent = u?.nome || "Cliente";
+  el.cliDetSub.textContent = u ? `Perfil local (demo) — ID ${u.id}` : "Cliente não encontrado no cadastro local.";
+  el.cliDetWhatsapp.textContent = u?.whatsapp || ags[0]?.clienteWhatsapp || "—";
+  el.cliDetEmail.textContent = u?.email || "—";
+  el.cliDetTotal.textContent = String(ags.length);
+  el.cliDetUltima.textContent = ags.length ? formatarDataYmdParaBR(ags[0].dataYmd) : "—";
+
+  ui.limpar(el.cliDetHistoricoBody);
+  for (const a of ags.slice(0, 8)) {
+    const servico = obterServicoPorId(a.servicoId);
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${scheduler.formatarHora(inicio)}</td>
-      <td>${a.clienteNome}</td>
+      <td>${formatarDataYmdParaBR(a.dataYmd)}</td>
       <td>${servico?.nome ?? "—"}</td>
-      <td>${barbeiro?.nome ?? "—"}</td>
-      <td>${scheduler.formatarMoedaBR(a.valorCentavos)}</td>
-      <td>${formatarMetodoPagamentoLabel(a.metodoPagamento)}</td>
       <td>${renderPillStatus(a.statusPagamento)}</td>
-      <td></td>
     `;
-
-    const tdAcoes = tr.querySelector("td:last-child");
-    const row = document.createElement("div");
-    row.className = "row";
-    row.style.flexWrap = "wrap";
-
-    if (a.statusPagamento !== "Cancelado") {
-      const btnCancelar = document.createElement("button");
-      btnCancelar.type = "button";
-      btnCancelar.className = "btn btnDanger btnSm";
-      btnCancelar.textContent = "Cancelar";
-      btnCancelar.addEventListener("click", () => cancelarAgendamento(a.id));
-      row.appendChild(btnCancelar);
-    }
-
-    if (a.statusPagamento === "Pendente") {
-      const btnPago = document.createElement("button");
-      btnPago.type = "button";
-      btnPago.className = "btn btnPrimary btnSm";
-      btnPago.textContent = "Pago";
-      btnPago.addEventListener("click", () => marcarPago(a.id));
-      row.appendChild(btnPago);
-    }
-
-    tdAcoes.appendChild(row);
-    el.adminAgendamentosBody.appendChild(tr);
+    el.cliDetHistoricoBody.appendChild(tr);
   }
-
-  if (lista.length === 0) {
+  if (ags.length === 0) {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="8" style="color:var(--muted)">Nenhum agendamento no filtro atual.</td>`;
-    el.adminAgendamentosBody.appendChild(tr);
+    tr.innerHTML = `<td colspan="3" style="color:var(--muted)">Sem histórico.</td>`;
+    el.cliDetHistoricoBody.appendChild(tr);
   }
+
+  el.modalClienteDetalhe.showModal();
 }
 
-function marcarPago(agendamentoId) {
-  const a = state.agendamentos.find((x) => x.id === agendamentoId);
-  if (!a) return;
-  if (a.statusPagamento === "Cancelado") {
-    ui.toast({ titulo: "Não permitido", msg: "Agendamento cancelado não pode ser marcado como pago.", tipo: "warn" });
+function abrirModalEditarAgendamento(ag) {
+  const usuario = obterUsuarioAtual();
+  if (!podeGerenciarAgendamento(usuario, ag)) {
+    ui.toast({ titulo: "Sem permissão", msg: "Você não pode editar este agendamento.", tipo: "danger" });
+    return;
+  }
+  if (ag.statusPagamento === "Cancelado") {
+    ui.toast({ titulo: "Cancelado", msg: "Não é possível editar um agendamento cancelado.", tipo: "warn" });
     return;
   }
 
-  a.statusPagamento = "Pago";
-  a.pagoEmIso = new Date().toISOString();
+  preencherSelectServicos(el.editAgServico);
+  el.editAgId.value = ag.id;
+  el.editAgServico.value = ag.servicoId;
+  el.editAgData.value = ag.dataYmd;
+  el.editAgHora.value = scheduler.formatarHora(new Date(ag.inicioIso));
+  el.editAgValor.value = formatarCentavosInputBR(ag.valorCentavos);
+  ui.setFieldHelp(el.editAgValorHelp, "");
+
+  const ehDinheiro = ag.metodoPagamento === "Dinheiro";
+  el.editAgValorField.hidden = !ehDinheiro;
+  el.editAgSub.textContent = ehDinheiro
+    ? "Você pode ajustar o valor cobrado em dinheiro após o atendimento."
+    : "Altere serviço, data ou hora. Conflitos são validados automaticamente.";
+
+  el.modalEditarAgendamento.showModal();
+}
+
+function fecharModalEditar() {
+  el.modalEditarAgendamento.close();
+}
+
+function aplicarEdicaoAgendamento(ev) {
+  ev.preventDefault();
+  const usuario = obterUsuarioAtual();
+  const id = el.editAgId.value;
+  const ag = state.agendamentos.find((x) => x.id === id);
+  if (!ag || !podeGerenciarAgendamento(usuario, ag)) {
+    ui.toast({ titulo: "Erro", msg: "Agendamento inválido.", tipo: "danger" });
+    return;
+  }
+  if (ag.statusPagamento === "Cancelado") return;
+
+  const servico = obterServicoPorId(el.editAgServico.value);
+  const dataYmd = el.editAgData.value;
+  const hora = el.editAgHora.value;
+  if (!servico || !dataYmd || !hora) return;
+
+  if (!scheduler.ehDiaUtil(dataYmd)) {
+    ui.toast({ titulo: "Data inválida", msg: "Use um dia útil (segunda a sexta).", tipo: "danger" });
+    return;
+  }
+
+  const inicio = scheduler.criarDataLocalPorDiaHora(dataYmd, hora);
+  const fimSemLimpeza = scheduler.somarMinutos(inicio, servico.duracaoMinutos);
+
+  const existentes = listarAgendamentosPorBarbeiroDia({ barbeiroId: ag.barbeiroId, dataYmd }).filter(
+    (x) => x.id !== ag.id && x.statusPagamento !== "Cancelado"
+  );
+
+  const conflita = scheduler.verificarConflito({
+    novoInicio: inicio,
+    novoFimSemLimpeza: fimSemLimpeza,
+    agendamentosExistentes: existentes,
+  });
+
+  if (conflita) {
+    ui.toast({ titulo: "Conflito", msg: "O novo horário conflita com outro agendamento.", tipo: "danger" });
+    return;
+  }
+
+  let valorNovo = ag.valorCentavos;
+  if (ag.metodoPagamento === "Dinheiro") {
+    const parsed = parseMoedaBRLParaCentavos(el.editAgValor.value);
+    if (parsed === null) {
+      ui.setFieldHelp(el.editAgValorHelp, "Informe um valor válido (ex.: 45,00).", true);
+      return;
+    }
+    valorNovo = parsed;
+    ui.setFieldHelp(el.editAgValorHelp, "");
+  } else {
+    valorNovo = servico.precoCentavos;
+  }
+
+  const mudancas = [];
+  if (ag.servicoId !== servico.id) mudancas.push("serviço");
+  if (ag.dataYmd !== dataYmd || new Date(ag.inicioIso).getTime() !== inicio.getTime()) mudancas.push("horário");
+  if (ag.valorCentavos !== valorNovo) mudancas.push("valor");
+
+  ag.servicoId = servico.id;
+  ag.dataYmd = dataYmd;
+  ag.inicioIso = inicio.toISOString();
+  ag.fimIso = fimSemLimpeza.toISOString();
+  ag.duracaoMinutos = servico.duracaoMinutos;
+  ag.valorCentavos = valorNovo;
+
+  logAgendamento(ag, `Editado por ${usuario?.nome || "usuário"} (${mudancas.join(", ") || "sem mudança"})`);
   salvarAgendamentos();
-  ui.toast({ titulo: "Pagamento confirmado", msg: `Recebimento registrado às ${new Date(a.pagoEmIso).toLocaleTimeString("pt-BR")}.`, tipo: "ok" });
-  renderAdmin();
+  fecharModalEditar();
+
+  ui.toast({ titulo: "Salvo", msg: "Agendamento atualizado.", tipo: "ok" });
+  renderBarbeiroSemana();
+  renderBarbeiroHoje();
+  if (obterUsuarioAtual()?.nivelAcesso === "Cliente") {
+    renderClienteHistorico();
+    renderSlotsCliente();
+  }
+}
+
+function marcarConcluidoBarbeiro(agendamentoId) {
+  const usuario = obterUsuarioAtual();
+  const a = state.agendamentos.find((x) => x.id === agendamentoId);
+  if (!a || !podeGerenciarAgendamento(usuario, a)) return;
+  if (a.statusPagamento === "Cancelado") {
+    ui.toast({ titulo: "Cancelado", msg: "Agendamento já cancelado.", tipo: "warn" });
+    return;
+  }
+  if (a.concluidoEmIso) {
+    ui.toast({ titulo: "Já concluído", msg: "Este atendimento já foi finalizado.", tipo: "warn" });
+    return;
+  }
+
+  a.concluidoEmIso = new Date().toISOString();
+  logAgendamento(a, `Concluído por ${usuario?.nome || "barbeiro"} às ${new Date(a.concluidoEmIso).toLocaleTimeString("pt-BR")}`);
+  salvarAgendamentos();
+  ui.toast({ titulo: "Concluído", msg: "Atendimento marcado como finalizado.", tipo: "ok" });
+  renderBarbeiroSemana();
+  renderBarbeiroHoje();
+  if (obterUsuarioAtual()?.nivelAcesso === "Cliente") renderClienteHistorico();
 }
 
 async function cancelarAgendamento(agendamentoId) {
+  const usuario = obterUsuarioAtual();
   const a = state.agendamentos.find((x) => x.id === agendamentoId);
   if (!a) return;
+  if (!podeGerenciarAgendamento(usuario, a)) {
+    ui.toast({ titulo: "Sem permissão", msg: "Você não pode cancelar este agendamento.", tipo: "danger" });
+    return;
+  }
   if (a.statusPagamento === "Cancelado") return;
 
   const ok = await ui.confirmar({
@@ -683,10 +1167,12 @@ async function cancelarAgendamento(agendamentoId) {
 
   a.statusPagamento = "Cancelado";
   a.canceladoEmIso = new Date().toISOString();
+  logAgendamento(a, `Cancelado por ${usuario?.nome || "usuário"}`);
   salvarAgendamentos();
   ui.toast({ titulo: "Cancelado", msg: "O horário foi liberado.", tipo: "warn" });
 
-  renderAdmin();
+  renderBarbeiroSemana();
+  renderBarbeiroHoje();
   if (obterUsuarioAtual()?.nivelAcesso === "Cliente") {
     renderSlotsCliente();
     renderClienteHistorico();
@@ -694,6 +1180,12 @@ async function cancelarAgendamento(agendamentoId) {
 }
 
 function wireEvents() {
+  document.querySelector(".skipLink")?.addEventListener("click", () => {
+    window.requestAnimationFrame(() => {
+      el.mainContent?.focus({ preventScroll: true });
+    });
+  });
+
   el.btnLogout.addEventListener("click", () => {
     setSessao(null);
     ui.toast({ titulo: "Sessão encerrada", msg: "Você saiu do sistema.", tipo: "ok" });
@@ -713,13 +1205,13 @@ function wireEvents() {
     limparErrosLogin();
   });
 
-  el.btnLoginAdmin.addEventListener("click", () => {
-    el.loginEmail.value = "admin@navalha.com";
+  el.btnLoginUsuario.addEventListener("click", () => {
+    el.loginEmail.value = "usuario@navalha.com";
     el.loginSenha.value = "1234";
     el.formLogin.requestSubmit();
   });
-  el.btnLoginUsuario.addEventListener("click", () => {
-    el.loginEmail.value = "usuario@navalha.com";
+  el.btnLoginBarbeiro.addEventListener("click", () => {
+    el.loginEmail.value = "barbeiro@navalha.com";
     el.loginSenha.value = "1234";
     el.formLogin.requestSubmit();
   });
@@ -739,6 +1231,11 @@ function wireEvents() {
     }
 
     setSessao(usuario);
+    if (usuario.nivelAcesso === "Admin") {
+      ui.toast({ titulo: "Redirecionando", msg: "Abrindo o painel administrativo…", tipo: "ok" });
+      window.location.href = new URL("admin/index.html", window.location.href).href;
+      return;
+    }
     ui.toast({ titulo: "Bem-vindo", msg: `Acesso liberado como ${usuario.nivelAcesso}.`, tipo: "ok" });
     renderViews();
   });
@@ -761,26 +1258,92 @@ function wireEvents() {
   });
   el.btnAgendar.addEventListener("click", () => agendarHorario());
 
-  // Tabs Cliente
-  el.tabClienteAgendar.addEventListener("click", () => setClienteTab("Agendar"));
-  el.tabClienteHistorico.addEventListener("click", () => {
-    setClienteTab("Historico");
-    renderClienteHistorico();
+  el.appSubNav.addEventListener("click", (e) => {
+    const btn = e.target.closest(".appSubNavBtn");
+    if (!btn?.dataset.nav) return;
+    const [area, destino] = btn.dataset.nav.split(":");
+    if (area === "cliente") {
+      if (destino === "Historico") setClienteTab("Historico");
+      else setClienteTab("Agendar");
+    } else if (area === "barbeiro") {
+      if (destino === "Hoje") setBarbeiroTab("Hoje");
+      else setBarbeiroTab("Semana");
+    }
   });
 
-  // Tabs Admin
-  el.tabAdminDashboard.addEventListener("click", () => setAdminTab("Dashboard"));
-  el.tabAdminAgenda.addEventListener("click", () => {
-    setAdminTab("Agenda");
-    renderAdmin();
+  el.btnBarbeiroSemanaPrev.addEventListener("click", () => {
+    state.barbeiroSemanaOffset -= 1;
+    localStorage.setItem("navalha_ui_barberWeekOffset", String(state.barbeiroSemanaOffset));
+    renderBarbeiroSemana();
+  });
+  el.btnBarbeiroSemanaNext.addEventListener("click", () => {
+    state.barbeiroSemanaOffset += 1;
+    localStorage.setItem("navalha_ui_barberWeekOffset", String(state.barbeiroSemanaOffset));
+    renderBarbeiroSemana();
   });
 
-  el.adminData.addEventListener("change", () => renderAdmin());
-  el.adminBarbeiro.addEventListener("change", () => renderAdmin());
-  el.btnAdminHoje.addEventListener("click", () => {
-    el.adminData.value = obterHojeYmd();
-    renderAdmin();
+  el.modalPix.addEventListener("close", () => resetPainelPixModal());
+  el.modalBoleto.addEventListener("close", () => {
+    state.boletoModalAgendamentoId = null;
   });
+
+  el.btnPixFechar.addEventListener("click", () => el.modalPix.close());
+  el.btnPixDeixarPendente.addEventListener("click", () => el.modalPix.close());
+  el.btnPixSucessoOk.addEventListener("click", () => el.modalPix.close());
+
+  el.btnPixCopiarPayload.addEventListener("click", () => copiarParaAreaDeTransferencia(el.pixCopiaPayload.value));
+  el.btnPixCopiarChave.addEventListener("click", () =>
+    copiarParaAreaDeTransferencia(el.pixChave.textContent)
+  );
+
+  el.btnPixSimularPago.addEventListener("click", () => {
+    const id = state.pixModalAgendamentoId;
+    if (!id) return;
+    const ok = registrarPagamentoDemo(id, "Pix — pagamento simulado no site (demo)");
+    if (!ok) {
+      ui.toast({
+        titulo: "Não disponível",
+        msg: "Não foi possível confirmar (cancelado ou inválido).",
+        tipo: "warn",
+      });
+      return;
+    }
+    const a = state.agendamentos.find((x) => x.id === id);
+    refrescarAposPagamentoDemo();
+    el.pixPanelPagamento.hidden = true;
+    el.pixPanelSucesso.hidden = false;
+    el.pixSucessoValor.textContent = a ? scheduler.formatarMoedaBR(a.valorCentavos) : "";
+    ui.toast({ titulo: "Pix simulado", msg: "Status atualizado para Pago neste aparelho.", tipo: "ok" });
+  });
+
+  el.btnBoletoFechar.addEventListener("click", () => {
+    state.boletoModalAgendamentoId = null;
+    el.modalBoleto.close();
+  });
+  el.btnBoletoPendente.addEventListener("click", () => {
+    state.boletoModalAgendamentoId = null;
+    el.modalBoleto.close();
+  });
+  el.btnBoletoCopiar.addEventListener("click", () =>
+    copiarParaAreaDeTransferencia(el.boletoLinha.textContent)
+  );
+  el.btnBoletoSimularPago.addEventListener("click", () => {
+    const id = state.boletoModalAgendamentoId;
+    if (!id) return;
+    const ok = registrarPagamentoDemo(id, "Boleto — compensação simulada no site (demo)");
+    if (!ok) {
+      ui.toast({ titulo: "Não disponível", msg: "Agendamento cancelado ou inválido.", tipo: "warn" });
+      return;
+    }
+    refrescarAposPagamentoDemo();
+    state.boletoModalAgendamentoId = null;
+    el.modalBoleto.close();
+    ui.toast({ titulo: "Boleto simulado", msg: "Marcado como Pago (demo).", tipo: "ok" });
+  });
+
+  el.formEditarAgendamento.addEventListener("submit", aplicarEdicaoAgendamento);
+  el.btnEditAgFechar.addEventListener("click", () => fecharModalEditar());
+  el.btnEditAgCancelar.addEventListener("click", () => fecharModalEditar());
 }
 
 function inicializarEstadoClienteInputs() {
@@ -800,15 +1363,14 @@ function boot() {
   }
 
   el.clienteData.min = obterHojeYmd();
-  el.adminData.value = obterHojeYmd();
+  el.editAgData.min = obterHojeYmd();
 
-  // Restaurar abas
   setClienteTab(localStorage.getItem("navalha_ui_clienteTab") || "Agendar");
-  setAdminTab(localStorage.getItem("navalha_ui_adminTab") || "Dashboard");
+  setBarbeiroTab(localStorage.getItem("navalha_ui_barberTab") || "Semana");
 
   inicializarEstadoClienteInputs();
   renderViews();
+  bootNavegacaoConcluido = true;
 }
 
 boot();
-

@@ -97,6 +97,16 @@ export const storage = {
           senha: "1234",
           nivelAcesso: "Cliente",
           criadoEmIso: new Date().toISOString(),
+        },
+        {
+          id: "usr_barbeiro",
+          nome: "Rafa (Barbeiro)",
+          email: "barbeiro@navalha.com",
+          whatsapp: "11988887777",
+          senha: "1234",
+          nivelAcesso: "Barbeiro",
+          barbeiroId: "barb_1",
+          criadoEmIso: new Date().toISOString(),
         }
       );
       this.salvarUsuarios(usuarios);
@@ -117,6 +127,15 @@ export const storage = {
         whatsapp: "11999999999",
         senha: "1234",
         nivelAcesso: "Cliente",
+      });
+      garantirUsuario({
+        id: "usr_barbeiro",
+        nome: "Rafa (Barbeiro)",
+        email: "barbeiro@navalha.com",
+        whatsapp: "11988887777",
+        senha: "1234",
+        nivelAcesso: "Barbeiro",
+        barbeiroId: "barb_1",
       });
       this.salvarUsuarios(usuarios);
     }

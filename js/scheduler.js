@@ -3,8 +3,10 @@ const intervaloLimpezaMinutos = 10;
 export const scheduler = {
   intervaloLimpezaMinutos,
   horarioAbertura: { h: 9, m: 0 },
-  horarioFechamento: { h: 19, m: 0 },
+  /** Seg–sex, último início respeitando duração + limpeza (especificação: até 18h). */
+  horarioFechamento: { h: 18, m: 0 },
   passoSlotsMinutos: 10,
+  antecedenciaAgendamentoMinutos: 60,
 
   criarDataLocalPorDiaHora(dataYmd, horaHm) {
     const [y, mo, d] = dataYmd.split("-").map((x) => Number(x));
@@ -99,6 +101,19 @@ export const scheduler = {
   normalizarMetodoPagamento(metodo) {
     if (metodo === "CartaoCredito" || metodo === "CartaoDebito") return "Cartao";
     return metodo;
+  },
+
+  /** Domingo=0 … Sábado=6 — agenda apenas em dias úteis (seg–sex). */
+  ehDiaUtil(dataYmd) {
+    const [y, mo, d] = dataYmd.split("-").map((x) => Number(x));
+    const dt = new Date(y, mo - 1, d, 12, 0, 0, 0);
+    const dow = dt.getDay();
+    return dow >= 1 && dow <= 5;
+  },
+
+  antecedenciaRespeitada({ inicio, agora = new Date(), minutos = this.antecedenciaAgendamentoMinutos }) {
+    const diffMin = (inicio.getTime() - agora.getTime()) / 60_000;
+    return diffMin >= minutos;
   },
 
   formatarMoedaBR(centavos) {
