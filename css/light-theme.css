@@ -1,0 +1,205 @@
+/* ========== TEMA CLARO ========== */
+body.light-theme {
+  background: #f5f5f5;
+}
+
+body.light-theme .card-dark {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+}
+
+body.light-theme .card-dark h1,
+body.light-theme .card-dark p,
+body.light-theme .card-dark i {
+  color: #333333;
+}
+
+body.light-theme .card-dark p {
+  color: #666666;
+}
+
+body.light-theme .navbar-custom {
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+body.light-theme .navbar-custom i,
+body.light-theme .navbar-custom h1,
+body.light-theme .navbar-custom span {
+  color: #333333;
+}
+
+body.light-theme .card {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+}
+
+body.light-theme .card-header {
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+body.light-theme .card-header h5,
+body.light-theme .card-header i {
+  color: #333333;
+}
+
+body.light-theme .form-control,
+body.light-theme .form-select {
+  background: #ffffff !important;
+  border: 1px solid #ced4da !important;
+  color: #333333 !important;
+}
+
+body.light-theme .form-control::placeholder,
+body.light-theme .form-select::placeholder {
+  color: #6c757d !important;
+}
+
+body.light-theme .form-control:focus,
+body.light-theme .form-select:focus {
+  border-color: #80bdff !important;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+
+body.light-theme .form-label {
+  color: #495057 !important;
+}
+
+body.light-theme .input-group-text {
+  background: #e9ecef;
+  border: 1px solid #ced4da;
+  color: #495057;
+}
+
+body.light-theme .btn-dark-custom {
+  background: #212529;
+  border: none;
+  color: #ffffff;
+}
+
+body.light-theme .btn-dark-custom:hover {
+  background: #424649;
+  color: #ffffff;
+}
+
+body.light-theme .calendar-day {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  color: #333333;
+}
+
+body.light-theme .calendar-day:hover:not(.disabled) {
+  background: #e9ecef;
+}
+
+body.light-theme .calendar-day.today {
+  border: 2px solid #007bff;
+  font-weight: bold;
+}
+
+body.light-theme .calendar-day.selected {
+  background: #007bff;
+  border-color: #007bff;
+  color: #ffffff;
+}
+
+body.light-theme .calendar-weekdays div {
+  color: #6c757d;
+}
+
+body.light-theme .service-item {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+}
+
+body.light-theme .service-item span {
+  color: #333333;
+}
+
+body.light-theme .table-custom thead th {
+  background: #f8f9fa;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+}
+
+body.light-theme .table-custom tbody td {
+  border-bottom: 1px solid #dee2e6;
+  color: #212529;
+}
+
+body.light-theme .btn-cancel {
+  color: #dc3545;
+}
+
+body.light-theme .toast-custom {
+  background: #ffffff;
+  border-left: 4px solid #6c757d;
+  color: #333333;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+body.light-theme .alert-custom {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  color: #495057;
+}
+
+body.light-theme hr {
+  border-color: #dee2e6;
+}
+
+body.light-theme .badge {
+  background: #e9ecef;
+  color: #495057;
+}
+
+body.light-theme .modal-content.bg-dark {
+  background: #ffffff !important;
+  border: 1px solid #dee2e6;
+}
+
+body.light-theme .modal-header.border-secondary {
+  border-bottom: 1px solid #dee2e6 !important;
+}
+
+body.light-theme .modal-footer.border-secondary {
+  border-top: 1px solid #dee2e6 !important;
+}
+
+body.light-theme .modal-title.text-white,
+body.light-theme .modal-body.text-white {
+  color: #333333 !important;
+}
+
+body.light-theme .modal-content .form-label.text-white {
+  color: #495057 !important;
+}
+
+body.light-theme .btn-close-white {
+  filter: invert(1);
+}
+
+body.light-theme #auth-screen {
+  background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+}
+
+/* ========== CORREÇÃO DO BOTÃO TOGGLE PASSWORD NO TEMA CLARO ========== */
+body.light-theme .toggle-password {
+  background: #e9ecef !important;
+  border-color: #ced4da !important;
+  color: #495057 !important;
+}
+
+body.light-theme .toggle-password:hover {
+  background: #dee2e6 !important;
+  color: #212529 !important;
+}
+
+body.light-theme .toggle-password i {
+  color: #495057 !important;
+}
+
+body.light-theme .toggle-password:hover i {
+  color: #212529 !important;
+}

@@ -15,6 +15,7 @@ import {
 } from './modules/appointments.js';
 import { precosConfig, temposConfig, setPrecosConfig, setTemposConfig } from './modules/config.js';
 import { isFeriadoNacional } from './modules/feriados.js';
+import { initThemeToggle, refreshLogos } from './modules/theme.js';  // <-- ADICIONAR ESTA LINHA
 
 // ========== ESTADO ==========
 let currentUser = null;
@@ -41,6 +42,8 @@ async function init() {
   setupPasswordToggles();
   checkSavedSession();
   setupAuthTabs();
+  
+  initThemeToggle();  // <-- ADICIONAR ESTA LINHA
 }
 
 async function loadPainelCliente() {
@@ -112,6 +115,8 @@ async function loadPainelCliente() {
       btn.classList.add('btn-sm');
     });
   }, 100);
+
+  refreshLogos();  // <-- ADICIONAR ESTA LINHA
 }
 
 // Adicione estas funções no app.js
@@ -161,41 +166,41 @@ function renderClientesList() {
 
 function excluirClientePorId(id) {
   console.log('Excluindo cliente ID:', id);
-  
+
   let users = Storage.getUsers();
   const cliente = users.find(u => u.id === id);
-  
+
   if (!cliente) {
     showToast('Cliente não encontrado', 'error');
     return;
   }
-  
+
   console.log('Cliente encontrado:', cliente);
-  
+
   // Remover todos os agendamentos do cliente
   const novosAppointments = appointments.filter(a => a.cliente !== cliente.nome);
   appointments.length = 0;
   appointments.push(...novosAppointments);
   saveAppointments();
-  
+
   // Remover cancelamentos relacionados
   const novosCancellations = cancellations.filter(c => c.cliente !== cliente.nome);
   cancellations.length = 0;
   cancellations.push(...novosCancellations);
   saveCancellations();
-  
+
   // Remover o usuário
   const novosUsers = users.filter(u => u.id !== id);
   Storage.setUsers(novosUsers);
-  
+
   showToast(`Cliente "${cliente.nome}" excluído com sucesso!`, 'success');
-  
+
   // Recarregar listas
   renderClientesList();
   renderTodosAgendamentos();
   renderConcluidos();
   renderHistoricoCancelamentos();
-  
+
   // Se o cliente excluído era o usuário atual, fazer logout
   if (currentUser && currentUser.id === id) {
     setTimeout(() => {
@@ -216,28 +221,28 @@ function excluirMinhaConta() {
     `Tem certeza que deseja excluir sua conta "${currentUser.nome}"? Esta ação irá remover todos os seus agendamentos e não poderá ser desfeita.`,
     () => {
       console.log('Excluindo conta do cliente:', currentUser);
-      
+
       // Remover todos os agendamentos do cliente
       const novosAppointments = appointments.filter(a => a.cliente !== currentUser.nome);
       appointments.length = 0;
       appointments.push(...novosAppointments);
       saveAppointments();
-      
+
       // Remover cancelamentos relacionados
       const novosCancellations = cancellations.filter(c => c.cliente !== currentUser.nome);
       cancellations.length = 0;
       cancellations.push(...novosCancellations);
       saveCancellations();
-      
+
       // Remover o usuário
       let users = Storage.getUsers();
       const novosUsers = users.filter(u => u.id !== currentUser.id);
       Storage.setUsers(novosUsers);
-      
+
       // Fazer logout
       Storage.clearCurrentUser();
       showToast('Sua conta foi excluída com sucesso!', 'success');
-      
+
       // Recarregar para tela de login
       setTimeout(() => location.reload(), 1500);
     }
@@ -246,10 +251,10 @@ function excluirMinhaConta() {
 
 async function loadPainelBarbeiro() {
   console.log('Carregando painel barbeiro...');
-  
+
   const barbeiroContainer = document.getElementById('painel-barbeiro-container');
   const clienteContainer = document.getElementById('painel-cliente-container');
-  
+
   if (clienteContainer) {
     clienteContainer.innerHTML = '';
     clienteContainer.classList.add('hidden');
@@ -258,7 +263,7 @@ async function loadPainelBarbeiro() {
     barbeiroContainer.innerHTML = '';
     barbeiroContainer.classList.remove('hidden');
   }
-  
+
   // Criar estrutura de grid do barbeiro
   barbeiroContainer.innerHTML = `
     <div class="row g-4">
@@ -266,17 +271,17 @@ async function loadPainelBarbeiro() {
       <div class="col-12 col-lg-7" id="barbeiro-agendamentos"></div>
     </div>
   `;
-  
+
   // Carregar componentes da coluna esquerda
   const configContainer = document.getElementById('barbeiro-configuracoes');
   configContainer.innerHTML = `
     <div id="barbeiro-config-servicos"></div>
     <div id="barbeiro-config-percentuais" class="mt-3"></div>
   `;
-  
+
   await loadComponent('components/barbeiro/config-servicos.html', 'barbeiro-config-servicos');
   await loadComponent('components/barbeiro/config-percentuais.html', 'barbeiro-config-percentuais');
-  
+
   // Carregar componentes da coluna direita
   const agendamentosContainer = document.getElementById('barbeiro-agendamentos');
   agendamentosContainer.innerHTML = `
@@ -285,12 +290,12 @@ async function loadPainelBarbeiro() {
     <div id="barbeiro-historico-cancelamentos" class="mt-3"></div>
     <div id="barbeiro-clientes" class="mt-3"></div>
   `;
-  
+
   await loadComponent('components/barbeiro/todos-agendamentos.html', 'barbeiro-todos-agendamentos');
   await loadComponent('components/barbeiro/historico-concluidos.html', 'barbeiro-historico-concluidos');
   await loadComponent('components/barbeiro/historico-cancelamentos.html', 'barbeiro-historico-cancelamentos');
   await loadComponent('components/barbeiro/clientes.html', 'barbeiro-clientes');
-  
+
   // Recachear elementos após carregar
   cacheDOM();
   bindEvents();
@@ -303,6 +308,8 @@ async function loadPainelBarbeiro() {
 
   // Após carregar os componentes, chamar:
   setupPasswordToggles();
+
+  refreshLogos();  // <-- ADICIONAR ESTA LINHA
 }
 
 function cacheDOM() {
@@ -598,6 +605,8 @@ async function showApp() {
   } else {
     await loadPainelCliente();
   }
+  
+  refreshLogos();  // <-- ADICIONAR ESTA LINHA
 }
 
 function updateServiceSelect() {
@@ -633,37 +642,37 @@ function renderServicesList() {
   window.openEditServiceModal = (id) => {
     const service = services.find(s => s.id === id);
     if (!service) return;
-    
+
     const modalElement = document.getElementById('editServiceModal');
     const nomeInput = document.getElementById('edit-service-nome');
     const precoInput = document.getElementById('edit-service-preco');
     const tempoInput = document.getElementById('edit-service-tempo');
     const confirmBtn = document.getElementById('editServiceConfirmBtn');
-    
+
     nomeInput.value = service.name;
     precoInput.value = service.preco;
     tempoInput.value = service.tempo || 30;
-    
+
     const modal = new bootstrap.Modal(modalElement);
-    
+
     // Remove eventos anteriores
     const newConfirmBtn = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-    
+
     newConfirmBtn.addEventListener('click', () => {
       const novoPreco = parseFloat(precoInput.value);
       const novoTempo = parseInt(tempoInput.value);
-      
+
       if (isNaN(novoPreco) || novoPreco <= 0) {
         showToast('Digite um preço válido', 'error');
         return;
       }
-      
+
       if (isNaN(novoTempo) || novoTempo < 5) {
         showToast('Digite um tempo válido (mínimo 5 minutos)', 'error');
         return;
       }
-      
+
       service.preco = novoPreco;
       service.tempo = novoTempo;
       saveServices();
@@ -672,10 +681,10 @@ function renderServicesList() {
       modal.hide();
       showToast(`Serviço "${service.name}" atualizado!`, 'success');
     });
-    
+
     modal.show();
   };
-  
+
   window.confirmDeleteService = (id, name) => {
     showConfirmModal('Remover serviço', `Tem certeza que deseja remover o serviço "${name}"?`, () => {
       deleteService(id);
@@ -688,14 +697,14 @@ function renderServicesList() {
 
 function setupPasswordToggles() {
   // Usar event delegation para capturar cliques em botões que podem ser adicionados dinamicamente
-  document.body.addEventListener('click', function(e) {
+  document.body.addEventListener('click', function (e) {
     const button = e.target.closest('.toggle-password');
     if (!button) return;
-    
+
     const targetId = button.getAttribute('data-target');
     const input = document.getElementById(targetId);
     const icon = button.querySelector('i');
-    
+
     if (input && icon) {
       if (input.type === 'password') {
         input.type = 'text';
