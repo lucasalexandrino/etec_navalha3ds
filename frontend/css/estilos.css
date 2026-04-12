@@ -56,7 +56,7 @@ body {
   margin: 0;
   background: none;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 12px;
   line-height: 0;
   font: inherit;
 }
@@ -67,14 +67,13 @@ body {
 }
 
 .logo {
-  height: 3.75rem;
+  height: 6rem;
   width: auto;
-  max-width: min(260px, 58vw);
+  max-width: min(340px, 58vw);
   object-fit: contain;
   flex-shrink: 0;
   border-radius: 8px;
-  /* Sombra discreta: separa a marca do fundo sem “caixa” pesada */
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45))
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45))
     drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
 }
 
@@ -202,6 +201,96 @@ a.topo-servico-pill:focus-visible {
   font-size: 1rem;
   max-width: 52rem;
   color: var(--text);
+}
+
+.home-welcome {
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
+  max-width: 52rem;
+  color: var(--text);
+}
+
+.hero-details {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.feature-card {
+  background: rgba(255, 123, 0, 0.08);
+  border: 1px solid rgba(255, 123, 0, 0.18);
+  border-radius: 18px;
+  padding: 1rem;
+}
+
+.feature-card strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--accent);
+}
+
+.feature-card p {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.75;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.78);
+  z-index: 999;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: min(85vh, 700px);
+  overflow: auto;
+  background: rgba(20, 20, 20, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 1.75rem;
+  box-shadow: 0 18px 80px rgba(0, 0, 0, 0.42);
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  color: var(--text);
+}
+
+.modal-content p {
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.25rem 0.5rem;
+  color: var(--muted);
+}
+
+.modal-close:hover {
+  color: var(--accent);
+}
+
+.rodape-texto button.btn-link {
+  padding: 0;
+  margin: 0;
+}
+
+.rodape-texto button.btn-link:hover {
+  text-decoration: underline;
 }
 
 .rodape {
@@ -571,6 +660,32 @@ main {
 
 .btn-icone:hover {
   background: rgba(224, 49, 49, 0.15);
+}
+
+.panel-toolbar {
+  margin: 1rem 0 0.75rem 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.barber-card {
+  margin-bottom: 1rem;
+}
+
+.linha-passado {
+  opacity: 0.65;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tag-passado {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(197, 160, 89, 0.14);
+  color: var(--accent);
+  font-size: 0.8rem;
 }
 
 .tabela-wrap {

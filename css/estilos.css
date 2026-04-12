@@ -67,14 +67,13 @@ body {
 }
 
 .logo {
-  height: 3.75rem;
+  height: 4.5rem;
   width: auto;
-  max-width: min(260px, 58vw);
+  max-width: min(300px, 58vw);
   object-fit: contain;
   flex-shrink: 0;
   border-radius: 8px;
-  /* Sombra discreta: separa a marca do fundo sem “caixa” pesada */
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45))
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45))
     drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
 }
 
@@ -199,9 +198,99 @@ a.topo-servico-pill:focus-visible {
 
 .entrada-lead {
   margin: 0 0 1.25rem;
-  font-size: 1rem;
+  font-size: 1.05rem;
   max-width: 52rem;
   color: var(--text);
+}
+
+.home-benefits {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.home-benefits .benefit-card {
+  background: rgba(255, 123, 0, 0.08);
+  border: 1px solid rgba(255, 123, 0, 0.18);
+  border-radius: 18px;
+  padding: 1rem;
+}
+
+.home-benefits .benefit-card strong {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-size: 1rem;
+  color: var(--accent);
+}
+
+.home-benefits .benefit-card p {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+@media (min-width: 720px) {
+  .home-benefits {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.78);
+  z-index: 999;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: min(85vh, 700px);
+  overflow: auto;
+  background: rgba(20, 20, 20, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 1.75rem;
+  box-shadow: 0 18px 80px rgba(0, 0, 0, 0.42);
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  color: var(--text);
+}
+
+.modal-content p {
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.25rem 0.5rem;
+  color: var(--muted);
+}
+
+.modal-close:hover {
+  color: var(--accent);
+}
+
+.rodape-texto button.btn-link {
+  padding: 0;
+  margin: 0;
+}
+
+.rodape-texto button.btn-link:hover {
+  text-decoration: underline;
 }
 
 .rodape {

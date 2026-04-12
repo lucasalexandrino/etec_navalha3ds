@@ -42,6 +42,10 @@ function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
 }
 
+function getActiveBarbers(data) {
+  return (data.barbers || []).filter((barber) => normalizeEmail(barber.email) !== normalizeEmail(ADMIN_EMAIL));
+}
+
 function createId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -78,6 +82,10 @@ function isWithinBusinessHours(dt) {
     return minutes <= 13 * 60;
   }
   return minutes <= 18 * 60;
+}
+
+function isValidTimeSlot(time) {
+  return typeof time === "string" && /^([01]\d|2[0-3]):(00|30)$/.test(time);
 }
 
 function isBookingConflict(bookings, barberId, date, time) {
@@ -121,12 +129,17 @@ function nextDates(days = 14) {
 function buildAvailability(date, barberId) {
   const data = loadData();
   if (date) {
-    const slots = getValidSlotsForDate(date).map((slot) => ({
-      ...slot,
-      occupied: barberId
-        ? isBookingConflict(data.bookings, barberId, slot.date, slot.time)
-        : data.barbers.every((barber) => isBookingConflict(data.bookings, barber.id, slot.date, slot.time))
-    }));
+    const slots = getValidSlotsForDate(date)
+      .filter((slot) => {
+        const slotDateTime = new Date(`${slot.date}T${slot.time}:00`);
+        return slotDateTime.getTime() > Date.now();
+      })
+      .map((slot) => ({
+        ...slot,
+        occupied: barberId
+          ? isBookingConflict(data.bookings, barberId, slot.date, slot.time)
+          : getActiveBarbers(data).every((barber) => isBookingConflict(data.bookings, barber.id, slot.date, slot.time))
+      }));
     return { date, slots };
   }
   const dates = nextDates(14);
@@ -135,7 +148,7 @@ function buildAvailability(date, barberId) {
     getValidSlotsForDate(day).forEach((slot) => {
       const free = barberId
         ? !isBookingConflict(data.bookings, barberId, slot.date, slot.time)
-        : data.barbers.some((barber) => !isBookingConflict(data.bookings, barber.id, slot.date, slot.time));
+        : getActiveBarbers(data).some((barber) => !isBookingConflict(data.bookings, barber.id, slot.date, slot.time));
       if (!free) return;
       const dateObj = new Date(`${slot.date}T${slot.time}:00`);
       if (dateObj.getTime() <= Date.now()) return;
@@ -191,7 +204,7 @@ app.get("/api/services", (req, res) => {
 
 app.get("/api/barbers", (req, res) => {
   const data = loadData();
-  return res.json(data.barbers.map((barber) => ({ id: barber.id, name: barber.name, email: barber.email })));
+  return res.json(getActiveBarbers(data).map((barber) => ({ id: barber.id, name: barber.name, email: barber.email })));
 });
 
 app.get("/api/availability", (req, res) => {
@@ -266,6 +279,17 @@ app.post("/api/admin/services", authMiddleware, adminMiddleware, (req, res) => {
   return res.json(service);
 });
 
+app.delete("/api/admin/services/:id", authMiddleware, adminMiddleware, (req, res) => {
+  const serviceId = req.params.id;
+  const data = loadData();
+  if (!data.services.some((service) => service.id === serviceId)) {
+    return res.status(404).json({ error: "Serviço não encontrado." });
+  }
+  data.services = data.services.filter((service) => service.id !== serviceId);
+  saveData(data);
+  return res.json({ success: true });
+});
+
 app.post("/api/admin/barbers", authMiddleware, adminMiddleware, (req, res) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
@@ -273,6 +297,9 @@ app.post("/api/admin/barbers", authMiddleware, adminMiddleware, (req, res) => {
   }
   const data = loadData();
   const normalizedEmail = normalizeEmail(email);
+  if (normalizedEmail === normalizeEmail(ADMIN_EMAIL)) {
+    return res.status(400).json({ error: "Este e-mail pertence ao administrador e não pode ser cadastrado como barbeiro." });
+  }
   if (data.barbers.some((item) => normalizeEmail(item.email) === normalizedEmail)) {
     return res.status(409).json({ error: "E-mail do barbeiro já cadastrado." });
   }
@@ -329,6 +356,9 @@ app.post("/api/bookings", authMiddleware, clientMiddleware, (req, res) => {
   const client = data.clients.find((item) => item.id === req.auth.user.id);
   if (!barber || !service || !client) {
     return res.status(400).json({ error: "Barbeiro, serviço ou cliente inválido." });
+  }
+  if (!isValidTimeSlot(time)) {
+    return res.status(400).json({ error: "Horário deve ser um slot de 30 minutos, como 09:00 ou 09:30." });
   }
   const appointment = formatDateTime(date, time);
   if (!appointment || !isWithinBusinessHours(appointment)) {

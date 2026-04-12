@@ -9,10 +9,12 @@
 <body>
   <header class="topo">
     <div class="topo-marca">
-      <img class="logo" src="img/Logo.png" alt="Barbearia Navalha" decoding="async" />
+      <button type="button" class="topo-logo-btn" id="btn-logo-inicio" aria-label="Ir para a página inicial" title="Página inicial">
+        <img class="logo" src="img/Logo.png" alt="Barbearia Navalha" decoding="async" />
+      </button>
       <div class="marca-texto">
         <p class="marca-label">Barbearia Navalha</p>
-        <strong class="marca-slogan">Agendamento inteligente para cortes e barba</strong>
+        <strong class="marca-slogan">Corte e barba com agendamento rápido e cuidado</strong>
       </div>
     </div>
     <div class="topo-direita">
@@ -20,6 +22,7 @@
         <button type="button" class="btn-prim btn-compacto" id="btn-entrar">Entrar</button>
       </div>
       <div id="topo-acoes" class="topo-acoes hidden">
+        <button type="button" class="btn-prim btn-compacto hidden" id="btn-topo-principal">Agendar horário</button>
         <span id="topo-saudacao" class="topo-saudacao" aria-live="polite"></span>
         <button type="button" id="btn-logout" class="btn-sec btn-compacto">Sair</button>
       </div>
@@ -31,22 +34,27 @@
       <div class="hero">
         <div class="hero-copy">
           <span class="eyebrow">Barbearia Navalha</span>
-          <h1>O seu agendamento profissional em um único lugar</h1>
-          <p>Escolha barbeiro, serviço, data e horário com controle de agenda em tempo real. Ideal para clientes, barbeiros e administração.</p>
+          <h1>Corte, barba e atendimento com praticidade</h1>
+          <p id="home-welcome" class="home-welcome hidden"></p>
+          <p id="home-description">Marque seu horário com facilidade e aproveite um serviço de qualidade, sem espera e com conforto.</p>
           <button type="button" class="btn-prim hero-cta" id="btn-entrar-hero">Entrar</button>
         </div>
         <div class="hero-details">
           <div class="feature-card">
-            <strong>Atendimento planejado</strong>
-            <p>Horários bloqueados automaticamente quando ocupados para evitar conflitos.</p>
+            <strong>Corte e acabamento</strong>
+            <p>Serviços precisos para um visual moderno e elegante.</p>
           </div>
           <div class="feature-card">
-            <strong>Controle total</strong>
-            <p>Administração completa com cadastro de barbeiros, serviços e visualização de todos os agendamentos.</p>
+            <strong>Barba e design</strong>
+            <p>Desenho caprichado e acabamento perfeito para sua barba.</p>
           </div>
           <div class="feature-card">
-            <strong>Agenda pessoal</strong>
-            <p>Barbeiros visualizam apenas sua agenda e gerenciam cancelamentos de forma segura.</p>
+            <strong>Combos e tratamentos</strong>
+            <p>Pacotes com corte, hidratação e limpeza para cuidar do visual completo.</p>
+          </div>
+          <div class="feature-card">
+            <strong>Agendamento prático</strong>
+            <p>Rápido, organizado e pensado para quem quer economizar tempo.</p>
           </div>
         </div>
       </div>
@@ -156,10 +164,6 @@
             <span>Sáb</span>
           </div>
           <div id="cal-grade" class="cal-grade"></div>
-          <h3 class="subtitulo">Próximos horários livres</h3>
-          <p class="muted-small">Mostramos os horários abertos nos próximos dias para facilitar sua escolha.</p>
-          <ul id="lista-horarios-livres" class="lista-horarios-livres"></ul>
-          <p id="lista-horarios-vazio" class="muted-small hidden">Nenhum horário livre encontrado.</p>
         </div>
       </div>
       <div class="card">
@@ -187,8 +191,11 @@
           <h2>Agenda pessoal do barbeiro</h2>
         </div>
       </div>
-      <div class="card card-largo">
-        <h3>Seus agendamentos</h3>
+      <div class="panel-toolbar">
+        <button type="button" id="btn-barbeiro-historico" class="btn-sec">Ver atendimentos realizados</button>
+      </div>
+      <div class="card card-largo barber-card">
+        <h3>Hoje</h3>
         <div class="tabela-wrap">
           <table class="tabela-ag">
             <thead>
@@ -200,8 +207,44 @@
                 <th></th>
               </tr>
             </thead>
-            <tbody id="tbody-agendamentos"></tbody>
+            <tbody id="tbody-agendamentos-hoje"></tbody>
           </table>
+        </div>
+      </div>
+      <div class="card card-largo barber-card">
+        <h3>Próximos dias</h3>
+        <div class="tabela-wrap">
+          <table class="tabela-ag">
+            <thead>
+              <tr>
+                <th>Data / hora</th>
+                <th>Cliente</th>
+                <th>WhatsApp</th>
+                <th>Serviço</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tbody-agendamentos-futuros"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal hidden" id="modal-historico" role="dialog" aria-modal="true" aria-labelledby="historico-title">
+        <div class="modal-content">
+          <button type="button" class="modal-close" id="btn-fechar-historico" aria-label="Fechar histórico">×</button>
+          <h2 id="historico-title">Atendimentos realizados</h2>
+          <div class="tabela-wrap">
+            <table class="tabela-ag">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Barbeiro</th>
+                  <th>Serviço</th>
+                  <th>Data / hora</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-historico"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>
@@ -268,19 +311,39 @@
         </div>
 
         <div class="card card-largo admin-block">
-          <h3>Todos os agendamentos</h3>
+          <div class="panel-toolbar">
+            <button type="button" id="btn-admin-historico" class="btn-sec">Ver atendimentos realizados</button>
+          </div>
+          <h3>Agendamentos de hoje</h3>
           <div class="tabela-wrap">
             <table class="tabela-ag">
               <thead>
                 <tr>
                   <th>Data / hora</th>
-                  <th>Cliente</th>
                   <th>Barbeiro</th>
                   <th>Serviço</th>
+                  <th>Cliente</th>
                   <th></th>
                 </tr>
               </thead>
-              <tbody id="tbody-todos-agendamentos"></tbody>
+              <tbody id="tbody-admin-hoje"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card card-largo admin-block">
+          <h3>Próximos dias</h3>
+          <div class="tabela-wrap">
+            <table class="tabela-ag">
+              <thead>
+                <tr>
+                  <th>Data / hora</th>
+                  <th>Barbeiro</th>
+                  <th>Serviço</th>
+                  <th>Cliente</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="tbody-admin-futuros"></tbody>
             </table>
           </div>
         </div>
@@ -312,9 +375,22 @@
           Sábado: 9h às 13h<br />
           Domingo: fechado
         </p>
+        <p class="rodape-texto">
+          <button type="button" class="btn-link" id="btn-politica-privacidade">Política de Privacidade</button>
+        </p>
       </div>
     </div>
   </footer>
+
+  <div id="modal-privacidade" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-privacidade-titulo">
+    <div class="modal-content">
+      <button type="button" class="btn-link modal-close" id="btn-fechar-privacidade">Fechar</button>
+      <h2 id="modal-privacidade-titulo">Política de Privacidade</h2>
+      <p>Na Barbearia Navalha, respeitamos sua privacidade. Utilizamos apenas os dados necessários para confirmar agendamentos e melhorar sua experiência.</p>
+      <p>Seu e-mail e WhatsApp são usados para avisar sobre horários e atender suas solicitações. As informações não são compartilhadas com terceiros.</p>
+      <p>Você pode pedir para corrigir ou remover seus dados a qualquer momento.</p>
+    </div>
+  </div>
 
   <script src="js/app.js"></script>
 </body>

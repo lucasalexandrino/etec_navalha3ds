@@ -205,8 +205,36 @@
     var session = getSession();
     var visitor = document.getElementById("topo-visitante");
     var actions = document.getElementById("topo-acoes");
+    var mainAction = document.getElementById("btn-topo-principal");
     if (visitor) visitor.classList.toggle("hidden", !!session);
     if (actions) actions.classList.toggle("hidden", !session);
+    if (mainAction) {
+      if (!session) {
+        mainAction.classList.add("hidden");
+        mainAction.onclick = null;
+      } else {
+        mainAction.classList.remove("hidden");
+        if (session.role === "client") {
+          mainAction.textContent = "Agendar horário";
+          mainAction.onclick = function () {
+            showScreen("painel-cliente");
+          };
+        } else if (session.role === "barber") {
+          mainAction.textContent = "Minha agenda";
+          mainAction.onclick = function () {
+            showScreen("painel-barbeiro");
+          };
+        } else if (session.role === "admin") {
+          mainAction.textContent = "Área administrativa";
+          mainAction.onclick = function () {
+            showScreen("painel-admin");
+          };
+        } else {
+          mainAction.classList.add("hidden");
+          mainAction.onclick = null;
+        }
+      }
+    }
     var greeting = document.getElementById("topo-saudacao");
     if (!greeting) return;
     if (!session) {
@@ -220,6 +248,16 @@
     } else if (session.role === "admin") {
       greeting.textContent = "Olá, administrador";
     }
+  }
+
+  function openPrivacyModal() {
+    var modal = document.getElementById("modal-privacidade");
+    if (modal) modal.classList.remove("hidden");
+  }
+
+  function closePrivacyModal() {
+    var modal = document.getElementById("modal-privacidade");
+    if (modal) modal.classList.add("hidden");
   }
 
   async function apiGetServices() {
@@ -617,6 +655,10 @@
     return values;
   }
 
+  function isValidTimeSlot(time) {
+    return typeof time === "string" && /^([01]\d|2[0-3]):(00|30)$/.test(time);
+  }
+
   document.getElementById("btn-logo-inicio")?.addEventListener("click", function () {
     showScreen("tela-entrada");
   });
@@ -648,6 +690,13 @@
     clearSession();
     updateHeader();
     showScreen("tela-entrada");
+  });
+
+  document.getElementById("btn-politica-privacidade")?.addEventListener("click", function () {
+    openPrivacyModal();
+  });
+  document.getElementById("btn-fechar-privacidade")?.addEventListener("click", function () {
+    closePrivacyModal();
   });
 
   document.getElementById("form-cadastro")?.addEventListener("submit", async function (event) {
@@ -775,6 +824,10 @@
     }
     if (!values["ag-data"] || !values["ag-hora"]) {
       showError("agendamento-erro", "Preencha data e horário.");
+      return;
+    }
+    if (!isValidTimeSlot(values["ag-hora"])) {
+      showError("agendamento-erro", "O horário precisa ser em intervalos de 30 minutos, como 09:00 ou 09:30.");
       return;
     }
     try {

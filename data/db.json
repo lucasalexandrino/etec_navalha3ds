@@ -8,10 +8,10 @@
       "senha": "12345678"
     },
     {
-      "id": "cliente-1775946337059-5m1dqf",
+      "id": "cliente-1776025418701-g0m6hv",
       "nome": "Daniela Conduta",
       "email": "daniela@gmail.com",
-      "whatsapp": "149968579899",
+      "whatsapp": "14996857895",
       "senha": "12345678"
     }
   ],
@@ -23,9 +23,9 @@
       "password": "navalha"
     },
     {
-      "id": "barbeiro-1775946380792-d3re9k",
-      "name": "Lucas Alexandrino",
-      "email": "admlucas@gmail.com",
+      "id": "barbeiro-1776025980701-eovmtf",
+      "name": "Clovis",
+      "email": "clovis@gmail.com",
       "password": "12345678"
     }
   ],
@@ -73,16 +73,40 @@
       "time": "15:00"
     },
     {
-      "id": "agendamento-1775946435543-ef0ohi",
-      "clientId": "cliente-1775946337059-5m1dqf",
+      "id": "agendamento-1776025429620-ofz5nn",
+      "clientId": "cliente-1776025418701-g0m6hv",
       "clientName": "Daniela Conduta",
-      "whatsapp": "149968579899",
+      "whatsapp": "14996857895",
       "barberId": "barbeiro-1",
       "barberName": "Barbeiro Demo",
       "serviceId": "servico-1",
       "serviceName": "Corte de cabelo",
-      "date": "2026-04-17",
-      "time": "15:30"
+      "date": "2026-04-13",
+      "time": "18:00"
+    },
+    {
+      "id": "agendamento-1776027697300-9iq1ld",
+      "clientId": "cliente-1775944699991-76towv",
+      "clientName": "Aurélio Viana",
+      "whatsapp": "14991584796",
+      "barberId": "barbeiro-1",
+      "barberName": "Barbeiro Demo",
+      "serviceId": "servico-2",
+      "serviceName": "Barba",
+      "date": "2026-04-13",
+      "time": "09:00"
+    },
+    {
+      "id": "agendamento-1776027711507-8wxxuu",
+      "clientId": "cliente-1775944699991-76towv",
+      "clientName": "Aurélio Viana",
+      "whatsapp": "14991584796",
+      "barberId": "barbeiro-1",
+      "barberName": "Barbeiro Demo",
+      "serviceId": "servico-1",
+      "serviceName": "Corte de cabelo",
+      "date": "2026-04-13",
+      "time": "09:30"
     }
   ]
 }
