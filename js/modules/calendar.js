@@ -1,101 +1,66 @@
-// Módulo do calendário
-export const Calendar = {
-  currentDate: new Date(),
-  selectedDate: null,
-  selectedMonth: null,
-  selectedYear: null,
-  onDateSelected: null,
+// ========== CALENDÁRIO ==========
+import { isFeriadoNacional } from './feriados.js';
 
-  init(onDateSelectedCallback) {
-    this.onDateSelected = onDateSelectedCallback;
-  },
+let currentDate = new Date();
+let selectedDate = null;
+let onDateSelectCallback = null;
 
-  getMonthYear(date) {
-    return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-  },
+export function initCalendar(onDateSelect) {
+  onDateSelectCallback = onDateSelect;
+}
 
-  getDaysInMonth(year, month) {
-    return new Date(year, month + 1, 0).getDate();
-  },
-
-  getFirstDayOfMonth(year, month) {
-    return new Date(year, month, 1).getDay();
-  },
-
-  isPastDate(year, month, day) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const compareDate = new Date(year, month, day);
-    return compareDate < today;
-  },
-
-  render(containerElement, monthElement) {
-    const date = this.currentDate;
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    
-    monthElement.textContent = this.getMonthYear(date);
-    
-    const firstDay = this.getFirstDayOfMonth(year, month);
-    const lastDay = this.getDaysInMonth(year, month);
-    const today = new Date();
-    
-    containerElement.innerHTML = '';
-    
-    // Dias vazios
-    for (let i = 0; i < firstDay; i++) {
-      containerElement.innerHTML += `<div class="calendar-day empty"></div>`;
-    }
-    
-    // Dias do mês
-    for (let dia = 1; dia <= lastDay; dia++) {
-      const isPast = this.isPastDate(year, month, dia);
-      const isToday = dia === today.getDate() && 
-                      month === today.getMonth() && 
-                      year === today.getFullYear();
-      const isSelected = this.selectedDate === dia && 
-                         this.selectedMonth === month && 
-                         this.selectedYear === year;
-      
-      let classes = 'calendar-day';
-      if (isToday) classes += ' today';
-      if (isSelected) classes += ' selected';
-      if (isPast) classes += ' disabled';
-      
-      const dayDiv = document.createElement('div');
-      dayDiv.className = classes;
-      dayDiv.textContent = dia;
-      
-      if (!isPast) {
-        dayDiv.onclick = () => {
-          document.querySelectorAll('.calendar-day.selected').forEach(d => {
-            d.classList.remove('selected');
-          });
-          dayDiv.classList.add('selected');
-          
-          this.selectedDate = dia;
-          this.selectedMonth = month;
-          this.selectedYear = year;
-          
-          if (this.onDateSelected) {
-            const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
-            this.onDateSelected(formattedDate);
-          }
-        };
-      }
-      
-      containerElement.appendChild(dayDiv);
-    }
-  },
-
-  changeMonth(diff, containerElement, monthElement) {
-    this.currentDate.setMonth(this.currentDate.getMonth() + diff);
-    this.render(containerElement, monthElement);
-  },
-
-  resetSelection() {
-    this.selectedDate = null;
-    this.selectedMonth = null;
-    this.selectedYear = null;
+export function renderCalendar(containerElement, monthElement) {
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  
+  monthElement.textContent = currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  
+  const firstDay = new Date(year, month, 1).getDay();
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const today = new Date();
+  
+  containerElement.innerHTML = '';
+  
+  for (let i = 0; i < firstDay; i++) {
+    containerElement.innerHTML += `<div class="calendar-day empty"></div>`;
   }
-};
+  
+  for (let dia = 1; dia <= lastDay; dia++) {
+    const dataAtual = new Date(year, month, dia);
+    const isPast = dataAtual < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const isToday = dia === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+    const isSelected = selectedDate === dia;
+    const isFeriado = isFeriadoNacional(dataAtual);
+    
+    const dayDiv = document.createElement('div');
+    dayDiv.className = 'calendar-day';
+    if (isToday) dayDiv.classList.add('today');
+    if (isSelected) dayDiv.classList.add('selected');
+    if (isPast || isFeriado) dayDiv.classList.add('disabled');
+    if (isFeriado) dayDiv.title = "Feriado nacional - não disponível";
+    dayDiv.textContent = dia;
+    
+    if (!isPast && !isFeriado) {
+      dayDiv.onclick = () => {
+        document.querySelectorAll('.calendar-day.selected').forEach(d => d.classList.remove('selected'));
+        dayDiv.classList.add('selected');
+        selectedDate = dia;
+        if (onDateSelectCallback) {
+          const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+          onDateSelectCallback(formattedDate);
+        }
+      };
+    }
+    containerElement.appendChild(dayDiv);
+  }
+}
+
+export function changeMonth(diff, containerElement, monthElement) {
+  currentDate.setMonth(currentDate.getMonth() + diff);
+  selectedDate = null;
+  renderCalendar(containerElement, monthElement);
+}
+
+export function resetSelection() {
+  selectedDate = null;
+}

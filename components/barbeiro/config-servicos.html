@@ -1,0 +1,21 @@
+<div class="card">
+  <div class="card-header"><h5 class="mb-0"><i class="bi bi-gear me-2"></i>Configurações de Serviços</h5></div>
+  <div class="card-body">
+    <form id="form-servico">
+      <div class="mb-3">
+        <label class="form-label">Novo Serviço</label>
+        <div class="input-group">
+          <input type="text" id="sv-nome" class="form-control" placeholder="Ex: Corte Degradê">
+          <span class="input-group-text">R$</span>
+          <input type="number" id="sv-preco" class="form-control" placeholder="Preço" step="0.01" min="0">
+          <span class="input-group-text">min</span>
+          <input type="number" id="sv-tempo" class="form-control" placeholder="Tempo" step="5" min="5" value="30">
+          <button type="submit" class="btn btn-dark-custom">Adicionar</button>
+        </div>
+      </div>
+    </form>
+    <hr>
+    <label class="form-label">Serviços disponíveis</label>
+    <div id="lista-servicos"></div>
+  </div>
+</div>

@@ -1,45 +1,36 @@
-// Módulo de gerenciamento de armazenamento local
-export const Storage = {
-  keys: {
-    services: 'bb_services',
-    appointments: 'bb_appointments',
-    session: 'bb_session'
-  },
+// ========== GERENCIAMENTO DE ARMAZENAMENTO LOCAL ==========
+const KEYS = {
+  services: 'bb_services',
+  appointments: 'bb_appointments',
+  cancellations: 'bb_cancellations',
+  users: 'bb_users',
+  currentUser: 'bb_current_user',
+  precosConfig: 'bb_precos_config',
+  temposConfig: 'bb_tempos_config'
+};
 
+export const Storage = {
   // Serviços
   getServices() {
-    const data = localStorage.getItem(this.keys.services);
-    if (data) {
-      return JSON.parse(data);
-    }
-    // Dados padrão para começar
+    const data = localStorage.getItem(KEYS.services);
+    if (data) return JSON.parse(data);
     const defaultServices = [
-      { id: 1, name: 'Corte Masculino', createdAt: new Date().toISOString() },
-      { id: 2, name: 'Barba Completa', createdAt: new Date().toISOString() },
-      { id: 3, name: 'Corte + Barba', createdAt: new Date().toISOString() },
-      { id: 4, name: 'Pezinho e Acabamento', createdAt: new Date().toISOString() }
+      { id: 1, name: 'Corte Masculino', preco: 50, tempo: 30 },
+      { id: 2, name: 'Barba Completa', preco: 40, tempo: 25 },
+      { id: 3, name: 'Corte + Barba', preco: 80, tempo: 50 },
+      { id: 4, name: 'Pezinho e Acabamento', preco: 25, tempo: 15 }
     ];
     this.setServices(defaultServices);
     return defaultServices;
   },
-
-  setServices(services) {
-    localStorage.setItem(this.keys.services, JSON.stringify(services));
-  },
-
+  setServices(services) { localStorage.setItem(KEYS.services, JSON.stringify(services)); },
   addService(service) {
     const services = this.getServices();
     const newId = Math.max(...services.map(s => s.id), 0) + 1;
-    const newService = {
-      id: newId,
-      name: service.trim(),
-      createdAt: new Date().toISOString()
-    };
-    services.push(newService);
+    services.push({ id: newId, ...service });
     this.setServices(services);
-    return newService;
+    return services;
   },
-
   removeService(id) {
     let services = this.getServices();
     services = services.filter(s => s.id !== id);
@@ -49,29 +40,17 @@ export const Storage = {
 
   // Agendamentos
   getAppointments() {
-    const data = localStorage.getItem(this.keys.appointments);
+    const data = localStorage.getItem(KEYS.appointments);
     return data ? JSON.parse(data) : [];
   },
-
-  setAppointments(appointments) {
-    localStorage.setItem(this.keys.appointments, JSON.stringify(appointments));
-  },
-
+  setAppointments(appointments) { localStorage.setItem(KEYS.appointments, JSON.stringify(appointments)); },
   addAppointment(appointment) {
     const appointments = this.getAppointments();
-    const newId = Math.max(...appointments.map(a => a.id), 0) + 1;
-    const newAppointment = {
-      id: newId,
-      ...appointment,
-      createdAt: new Date().toISOString()
-    };
-    appointments.push(newAppointment);
+    appointment.id = Date.now();
+    appointments.push(appointment);
     this.setAppointments(appointments);
-    console.log('Agendamento salvo:', newAppointment);
-    console.log('Total agendamentos:', appointments);
-    return newAppointment;
+    return appointments;
   },
-
   removeAppointment(id) {
     let appointments = this.getAppointments();
     appointments = appointments.filter(a => a.id !== id);
@@ -79,32 +58,54 @@ export const Storage = {
     return appointments;
   },
 
-  getTodayAppointments() {
-    const today = new Date().toISOString().split('T')[0];
-    return this.getAppointments().filter(a => a.data === today);
+  // Cancelamentos
+  getCancellations() {
+    const data = localStorage.getItem(KEYS.cancellations);
+    return data ? JSON.parse(data) : [];
+  },
+  setCancellations(cancellations) { localStorage.setItem(KEYS.cancellations, JSON.stringify(cancellations)); },
+  addCancellation(cancellation) {
+    const cancellations = this.getCancellations();
+    cancellation.id = Date.now();
+    cancellations.push(cancellation);
+    this.setCancellations(cancellations);
+    return cancellations;
+  },
+
+  // Usuários
+  getUsers() {
+    const data = localStorage.getItem(KEYS.users);
+    if (data) return JSON.parse(data);
+    const defaultUsers = [{ id: 1, nome: 'Admin Barbeiro', email: 'admin@navalha.com', whatsapp: '(00) 00000-0000', senha: 'NavalhaBarber26', role: 'barbeiro' }];
+    this.setUsers(defaultUsers);
+    return defaultUsers;
+  },
+  setUsers(users) { localStorage.setItem(KEYS.users, JSON.stringify(users)); },
+  addUser(user) {
+    const users = this.getUsers();
+    user.id = Date.now();
+    users.push(user);
+    this.setUsers(users);
+    return users;
   },
 
   // Sessão
-  getSession() {
-    const data = localStorage.getItem(this.keys.session);
+  getCurrentUser() {
+    const data = localStorage.getItem(KEYS.currentUser);
     return data ? JSON.parse(data) : null;
   },
+  setCurrentUser(user) { localStorage.setItem(KEYS.currentUser, JSON.stringify(user)); },
+  clearCurrentUser() { localStorage.removeItem(KEYS.currentUser); },
 
-  setSession(user) {
-    localStorage.setItem(this.keys.session, JSON.stringify(user));
+  // Configurações
+  getPrecosConfig() {
+    const data = localStorage.getItem(KEYS.precosConfig);
+    return data ? JSON.parse(data) : null;
   },
-
-  clearSession() {
-    localStorage.removeItem(this.keys.session);
+  setPrecosConfig(config) { localStorage.setItem(KEYS.precosConfig, JSON.stringify(config)); },
+  getTemposConfig() {
+    const data = localStorage.getItem(KEYS.temposConfig);
+    return data ? JSON.parse(data) : null;
   },
-
-  // Verificar conflito de horário
-  hasConflict(data, hora, excludeId = null) {
-    const appointments = this.getAppointments();
-    return appointments.some(a => 
-      a.data === data && 
-      a.hora === hora && 
-      (excludeId === null || a.id !== excludeId)
-    );
-  }
+  setTemposConfig(config) { localStorage.setItem(KEYS.temposConfig, JSON.stringify(config)); }
 };

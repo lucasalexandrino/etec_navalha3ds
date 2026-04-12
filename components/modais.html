@@ -1,0 +1,69 @@
+<!-- MODAL DE CANCELAMENTO -->
+<div class="modal fade" id="cancelModal" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-white" id="cancelModalTitle">Cancelar Agendamento</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label text-white">Motivo do cancelamento *</label>
+          <textarea id="cancel-motivo" class="form-control" rows="4" placeholder="Explique o motivo do cancelamento..."></textarea>
+          <div class="invalid-feedback" id="error-motivo">Por favor, informe o motivo do cancelamento</div>
+        </div>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        <button type="button" class="btn btn-danger" id="cancelModalConfirmBtn">Confirmar Cancelamento</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE CONFIRMAÇÃO -->
+<div class="modal fade" id="confirmModal" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-white" id="confirmModalTitle">Confirmar ação</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-white" id="confirmModalMessage">Tem certeza que deseja realizar esta ação?</div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger" id="confirmModalConfirmBtn">Confirmar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE EDIÇÃO DE SERVIÇO -->
+<div class="modal fade" id="editServiceModal" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-white" id="editServiceModalTitle">Editar Serviço</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label text-white">Nome do Serviço</label>
+          <input type="text" id="edit-service-nome" class="form-control" readonly disabled>
+        </div>
+        <div class="mb-3">
+          <label class="form-label text-white">Preço (R$)</label>
+          <input type="number" id="edit-service-preco" class="form-control" step="0.01" min="0">
+        </div>
+        <div class="mb-3">
+          <label class="form-label text-white">Tempo Estimado (minutos)</label>
+          <input type="number" id="edit-service-tempo" class="form-control" step="5" min="5">
+        </div>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-success" id="editServiceConfirmBtn">Salvar Alterações</button>
+      </div>
+    </div>
+  </div>
+</div>

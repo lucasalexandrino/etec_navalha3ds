@@ -1,0 +1,103 @@
+<div class="card">
+  <div class="card-header">
+    <h5 class="mb-0"><i class="bi bi-calendar-plus me-2"></i>Agendar Serviço</h5>
+  </div>
+  <div class="card-body">
+    <form id="form-agendamento">
+      <div class="mb-3">
+        <label class="form-label">Nome completo *</label>
+        <input type="text" id="ag-nome" class="form-control" placeholder="Digite seu nome" required>
+        <div class="invalid-feedback" id="error-nome"></div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">WhatsApp *</label>
+        <input type="tel" id="ag-whatsapp" class="form-control" placeholder="(00) 00000-0000" required>
+        <div class="invalid-feedback" id="error-whatsapp"></div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Serviço *</label>
+        <select id="ag-servico" class="form-select" required>
+          <option value="">Carregando...</option>
+        </select>
+        <div class="invalid-feedback" id="error-servico"></div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Condição Especial (opcional)</label>
+        <select id="ag-condicao" class="form-select">
+          <option value="nenhuma">Nenhuma</option>
+          <option value="autista">Autista (10% desconto)</option>
+          <option value="cadeirante">Cadeirante (15% desconto)</option>
+          <option value="deficiente">Deficiência física (10% desconto)</option>
+          <option value="idoso">Idoso (20% desconto)</option>
+          <option value="crianca">Criança (15% desconto)</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <div class="form-check">
+          <input type="checkbox" id="ag-domicilio" class="form-check-input">
+          <label class="form-check-label text-light" for="ag-domicilio">
+            <i class="bi bi-house-heart"></i> Agendamento domiciliar (acréscimo de 30%)
+          </label>
+        </div>
+      </div>
+
+      <div class="mb-3" id="div-endereco" style="display: none;">
+        <label class="form-label">Endereço completo *</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+          <input type="text" id="ag-endereco" class="form-control" placeholder="Rua, número, bairro, cidade...">
+        </div>
+        <div class="invalid-feedback" id="error-endereco"></div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Observações (opcional)</label>
+        <textarea id="ag-observacao" class="form-control" rows="2" placeholder="Ex: Informações adicionais..."></textarea>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12 col-sm-6">
+          <label class="form-label">Data *</label>
+          <input type="date" id="ag-data" class="form-control" required>
+          <div class="invalid-feedback" id="error-data"></div>
+        </div>
+        <div class="col-12 col-sm-6">
+          <label class="form-label">Horário *</label>
+          <input type="time" id="ag-hora" class="form-control" required>
+          <div class="invalid-feedback" id="error-hora"></div>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-2">
+        <div class="col-6">
+          <label class="form-label small">Valor do Serviço</label>
+          <input type="text" id="ag-valor" class="form-control" readonly disabled>
+        </div>
+        <div class="col-6">
+          <label class="form-label small">Tempo Estimado</label>
+          <input type="text" id="ag-tempo" class="form-control" readonly disabled>
+        </div>
+        <div class="col-6">
+          <label class="form-label small">Desconto</label>
+          <input type="text" id="ag-desconto" class="form-control" readonly disabled>
+        </div>
+        <div class="col-6">
+          <label class="form-label small">Acréscimo</label>
+          <input type="text" id="ag-acrescimo" class="form-control" readonly disabled>
+        </div>
+        <div class="col-6">
+          <label class="form-label small fw-bold text-warning">Valor Final</label>
+          <input type="text" id="ag-valor-final" class="form-control bg-dark text-warning fw-bold" readonly disabled>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-dark-custom w-100 mt-4 py-2">
+        <i class="bi bi-check-circle me-2"></i>Confirmar Horário
+      </button>
+    </form>
+  </div>
+</div>
