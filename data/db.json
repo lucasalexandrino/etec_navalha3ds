@@ -13,6 +13,13 @@
       "email": "daniela@gmail.com",
       "whatsapp": "14996857895",
       "senha": "12345678"
+    },
+    {
+      "id": "cliente-1776126109516-gic4wy",
+      "nome": "Carlão Guedes",
+      "email": "carlao@gmail.com",
+      "whatsapp": "1436410722",
+      "senha": "1234567"
     }
   ],
   "barbers": [
@@ -27,16 +34,24 @@
       "name": "Clovis",
       "email": "clovis@gmail.com",
       "password": "12345678"
+    },
+    {
+      "id": "barbeiro-1776125712296-s83drz",
+      "name": "Henrique",
+      "email": "henrique.silva@gmail.com",
+      "password": "12345678"
     }
   ],
   "services": [
     {
       "id": "servico-1",
-      "name": "Corte de cabelo"
+      "name": "Corte de cabelo",
+      "price": 40
     },
     {
       "id": "servico-2",
-      "name": "Barba"
+      "name": "Barba",
+      "price": 30
     },
     {
       "id": "servico-3",
@@ -107,6 +122,52 @@
       "serviceName": "Corte de cabelo",
       "date": "2026-04-13",
       "time": "09:30"
+    },
+    {
+      "id": "agendamento-1776125854670-92zhzh",
+      "clientId": "cliente-1776025418701-g0m6hv",
+      "clientName": "Daniela Conduta",
+      "whatsapp": "14996857895",
+      "barberId": "barbeiro-1776125712296-s83drz",
+      "barberName": "Henrique",
+      "serviceId": "servico-4",
+      "serviceName": "Sobrancelha",
+      "date": "2026-04-18",
+      "time": "12:00"
+    },
+    {
+      "id": "agendamento-1776126288229-6zx0oo",
+      "clientId": "cliente-1776126109516-gic4wy",
+      "clientName": "Carlão Guedes",
+      "whatsapp": "1436410722",
+      "barberId": "barbeiro-1776025980701-eovmtf",
+      "barberName": "Clovis",
+      "serviceId": "servico-1",
+      "serviceName": "Corte de cabelo",
+      "date": "2026-04-23",
+      "time": "15:30"
+    },
+    {
+      "id": "agendamento-1776130422166-dch8dt",
+      "clientId": "cliente-1775944699991-76towv",
+      "clientName": "Aurélio Viana",
+      "whatsapp": "14991584796",
+      "barberId": "barbeiro-1",
+      "barberName": "Barbeiro Demo",
+      "serviceItems": [
+        {
+          "id": "servico-1",
+          "name": "Corte de cabelo",
+          "price": 40
+        }
+      ],
+      "serviceIds": [
+        "servico-1"
+      ],
+      "serviceName": "Corte de cabelo",
+      "totalValue": 40,
+      "date": "2026-04-22",
+      "time": "11:30"
     }
   ]
 }

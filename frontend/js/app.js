@@ -5,6 +5,8 @@
   var SESSION_KEY = "barbearia_navalha_sessao";
   var currentAvailableTimes = [];
   var availabilityRequestId = 0;
+  var adminReportMonth = new Date().getMonth();
+  var adminReportYear = new Date().getFullYear();
 
   function $(id) {
     return document.getElementById(id);
@@ -126,6 +128,8 @@
       renderAdminServices();
       renderAdminClients();
       renderAdminBookings();
+      setAdminReportMonth(adminReportMonth, adminReportYear);
+      renderMonthlyReport();
     }
   }
 
@@ -291,6 +295,23 @@
     });
   }
 
+  function apiUpdateService(serviceId, payload) {
+    return fetchJson(API_BASE + "/admin/services/" + encodeURIComponent(serviceId), {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  }
+
+  function apiGetMonthlyReport(month, year) {
+    var query = [];
+    if (month !== undefined && year !== undefined) {
+      query.push("month=" + encodeURIComponent(month));
+      query.push("year=" + encodeURIComponent(year));
+    }
+    return fetchJson(API_BASE + "/admin/reports/monthly" + (query.length ? "?" + query.join("&") : ""));
+  }
+
   function removerServico(serviceId, serviceName, button) {
     if (!serviceId) {
       showError("admin-servico-erro", "Não foi possível identificar o serviço para remoção.");
@@ -337,6 +358,9 @@
       var option = document.createElement("option");
       option.value = item.id;
       option.textContent = getLabel(item);
+      if (item.price !== undefined) {
+        option.dataset.price = item.price;
+      }
       select.appendChild(option);
     });
   }
@@ -534,13 +558,46 @@
     return new Date(date + "T" + time + ":00").toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
   }
 
+  function formatCurrency(value) {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    }).format(Number(value) || 0);
+  }
+
+  function getBookingTotalValue(booking) {
+    if (!booking) return 0;
+    if (typeof booking.totalValue === "number") {
+      return booking.totalValue;
+    }
+    if (Array.isArray(booking.serviceItems) && booking.serviceItems.length) {
+      return booking.serviceItems.reduce(function (sum, item) {
+        return sum + (item && typeof item.price === "number" ? item.price : 0);
+      }, 0);
+    }
+    if (typeof booking.servicePrice === "number") {
+      return booking.servicePrice;
+    }
+    return 0;
+  }
+
+  function renderBookingServices(booking) {
+    if (!booking) return "-";
+    if (Array.isArray(booking.serviceItems) && booking.serviceItems.length) {
+      return booking.serviceItems.map(function (item) {
+        return item.name || "-";
+      }).join(", ");
+    }
+    return booking.serviceName || "-";
+  }
+
   function renderClientBookings() {
     var tbody = $("tbody-meus-agendamentos");
     if (!tbody) return;
     tbody.innerHTML = "";
     apiGetBookings().then(function (bookings) {
       if (!bookings.length) {
-        tbody.innerHTML = "<tr><td colspan=4>Nenhum agendamento encontrado.</td></tr>";
+        tbody.innerHTML = "<tr><td colspan=5>Nenhum agendamento encontrado.</td></tr>";
         return;
       }
       bookings.forEach(function (booking) {
@@ -559,12 +616,13 @@
         tbody.appendChild(createTableRow([
           formatDate(booking.date, booking.time),
           booking.barberName || "-",
-          booking.serviceName || "-",
+          renderBookingServices(booking),
+          formatCurrency(getBookingTotalValue(booking)),
           button
         ]));
       });
     }).catch(function () {
-      tbody.innerHTML = "<tr><td colspan=4>Erro ao carregar agendamentos.</td></tr>";
+      tbody.innerHTML = "<tr><td colspan=5>Erro ao carregar agendamentos.</td></tr>";
     });
   }
 
@@ -576,8 +634,8 @@
     futureBody.innerHTML = "";
     apiGetBookings().then(function (bookings) {
       if (!bookings.length) {
-        todayBody.innerHTML = "<tr><td colspan=5>Nenhum agendamento hoje.</td></tr>";
-        futureBody.innerHTML = "<tr><td colspan=5>Nenhum agendamento para os próximos dias.</td></tr>";
+        todayBody.innerHTML = "<tr><td colspan=6>Nenhum agendamento hoje.</td></tr>";
+        futureBody.innerHTML = "<tr><td colspan=6>Nenhum agendamento para os próximos dias.</td></tr>";
         return;
       }
       var now = Date.now();
@@ -599,7 +657,7 @@
         return a.dateTime - b.dateTime;
       });
       if (!todayBookings.length) {
-        todayBody.innerHTML = "<tr><td colspan=5>Nenhum agendamento hoje.</td></tr>";
+        todayBody.innerHTML = "<tr><td colspan=6>Nenhum agendamento hoje.</td></tr>";
       } else {
         todayBookings.forEach(function (item) {
           var booking = item.booking;
@@ -629,7 +687,8 @@
             formatDate(booking.date, booking.time),
             booking.clientName || "-",
             booking.whatsapp || "-",
-            booking.serviceName || "-",
+            renderBookingServices(booking),
+            formatCurrency(getBookingTotalValue(booking)),
             actionCell
           ]);
           if (isPast) {
@@ -639,7 +698,7 @@
         });
       }
       if (!futureBookings.length) {
-        futureBody.innerHTML = "<tr><td colspan=5>Nenhum agendamento para os próximos dias.</td></tr>";
+        futureBody.innerHTML = "<tr><td colspan=6>Nenhum agendamento para os próximos dias.</td></tr>";
       } else {
         futureBookings.forEach(function (item) {
           var booking = item.booking;
@@ -659,14 +718,15 @@
             formatDate(booking.date, booking.time),
             booking.clientName || "-",
             booking.whatsapp || "-",
-            booking.serviceName || "-",
+            renderBookingServices(booking),
+            formatCurrency(getBookingTotalValue(booking)),
             button
           ]));
         });
       }
     }).catch(function () {
-      todayBody.innerHTML = "<tr><td colspan=5>Erro ao carregar agendamentos.</td></tr>";
-      futureBody.innerHTML = "<tr><td colspan=5>Erro ao carregar agendamentos.</td></tr>";
+      todayBody.innerHTML = "<tr><td colspan=6>Erro ao carregar agendamentos.</td></tr>";
+      futureBody.innerHTML = "<tr><td colspan=6>Erro ao carregar agendamentos.</td></tr>";
     });
   }
 
@@ -703,7 +763,17 @@
         var serviceName = service.name || "serviço";
         var li = document.createElement("li");
         var span = document.createElement("span");
-        span.textContent = serviceName;
+        span.textContent = serviceName + " — " + formatCurrency(service.price || 0);
+        var editButton = document.createElement("button");
+        editButton.type = "button";
+        editButton.className = "btn-icone";
+        editButton.textContent = "Editar";
+        editButton.setAttribute("aria-label", "Editar serviço " + serviceName);
+        editButton.addEventListener("click", function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+          openServiceEditor(service, li);
+        });
         var button = document.createElement("button");
         button.type = "button";
         button.className = "btn-icone";
@@ -715,12 +785,59 @@
           removerServico(serviceId, serviceName, button);
         });
         li.appendChild(span);
+        li.appendChild(editButton);
         li.appendChild(button);
         list.appendChild(li);
       });
     }).catch(function () {
       list.innerHTML = "<li>Erro ao carregar serviços.</li>";
     });
+  }
+
+  function openServiceEditor(service, container) {
+    container.innerHTML = "";
+    var nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.value = service.name || "";
+    nameInput.className = "input-inline";
+    var priceInput = document.createElement("input");
+    priceInput.type = "number";
+    priceInput.step = "0.01";
+    priceInput.min = "0";
+    priceInput.value = (typeof service.price === "number" ? service.price.toFixed(2) : "0.00");
+    priceInput.className = "input-inline";
+    var saveButton = document.createElement("button");
+    saveButton.type = "button";
+    saveButton.className = "btn-prim btn-inline";
+    saveButton.textContent = "Salvar";
+    var cancelButton = document.createElement("button");
+    cancelButton.type = "button";
+    cancelButton.className = "btn-sec btn-inline";
+    cancelButton.textContent = "Cancelar";
+    saveButton.addEventListener("click", function () {
+      var name = nameInput.value.trim();
+      var price = Number(priceInput.value.replace(",", "."));
+      if (!name) {
+        alert("Informe um nome para o serviço.");
+        return;
+      }
+      if (!Number.isFinite(price) || price < 0) {
+        alert("Informe um preço válido.");
+        return;
+      }
+      apiUpdateService(service.id, { name: name, price: price }).then(function () {
+        renderAdminServices();
+      }).catch(function (err) {
+        alert(err.message || "Erro ao atualizar serviço.");
+      });
+    });
+    cancelButton.addEventListener("click", function () {
+      renderAdminServices();
+    });
+    container.appendChild(nameInput);
+    container.appendChild(priceInput);
+    container.appendChild(saveButton);
+    container.appendChild(cancelButton);
   }
 
   function renderAdminClients() {
@@ -766,8 +883,8 @@
     futureBody.innerHTML = "";
     apiGetBookings().then(function (bookings) {
       if (!bookings.length) {
-        todayBody.innerHTML = "<tr><td colspan=5>Nenhum agendamento hoje.</td></tr>";
-        futureBody.innerHTML = "<tr><td colspan=5>Nenhum agendamento para os próximos dias.</td></tr>";
+        todayBody.innerHTML = "<tr><td colspan=6>Nenhum agendamento hoje.</td></tr>";
+        futureBody.innerHTML = "<tr><td colspan=6>Nenhum agendamento para os próximos dias.</td></tr>";
         return;
       }
       var now = Date.now();
@@ -790,7 +907,7 @@
         return a.dateTime - b.dateTime;
       });
       if (!todayBookings.length) {
-        todayBody.innerHTML = "<tr><td colspan=5>Nenhum agendamento hoje.</td></tr>";
+        todayBody.innerHTML = "<tr><td colspan=6>Nenhum agendamento hoje.</td></tr>";
       } else {
         todayBookings.forEach(function (item) {
           var booking = item.booking;
@@ -801,6 +918,7 @@
           button.addEventListener("click", function () {
             apiCancelBooking(booking.id).then(function () {
               renderAdminBookings();
+              renderMonthlyReport();
               renderHomeAvailability();
             }).catch(function (err) {
               alert(err.message);
@@ -809,14 +927,15 @@
           todayBody.appendChild(createTableRow([
             formatDate(booking.date, booking.time),
             booking.barberName || "-",
-            booking.serviceName || "-",
+            renderBookingServices(booking),
             booking.clientName || "-",
+            formatCurrency(getBookingTotalValue(booking)),
             button
           ]));
         });
       }
       if (!futureBookings.length) {
-        futureBody.innerHTML = "<tr><td colspan=5>Nenhum agendamento para os próximos dias.</td></tr>";
+        futureBody.innerHTML = "<tr><td colspan=6>Nenhum agendamento para os próximos dias.</td></tr>";
       } else {
         futureBookings.forEach(function (item) {
           var booking = item.booking;
@@ -827,6 +946,7 @@
           button.addEventListener("click", function () {
             apiCancelBooking(booking.id).then(function () {
               renderAdminBookings();
+              renderMonthlyReport();
               renderHomeAvailability();
             }).catch(function (err) {
               alert(err.message);
@@ -835,20 +955,65 @@
           futureBody.appendChild(createTableRow([
             formatDate(booking.date, booking.time),
             booking.barberName || "-",
-            booking.serviceName || "-",
+            renderBookingServices(booking),
             booking.clientName || "-",
+            formatCurrency(getBookingTotalValue(booking)),
             button
           ]));
         });
       }
     }).catch(function () {
-      todayBody.innerHTML = "<tr><td colspan=5>Erro ao carregar agendamentos.</td></tr>";
-      futureBody.innerHTML = "<tr><td colspan=5>Erro ao carregar agendamentos.</td></tr>";
+      todayBody.innerHTML = "<tr><td colspan=6>Erro ao carregar agendamentos.</td></tr>";
+      futureBody.innerHTML = "<tr><td colspan=6>Erro ao carregar agendamentos.</td></tr>";
     });
   }
 
   function apiGetBookings() {
     return fetchJson(API_BASE + "/bookings");
+  }
+
+  function updateAppointmentTotal() {
+    var select = $("ag-servico");
+    var totalContainer = $("ag-total-valor");
+    if (!select || !totalContainer) return;
+    var selected = Array.from(select.selectedOptions || []);
+    var total = selected.reduce(function (sum, option) {
+      var price = Number(option.dataset.price || 0);
+      return sum + (Number.isFinite(price) ? price : 0);
+    }, 0);
+    totalContainer.textContent = "Total estimado: " + formatCurrency(total);
+  }
+
+  function setAdminReportMonth(month, year) {
+    adminReportMonth = month;
+    adminReportYear = year;
+    var label = $("report-mes-ano");
+    if (label) {
+      label.textContent = new Date(year, month, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    }
+  }
+
+  function changeAdminReportMonth(delta) {
+    var date = new Date(adminReportYear, adminReportMonth + delta, 1);
+    setAdminReportMonth(date.getMonth(), date.getFullYear());
+    renderMonthlyReport();
+  }
+
+  function renderMonthlyReport() {
+    var summaryTotal = $("report-total-faturado");
+    var summaryServices = $("report-servicos-realizados");
+    var summaryBookings = $("report-agendamentos");
+    if (!summaryTotal || !summaryServices || !summaryBookings) return;
+    apiGetMonthlyReport(adminReportMonth, adminReportYear).then(function (report) {
+      var data = Array.isArray(report) && report.length ? report[0] : { total: 0, servicesCount: 0, bookingsCount: 0 };
+      summaryTotal.textContent = formatCurrency(data.total);
+      summaryServices.textContent = data.servicesCount;
+      summaryBookings.textContent = data.bookingsCount;
+    }).catch(function () {
+      summaryTotal.textContent = formatCurrency(0);
+      summaryServices.textContent = "0";
+      summaryBookings.textContent = "0";
+    });
   }
 
   function loadAppointmentForm() {
@@ -857,9 +1022,10 @@
         return item.name;
       });
       renderOptions($("ag-servico"), results[1], function (item) {
-        return item.name;
+        return item.name + " — " + formatCurrency(item.price);
       });
       setDefaultAppointment();
+      updateAppointmentTotal();
     });
   }
 
@@ -987,6 +1153,12 @@
     $("btn-admin-historico")?.addEventListener("click", function () {
       openHistoryModal();
     });
+    $("btn-report-prev")?.addEventListener("click", function () {
+      changeAdminReportMonth(-1);
+    });
+    $("btn-report-next")?.addEventListener("click", function () {
+      changeAdminReportMonth(1);
+    });
     $("btn-fechar-historico")?.addEventListener("click", function () {
       closeHistoryModal();
     });
@@ -1049,10 +1221,13 @@
       event.preventDefault();
       hideError("agendamento-erro");
       var barberId = $("ag-barbeiro").value;
-      var serviceId = $("ag-servico").value;
+      var select = $("ag-servico");
+      var serviceIds = select ? Array.from(select.selectedOptions || []).map(function (option) {
+        return option.value;
+      }) : [];
       var date = $("ag-data").value;
       var time = $("ag-hora").value;
-      if (!barberId || !serviceId || !date || !time) {
+      if (!barberId || !serviceIds.length || !date || !time) {
         showError("agendamento-erro", "Preencha todos os campos do agendamento.");
         return;
       }
@@ -1064,7 +1239,7 @@
         showError("agendamento-erro", "Horário indisponível.");
         return;
       }
-      apiCreateBooking({ barberId: barberId, serviceId: serviceId, date: date, time: time }).then(function () {
+      apiCreateBooking({ barberId: barberId, serviceIds: serviceIds, date: date, time: time }).then(function () {
         renderClientBookings();
         renderHomeAvailability();
         alert("Agendamento realizado com sucesso.");
@@ -1096,6 +1271,7 @@
     });
 
     $("ag-barbeiro").addEventListener("change", renderAvailableTimes);
+    $("ag-servico").addEventListener("change", updateAppointmentTotal);
     $("ag-data").addEventListener("change", renderAvailableTimes);
     $("ag-hora").addEventListener("input", function () {
       highlightSelectedTime($("ag-hora").value);
@@ -1105,11 +1281,17 @@
       event.preventDefault();
       hideError("admin-servico-erro");
       var name = $("as-nome").value.trim();
+      var priceValue = $("as-preco").value.trim();
+      var price = Number(priceValue.replace(",", "."));
       if (!name) {
         showError("admin-servico-erro", "Informe o nome do serviço.");
         return;
       }
-      apiCreateService({ name: name }).then(function () {
+      if (!priceValue || !Number.isFinite(price) || price < 0) {
+        showError("admin-servico-erro", "Informe um preço válido para o serviço.");
+        return;
+      }
+      apiCreateService({ name: name, price: price }).then(function () {
         $("form-criar-servico").reset();
         renderAdminServices();
       }).catch(function (err) {

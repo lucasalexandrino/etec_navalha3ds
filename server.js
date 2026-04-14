@@ -42,6 +42,12 @@ function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
 }
 
+function parsePrice(value) {
+  if (value === undefined || value === null || value === "") return null;
+  const number = Number(String(value).replace(",", "."));
+  return Number.isFinite(number) && number >= 0 ? number : null;
+}
+
 function getActiveBarbers(data) {
   return (data.barbers || []).filter((barber) => normalizeEmail(barber.email) !== normalizeEmail(ADMIN_EMAIL));
 }
@@ -199,7 +205,12 @@ function barberMiddleware(req, res, next) {
 
 app.get("/api/services", (req, res) => {
   const data = loadData();
-  return res.json(data.services);
+  const services = (data.services || []).map((item) => ({
+    id: item.id,
+    name: item.name,
+    price: typeof item.price === "number" ? item.price : 0
+  }));
+  return res.json(services);
 });
 
 app.get("/api/barbers", (req, res) => {
@@ -265,16 +276,41 @@ app.get("/api/auth/me", authMiddleware, (req, res) => {
 });
 
 app.post("/api/admin/services", authMiddleware, adminMiddleware, (req, res) => {
-  const { name } = req.body;
+  const { name, price } = req.body;
   if (!name || !name.trim()) {
     return res.status(400).json({ error: "Nome do serviço é obrigatório." });
+  }
+  const parsedPrice = parsePrice(price);
+  if (parsedPrice === null) {
+    return res.status(400).json({ error: "Preço do serviço inválido." });
   }
   const data = loadData();
   if (data.services.some((item) => normalizeEmail(item.name) === normalizeEmail(name))) {
     return res.status(409).json({ error: "Serviço já cadastrado." });
   }
-  const service = { id: createId("servico"), name: name.trim() };
+  const service = { id: createId("servico"), name: name.trim(), price: parsedPrice };
   data.services.push(service);
+  saveData(data);
+  return res.json(service);
+});
+
+app.put("/api/admin/services/:id", authMiddleware, adminMiddleware, (req, res) => {
+  const serviceId = req.params.id;
+  const { name, price } = req.body;
+  const data = loadData();
+  const service = data.services.find((item) => item.id === serviceId);
+  if (!service) {
+    return res.status(404).json({ error: "Serviço não encontrado." });
+  }
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: "Nome do serviço é obrigatório." });
+  }
+  const parsedPrice = parsePrice(price);
+  if (parsedPrice === null) {
+    return res.status(400).json({ error: "Preço do serviço inválido." });
+  }
+  service.name = name.trim();
+  service.price = parsedPrice;
   saveData(data);
   return res.json(service);
 });
@@ -331,6 +367,50 @@ app.delete("/api/admin/clients/:id", authMiddleware, adminMiddleware, (req, res)
   return res.json({ success: true });
 });
 
+app.get("/api/admin/reports/monthly", authMiddleware, adminMiddleware, (req, res) => {
+  const requestedMonth = Number(req.query.month);
+  const requestedYear = Number(req.query.year);
+  const data = loadData();
+  const bookings = data.bookings || [];
+  const summaries = [];
+  if (Number.isFinite(requestedMonth) && Number.isFinite(requestedYear)) {
+    summaries.push({ month: requestedMonth, year: requestedYear });
+  } else {
+    const today = new Date();
+    for (let offset = 0; offset >= -2; offset -= 1) {
+      const date = new Date(today.getFullYear(), today.getMonth() + offset, 1);
+      summaries.push({ month: date.getMonth(), year: date.getFullYear() });
+    }
+  }
+  const report = summaries.map(({ month, year }) => {
+    let total = 0;
+    let servicesCount = 0;
+    let bookingsCount = 0;
+    bookings.forEach((booking) => {
+      const bookingDate = formatDateTime(booking.date, booking.time);
+      if (!bookingDate) return;
+      if (bookingDate.getMonth() !== month || bookingDate.getFullYear() !== year) return;
+      bookingsCount += 1;
+      const items = Array.isArray(booking.serviceItems)
+        ? booking.serviceItems
+        : booking.serviceId
+        ? [{ price: booking.servicePrice || 0 }]
+        : [];
+      servicesCount += items.length;
+      total += items.reduce((sum, item) => sum + (typeof item.price === "number" ? item.price : 0), 0);
+    });
+    return {
+      month,
+      year,
+      monthLabel: `${String(month + 1).padStart(2, "0")}/${year}`,
+      total: Number(total.toFixed(2)),
+      servicesCount,
+      bookingsCount,
+    };
+  });
+  return res.json(report);
+});
+
 app.get("/api/bookings", authMiddleware, (req, res) => {
   const data = loadData();
   if (req.auth.role === "admin") {
@@ -346,16 +426,20 @@ app.get("/api/bookings", authMiddleware, (req, res) => {
 });
 
 app.post("/api/bookings", authMiddleware, clientMiddleware, (req, res) => {
-  const { barberId, serviceId, date, time } = req.body;
-  if (!barberId || !serviceId || !date || !time) {
+  const { barberId, serviceId, serviceIds, date, time } = req.body;
+  const selectedServiceIds = Array.isArray(serviceIds) ? serviceIds : serviceId ? [serviceId] : [];
+  if (!barberId || !selectedServiceIds.length || !date || !time) {
     return res.status(400).json({ error: "Dados de agendamento incompletos." });
   }
   const data = loadData();
   const barber = data.barbers.find((item) => item.id === barberId);
-  const service = data.services.find((item) => item.id === serviceId);
   const client = data.clients.find((item) => item.id === req.auth.user.id);
-  if (!barber || !service || !client) {
-    return res.status(400).json({ error: "Barbeiro, serviço ou cliente inválido." });
+  if (!barber || !client) {
+    return res.status(400).json({ error: "Barbeiro ou cliente inválido." });
+  }
+  const services = selectedServiceIds.map((id) => data.services.find((item) => item.id === id)).filter(Boolean);
+  if (services.length !== selectedServiceIds.length) {
+    return res.status(400).json({ error: "Serviço inválido." });
   }
   if (!isValidTimeSlot(time)) {
     return res.status(400).json({ error: "Horário deve ser um slot de 30 minutos, como 09:00 ou 09:30." });
@@ -370,6 +454,12 @@ app.post("/api/bookings", authMiddleware, clientMiddleware, (req, res) => {
   if (isBookingConflict(data.bookings, barberId, date, time)) {
     return res.status(409).json({ error: "Horário já ocupado." });
   }
+  const serviceItems = services.map((service) => ({
+    id: service.id,
+    name: service.name,
+    price: typeof service.price === "number" ? service.price : 0,
+  }));
+  const totalValue = Number(serviceItems.reduce((sum, item) => sum + item.price, 0).toFixed(2));
   const booking = {
     id: createId("agendamento"),
     clientId: client.id,
@@ -377,8 +467,10 @@ app.post("/api/bookings", authMiddleware, clientMiddleware, (req, res) => {
     whatsapp: client.whatsapp,
     barberId: barber.id,
     barberName: barber.name,
-    serviceId: service.id,
-    serviceName: service.name,
+    serviceItems,
+    serviceIds: selectedServiceIds,
+    serviceName: serviceItems.map((item) => item.name).join(", "),
+    totalValue,
     date,
     time
   };

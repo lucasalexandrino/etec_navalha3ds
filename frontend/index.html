@@ -129,8 +129,10 @@
             </label>
             <label>
               Serviço
-              <select id="ag-servico" name="servico"></select>
+              <select id="ag-servico" name="servico" multiple size="4"></select>
+              <small class="help-text">Segure Ctrl ou Shift para selecionar mais de um serviço.</small>
             </label>
+            <p id="ag-total-valor" class="help-text">Total estimado: R$ 0,00</p>
             <label>
               Data
               <input type="date" id="ag-data" name="data" />
@@ -174,7 +176,8 @@
               <tr>
                 <th>Data / hora</th>
                 <th>Barbeiro</th>
-                <th>Serviço</th>
+                <th>Serviços</th>
+                <th>Valor</th>
                 <th></th>
               </tr>
             </thead>
@@ -203,7 +206,8 @@
                 <th>Data / hora</th>
                 <th>Cliente</th>
                 <th>WhatsApp</th>
-                <th>Serviço</th>
+                <th>Serviços</th>
+                <th>Valor</th>
                 <th></th>
               </tr>
             </thead>
@@ -220,9 +224,9 @@
                 <th>Data / hora</th>
                 <th>Cliente</th>
                 <th>WhatsApp</th>
-                <th>Serviço</th>
+                <th>Serviços</th>
+                <th>Valor</th>
                 <th></th>
-              </tr>
             </thead>
             <tbody id="tbody-agendamentos-futuros"></tbody>
           </table>
@@ -286,11 +290,29 @@
               Nome do serviço
               <input type="text" id="as-nome" required />
             </label>
+            <label>
+              Preço
+              <input type="number" id="as-preco" required step="0.01" min="0" placeholder="0.00" />
+            </label>
             <p id="admin-servico-erro" class="msg-erro hidden" role="alert"></p>
             <button type="submit" class="btn-prim">Adicionar serviço</button>
           </form>
           <h4 class="subtitulo">Serviços cadastrados</h4>
           <ul id="lista-servicos-admin" class="lista-servicos"></ul>
+        </div>
+
+        <div class="card admin-block">
+          <h3>Relatório mensal</h3>
+          <div class="panel-toolbar">
+            <button type="button" id="btn-report-prev" class="btn-sec">◀</button>
+            <span id="report-mes-ano">Abril/2026</span>
+            <button type="button" id="btn-report-next" class="btn-sec">▶</button>
+          </div>
+          <div class="report-summary">
+            <p>Total faturado: <strong id="report-total-faturado">R$ 0,00</strong></p>
+            <p>Serviços realizados: <strong id="report-servicos-realizados">0</strong></p>
+            <p>Atendimentos: <strong id="report-agendamentos">0</strong></p>
+          </div>
         </div>
 
         <div class="card card-largo admin-block">
@@ -321,8 +343,9 @@
                 <tr>
                   <th>Data / hora</th>
                   <th>Barbeiro</th>
-                  <th>Serviço</th>
+                  <th>Serviços</th>
                   <th>Cliente</th>
+                  <th>Valor</th>
                   <th></th>
                 </tr>
               </thead>
@@ -338,8 +361,9 @@
                 <tr>
                   <th>Data / hora</th>
                   <th>Barbeiro</th>
-                  <th>Serviço</th>
+                  <th>Serviços</th>
                   <th>Cliente</th>
+                  <th>Valor</th>
                   <th></th>
                 </tr>
               </thead>
