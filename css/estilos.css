@@ -121,9 +121,17 @@ main {
   min-width: 0;
 }
 
+<<<<<<< Updated upstream
 .card h2 {
   margin: 0 0 1rem;
   font-size: 1.1rem;
+=======
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: end;
+>>>>>>> Stashed changes
 }
 
 .subtitulo {
@@ -286,6 +294,7 @@ main {
   border-bottom: none;
 }
 
+<<<<<<< Updated upstream
 .btn-icone {
   padding: 0.25rem 0.5rem;
   font-size: 0.8rem;
@@ -303,6 +312,39 @@ main {
 
 .tabela-wrap {
   overflow-x: auto;
+=======
+.sidebar-header {
+    padding: 1.5rem 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    border-bottom: 1px solid var(--gray-800);
+    flex-shrink: 0;
+    text-align: center;
+}
+
+.sidebar-logo {
+    flex-shrink: 0;
+    width: 95%;
+    max-width: 240px;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: transparent;
+}
+
+.sidebar-logo img {
+    max-width: 95%;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    background: transparent;
+>>>>>>> Stashed changes
 }
 
 .tabela-ag {
@@ -318,7 +360,722 @@ main {
   border-bottom: 1px solid var(--border);
 }
 
+<<<<<<< Updated upstream
 .tabela-ag th {
   color: var(--muted);
   font-weight: 600;
 }
+=======
+.user-info {
+    padding: 1rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid var(--gray-800);
+    flex-shrink: 0;
+}
+
+.user-avatar i {
+    font-size: 3rem;
+    color: var(--gray-500);
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--white);
+}
+
+.user-role {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+}
+
+.sidebar-nav {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 0;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.nav-item {
+    width: 100%;
+    padding: 0.9rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: none;
+    border: none;
+    color: var(--gray-400);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    font-family: 'Inter', sans-serif;
+    border-radius: 8px;
+    margin-bottom: 0.25rem;
+}
+
+.nav-item i {
+    width: 20px;
+    font-size: 1.1rem;
+}
+
+.nav-item:hover {
+    background: var(--gray-700);
+    color: var(--white);
+}
+
+.nav-item.active {
+    background: rgba(255, 107, 53, 0.15);
+    color: var(--primary-orange);
+    border-left: none;
+}
+
+.nav-item.logout-btn {
+    margin-top: auto;
+    border-top: 1px solid var(--gray-800);
+    color: var(--error);
+}
+
+.nav-item.logout-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+}
+
+.nav-item.logout {
+    margin-top: auto;
+    border-top: 1px solid var(--gray-800);
+    color: var(--error);
+}
+
+.nav-item.logout:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+}
+
+.mobile-header {
+    display: none;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--gray-900);
+    border-bottom: 1px solid var(--gray-800);
+    margin-bottom: 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.menu-toggle {
+    background: none;
+    border: none;
+    color: var(--white);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.content-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: var(--white);
+}
+
+.form-card {
+    background: var(--gray-800);
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 700px;
+}
+
+.input-group {
+    margin-bottom: 1.8rem;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 0.65rem;
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--gray-300);
+}
+
+#agendar .input-group input,
+#agendar .input-group select {
+    width: 100%;
+    padding: 1.8rem;
+    min-height: 3.8rem;
+    background: var(--gray-700);
+    border: 1px solid var(--gray-600);
+    border-radius: 16px;
+    color: var(--white);
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+    outline: none;
+    border-color: var(--primary-orange);
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.btn {
+    padding: 0.9rem 1.5rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+}
+
+.btn-primary {
+    background: var(--primary-orange);
+    color: var(--white);
+}
+
+.btn-primary:hover {
+    background: var(--primary-orange-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(255, 107, 53, 0.3);
+}
+
+.btn-secondary {
+    background: var(--gray-700);
+    color: var(--white);
+}
+
+.btn-secondary:hover {
+    background: var(--gray-600);
+}
+
+.btn-large {
+    width: 100%;
+    font-size: 1.1rem;
+    padding: 1rem;
+}
+
+.servicos-grid {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.servico-card {
+    background: var(--gray-800);
+    border-radius: 16px;
+    padding: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+.servico-card:hover {
+    transform: translateY(-2px);
+}
+
+.servico-nome {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.servico-preco {
+    color: var(--primary-orange);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
+}
+
+.servico-descricao {
+    color: var(--gray-400);
+    font-size: 0.9rem;
+}
+
+.servico-duracao {
+    color: var(--gray-500);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.agendamentos-list {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.agendamento-card {
+    background: var(--gray-800);
+    border-radius: 16px;
+    padding: 1.2rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.agendamento-card.concluido {
+    opacity: 0.7;
+    border-left: 4px solid var(--success);
+}
+
+.agendamento-card.cancelado {
+    opacity: 0.5;
+    border-left: 4px solid var(--error);
+}
+
+.agendamento-servico {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.agendamento-data {
+    color: var(--gray-400);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.agendamento-horario {
+    color: var(--primary-orange);
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+.agendamento-status {
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.agendamento-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-small:hover {
+    transform: translateY(-1px);
+}
+
+.btn-danger {
+    background: var(--error);
+    color: var(--white);
+}
+
+.btn-success {
+    background: var(--success);
+    color: var(--white);
+}
+
+.btn-warning {
+    background: var(--warning);
+    color: var(--white);
+}
+
+.barbeiro-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--gray-800);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-icon {
+    font-size: 2rem;
+    color: var(--primary-orange);
+    margin-bottom: 1rem;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-orange);
+}
+
+.stat-value--sm {
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--primary-orange);
+}
+
+.horarios-info-wrap {
+    max-width: 560px;
+}
+
+.modal-label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--gray-400);
+    margin-bottom: 0.35rem;
+    margin-top: 0.75rem;
+}
+
+.modal-input,
+.modal-textarea {
+    width: 100%;
+    padding: 0.65rem;
+    border-radius: 10px;
+    border: 1px solid var(--gray-600);
+    background: var(--gray-700);
+    color: var(--white);
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+.modal-textarea {
+    resize: vertical;
+    min-height: 4rem;
+}
+
+.ag-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.2rem 0.45rem;
+    border-radius: 6px;
+    vertical-align: middle;
+    margin-left: 0.35rem;
+    letter-spacing: 0.04em;
+}
+
+.ag-badge--scheduled {
+    background: rgba(245, 158, 11, 0.25);
+    color: var(--warning);
+}
+
+.ag-badge--completed {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--success);
+}
+
+.ag-badge--cancelled {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--error);
+}
+
+.ag-notas {
+    font-size: 0.85rem;
+    color: var(--gray-400);
+    margin-top: 0.35rem;
+}
+
+.agendamento-pagamento {
+    font-size: 0.88rem;
+    color: var(--gray-500);
+    margin-top: 0.25rem;
+}
+
+.stat-label {
+    color: var(--gray-400);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+/* Login */
+#loginScreen {
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(0.6rem, 2.2vmin, 1.2rem) clamp(1rem, 4vw, 1.5rem);
+    box-sizing: border-box;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    flex: 0 0 auto;
+}
+
+.logo-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto 0.8rem;
+}
+
+.logo-icon {
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-icon img {
+    display: block;
+    width: 100%;
+    max-width: 360px;
+    height: auto;
+    object-fit: contain;
+    margin: 0 auto;
+}
+
+.logo-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--primary-orange-light) 0%, var(--primary-orange-dark) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.logo-subtitle {
+    color: var(--gray-400);
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto 0;
+    padding: 0 0.15rem;
+    font-size: 1.4rem;
+    line-height: 1.35;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.login-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.login-card .input-group {
+    margin-bottom: 0;
+}
+
+#loginScreen .input-group input,
+#loginScreen .input-group select {
+    padding: 1.6rem;
+    min-height: 4rem;
+    font-size: 1.05rem;
+    border-radius: 16px;
+}
+
+#loginScreen .input-group label {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.input-group-button {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.input-group-button .btn {
+    width: 100%;
+    padding: 1.35rem 2rem;
+    font-size: 1.05rem;
+    min-height: 3.8rem;
+}
+
+.demo-credentials {
+    margin-top: 0.6rem;
+    padding: 1rem;
+    background: var(--gray-800);
+    border-radius: 12px;
+    font-size: 0.8rem;
+    text-align: center;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.demo-credentials p {
+    margin: 0.25rem 0;
+}
+
+.login-error {
+    color: var(--error);
+    font-size: 0.85rem;
+    margin: 0 0 0.75rem;
+    line-height: 1.35;
+}
+
+.login-error.hidden {
+    display: none;
+}
+
+.login-disclaimer {
+    margin-top: 0.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--gray-700);
+    font-size: 0.72rem;
+    line-height: 1.45;
+    color: var(--gray-500);
+    text-align: center;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gray-800);
+    color: var(--white);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    z-index: 2000;
+    animation: slideUp 0.3s ease;
+    border-left: 4px solid var(--primary-orange);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.toast.success {
+    border-left-color: var(--success);
+}
+
+.toast.error {
+    border-left-color: var(--error);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--gray-500);
+    background: var(--gray-800);
+    border-radius: 16px;
+}
+
+@media (max-width: 768px) {
+    #loginScreen {
+        justify-content: flex-start;
+        overflow-y: auto;
+    }
+    
+    .login-card {
+        max-width: 420px;
+        gap: 0.2rem;
+    }
+
+    .login-row {
+        grid-template-columns: 1fr;
+        gap: 0.45rem;
+    }
+
+    .logo-area {
+        max-width: 300px;
+        margin-bottom: 1rem;
+    }
+
+    .logo-icon,
+    .logo-icon img {
+        max-width: 250px;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+        width: var(--sidebar-width);
+    }
+    
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+        padding: 0;
+    }
+    
+    .mobile-header {
+        display: flex;
+    }
+    
+    .servicos-grid,
+    .agendamentos-list {
+        grid-template-columns: 1fr;
+        padding: 0 1rem 1rem 1rem;
+    }
+    
+    .barbeiro-stats {
+        grid-template-columns: 1fr;
+        padding: 0 1rem;
+    }
+    
+    .content-title {
+        padding: 0 1rem;
+    }
+    
+    .form-card {
+        margin: 0 1rem;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .servicos-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .agendamentos-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1025px) {
+    .servicos-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .agendamentos-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+>>>>>>> Stashed changes

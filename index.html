@@ -58,6 +58,180 @@
             <button type="submit" class="btn-prim">Confirmar agendamento</button>
           </form>
         </div>
+<<<<<<< Updated upstream
+=======
+        <div class="login-row login-row-actions">
+          <div class="input-group">
+            <label for="userType">Tipo de usuário</label>
+            <select id="userType">
+              <option value="cliente">Cliente</option>
+              <option value="barbeiro">Barbeiro</option>
+            </select>
+          </div>
+          <div class="input-group input-group-button">
+            <label aria-hidden="true">&nbsp;</label>
+            <button type="submit" id="btnLogin" class="btn btn-primary">
+              Entrar
+            </button>
+          </div>
+        </div>
+        <p
+          id="loginError"
+          class="login-error hidden"
+          role="alert"
+          aria-live="polite"
+        ></p>
+
+        <div class="demo-credentials">
+          <strong>Credenciais demo</strong><br />
+          Cliente: cliente@email.com / 123456<br />
+          Barbeiros (cada um vê só a própria agenda):<br />
+          joao@navalha.com · pedro@navalha.com · lucas@navalha.com / 123456
+        </div>
+        <p class="login-disclaimer">
+          Autenticação simulada só para estudo. Em produção real, o servidor
+          validaria as credenciais; guardar senha em texto no navegador não é
+          seguro.
+        </p>
+      </form>
+    </div>
+
+    <!-- ===================== CLIENTE ===================== -->
+    <div id="clienteScreen" class="hidden">
+      <div class="layout">
+        <div class="page-overlay" id="clienteOverlay"></div>
+        <aside class="sidebar" id="clienteSidebar">
+          <div class="sidebar-header">
+            <div class="sidebar-logo">
+              <img src="logo.png" alt="logo">
+            </div>
+            <h2>Corte & Estilo</h2>
+          </div>
+          <div class="user-info">
+            <div class="user-avatar"><i class="fas fa-user"></i></div>
+            <div>
+              <span class="user-name" id="clienteNome">Cliente</span>
+              <span class="user-role">Cliente</span>
+            </div>
+          </div>
+          <nav class="sidebar-nav">
+            <button class="nav-item active" data-page="servicos">
+              <i class="fas fa-scissors"></i><span>Serviços</span>
+            </button>
+            <button class="nav-item" data-page="agendar">
+              <i class="fas fa-calendar-plus"></i><span>Agendar</span>
+            </button>
+            <button class="nav-item" data-page="meus-agendamentos">
+              <i class="fas fa-list-check"></i><span>Meus Agendamentos</span>
+            </button>
+            <button class="nav-item logout" id="clienteLogout">
+              <i class="fas fa-sign-out-alt"></i><span>Sair</span>
+            </button>
+          </nav>
+        </aside>
+        <main class="main-content">
+          <div class="mobile-header">
+            <button
+              class="menu-toggle"
+              id="clienteMenuToggle"
+              aria-label="Abrir menu"
+            >
+              <i class="fas fa-bars"></i>
+            </button>
+            <h2 id="clientePageTitle">Serviços</h2>
+          </div>
+
+          <div id="servicos" class="page active">
+            <div class="page-header">
+              <h2>Nossos Serviços</h2>
+              <p>Escolha o serviço ideal para você</p>
+            </div>
+            <div class="servicos-grid" id="servicosList"></div>
+          </div>
+
+          <div id="agendar" class="page">
+            <div class="page-header">
+              <h2>Agendar Horário</h2>
+              <p>Escolha o profissional, o serviço e o melhor horário</p>
+            </div>
+            <div class="form-card">
+              <div class="form-row">
+                <div class="input-group">
+                  <label for="barbeiroSelectCliente">Profissional</label>
+                  <select id="barbeiroSelectCliente">
+                    <option value="">Carregando…</option>
+                  </select>
+                </div>
+                <div class="input-group">
+                  <label for="clienteNomeCompleto">Nome completo</label>
+                  <input
+                    type="text"
+                    id="clienteNomeCompleto"
+                    autocomplete="name"
+                    maxlength="120"
+                    placeholder="Seu nome"
+                  />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="input-group">
+                  <label for="clienteWhatsapp">WhatsApp</label>
+                  <input
+                    type="tel"
+                    id="clienteWhatsapp"
+                    autocomplete="tel"
+                    inputmode="numeric"
+                    placeholder="11999998888 (DDD + número)"
+                  />
+                </div>
+                <div class="input-group">
+                  <label for="servicoSelect">Serviço</label>
+                  <select id="servicoSelect"></select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="input-group">
+                  <label for="dataAgendamento">Data</label>
+                  <input type="date" id="dataAgendamento" />
+                </div>
+                <div class="input-group">
+                  <label for="horarioSelect">Horário</label>
+                  <select id="horarioSelect" disabled>
+                    <option value="">Selecione uma data primeiro</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="input-group">
+                  <label for="pagamentoMetodo">Forma de pagamento</label>
+                  <select id="pagamentoMetodo">
+                    <option value="pix">PIX (simulado, QR na confirmação)</option>
+                    <option value="cartao">Cartão (simulado)</option>
+                    <option value="dinheiro">Dinheiro (pagar na chegada)</option>
+                    <option value="boleto">Boleto (simulado — pendente até pagamento)</option>
+                  </select>
+                </div>
+                <div class="input-group input-group-button">
+                  <label aria-hidden="true">&nbsp;</label>
+                  <button id="btnAgendar" class="btn btn-primary" type="button">
+                    <span class="btn-text">Confirmar agendamento</span>
+                  </button>
+                </div>
+              </div>
+              <p class="form-hint" id="regrasAgendamento">
+                Grade automática: seg–sex 9h–18h e sábado 9h–14h; pausa de
+                almoço 12h–13h bloqueada; 5 min entre atendimentos do mesmo
+                profissional. Antecedência mínima: 1h.
+              </p>
+            </div>
+          </div>
+
+          <div id="meus-agendamentos" class="page">
+            <div class="page-header"><h2>Meus Agendamentos</h2></div>
+            <div id="meusAgendamentosList" class="agendamentos-list"></div>
+          </div>
+        </main>
+>>>>>>> Stashed changes
       </div>
     </section>
 
