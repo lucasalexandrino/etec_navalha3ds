@@ -7,6 +7,12 @@
   var availabilityRequestId = 0;
   var adminReportMonth = new Date().getMonth();
   var adminReportYear = new Date().getFullYear();
+  var barberReportMonth = new Date().getMonth();
+  var barberReportYear = new Date().getFullYear();
+  var calendarState = null;
+  var calendarEventsInitialized = false;
+  var adminAttendancesMonth = new Date().getMonth();
+  var adminAttendancesYear = new Date().getFullYear();
 
   function $(id) {
     return document.getElementById(id);
@@ -121,6 +127,9 @@
       renderHomeAvailability();
     }
     if (id === "painel-barbeiro") {
+      var today = new Date();
+      setBarberReportMonth(today.getMonth(), today.getFullYear());
+      renderBarberEarnings();
       renderBarberBookings();
     }
     if (id === "painel-admin") {
@@ -130,6 +139,8 @@
       renderAdminBookings();
       setAdminReportMonth(adminReportMonth, adminReportYear);
       renderMonthlyReport();
+      setAdminAttendancesMonth(adminAttendancesMonth, adminAttendancesYear);
+      renderAdminAttendances();
     }
   }
 
@@ -236,7 +247,11 @@
     if (typeof params === "number") {
       return fetchJson(API_BASE + "/availability" + buildQuery({ days: params }));
     }
-    return fetchJson(API_BASE + "/availability" + buildQuery({ date: params.date, barberId: params.barberId }));
+    var query = { date: params.date, barberId: params.barberId };
+    if (params.durationMinutes) {
+      query.durationMinutes = params.durationMinutes;
+    }
+    return fetchJson(API_BASE + "/availability" + buildQuery(query));
   }
 
   function apiRegisterClient(payload) {
@@ -270,6 +285,14 @@
   function apiCancelBooking(id) {
     return fetchJson(API_BASE + "/bookings/" + encodeURIComponent(id), {
       method: "DELETE"
+    });
+  }
+
+  function apiUpdateBookingStatus(id, status) {
+    return fetchJson(API_BASE + "/bookings/" + encodeURIComponent(id) + "/status", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: status })
     });
   }
 
@@ -466,7 +489,8 @@
       return;
     }
     var requestId = ++availabilityRequestId;
-    apiGetAvailability({ barberId: barberId, date: date }).then(function (result) {
+    var duration = calculateServiceDuration();
+    apiGetAvailability({ barberId: barberId, date: date, durationMinutes: duration }).then(function (result) {
       if (requestId !== availabilityRequestId) return;
       var slots = (result.slots || []).slice();
       if (!slots.length) {
@@ -558,6 +582,10 @@
     return new Date(date + "T" + time + ":00").toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
   }
 
+  function formatDateTime(date, time) {
+    return formatDate(date, time);
+  }
+
   function formatCurrency(value) {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -626,6 +654,35 @@
     });
   }
 
+  function setBarberReportMonth(month, year) {
+    barberReportMonth = month;
+    barberReportYear = year;
+    var label = $("barbeiro-mes-ano-label");
+    if (label) {
+      label.textContent = new Date(year, month, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    }
+  }
+
+  function changeBarberReportMonth(delta) {
+    var date = new Date(barberReportYear, barberReportMonth + delta, 1);
+    setBarberReportMonth(date.getMonth(), date.getFullYear());
+    renderBarberEarnings();
+  }
+
+  function renderBarberEarnings() {
+    var totalEl = $("barbeiro-ganhos-total");
+    var countEl = $("barbeiro-ganhos-count");
+    if (!totalEl || !countEl) return;
+    
+    apiGetBarberEarnings(barberReportMonth, barberReportYear).then(function (data) {
+      totalEl.textContent = formatCurrency(data.totalEarnings || 0);
+      countEl.textContent = (data.bookingsCount || 0) + " agendamento" + (data.bookingsCount !== 1 ? "s" : "");
+    }).catch(function () {
+      totalEl.textContent = formatCurrency(0);
+      countEl.textContent = "0 agendamentos";
+    });
+  }
+
   function renderBarberBookings() {
     var todayBody = $("tbody-agendamentos-hoje");
     var futureBody = $("tbody-agendamentos-futuros");
@@ -634,8 +691,8 @@
     futureBody.innerHTML = "";
     apiGetBookings().then(function (bookings) {
       if (!bookings.length) {
-        todayBody.innerHTML = "<tr><td colspan=6>Nenhum agendamento hoje.</td></tr>";
-        futureBody.innerHTML = "<tr><td colspan=6>Nenhum agendamento para os próximos dias.</td></tr>";
+        todayBody.innerHTML = "<tr><td colspan=7>Nenhum agendamento hoje.</td></tr>";
+        futureBody.innerHTML = "<tr><td colspan=7>Nenhum agendamento para os próximos dias.</td></tr>";
         return;
       }
       var now = Date.now();
@@ -657,23 +714,25 @@
         return a.dateTime - b.dateTime;
       });
       if (!todayBookings.length) {
-        todayBody.innerHTML = "<tr><td colspan=6>Nenhum agendamento hoje.</td></tr>";
+        todayBody.innerHTML = "<tr><td colspan=7>Nenhum agendamento hoje.</td></tr>";
       } else {
         todayBookings.forEach(function (item) {
           var booking = item.booking;
+          var status = booking.status || "agendado";
           var isPast = item.dateTime.getTime() <= now;
+          var statusBadge = `<span class="status-badge status-${status}">${status}</span>`;
           var actionCell = document.createElement("td");
-          if (isPast) {
-            var status = document.createElement("span");
-            status.textContent = "Concluído";
-            status.className = "tag-passado";
-            actionCell.appendChild(status);
+          
+          if (status === "realizado" || status === "cancelado") {
+            actionCell.innerHTML = "✓";
+          } else if (isPast) {
+            actionCell.innerHTML = "";
           } else {
-            var button = document.createElement("button");
-            button.type = "button";
-            button.className = "btn-icone";
-            button.textContent = "Cancelar";
-            button.addEventListener("click", function () {
+            var cancelButton = document.createElement("button");
+            cancelButton.type = "button";
+            cancelButton.className = "btn-icone";
+            cancelButton.textContent = "Cancelar";
+            cancelButton.addEventListener("click", function () {
               apiCancelBooking(booking.id).then(function () {
                 renderBarberBookings();
                 renderHomeAvailability();
@@ -681,32 +740,36 @@
                 alert(err.message);
               });
             });
-            actionCell.appendChild(button);
+            actionCell.appendChild(cancelButton);
           }
+          
           var row = createTableRow([
             formatDate(booking.date, booking.time),
             booking.clientName || "-",
             booking.whatsapp || "-",
             renderBookingServices(booking),
             formatCurrency(getBookingTotalValue(booking)),
+            statusBadge,
             actionCell
           ]);
-          if (isPast) {
+          if (isPast && status !== "realizado") {
             row.classList.add("linha-passado");
           }
           todayBody.appendChild(row);
         });
       }
       if (!futureBookings.length) {
-        futureBody.innerHTML = "<tr><td colspan=6>Nenhum agendamento para os próximos dias.</td></tr>";
+        futureBody.innerHTML = "<tr><td colspan=7>Nenhum agendamento para os próximos dias.</td></tr>";
       } else {
         futureBookings.forEach(function (item) {
           var booking = item.booking;
-          var button = document.createElement("button");
-          button.type = "button";
-          button.className = "btn-icone";
-          button.textContent = "Cancelar";
-          button.addEventListener("click", function () {
+          var status = booking.status || "agendado";
+          var statusBadge = `<span class="status-badge status-${status}">${status}</span>`;
+          var cancelButton = document.createElement("button");
+          cancelButton.type = "button";
+          cancelButton.className = "btn-icone";
+          cancelButton.textContent = "Cancelar";
+          cancelButton.addEventListener("click", function () {
             apiCancelBooking(booking.id).then(function () {
               renderBarberBookings();
               renderHomeAvailability();
@@ -714,19 +777,21 @@
               alert(err.message);
             });
           });
+          
           futureBody.appendChild(createTableRow([
             formatDate(booking.date, booking.time),
             booking.clientName || "-",
             booking.whatsapp || "-",
             renderBookingServices(booking),
             formatCurrency(getBookingTotalValue(booking)),
-            button
+            statusBadge,
+            cancelButton
           ]));
         });
       }
     }).catch(function () {
-      todayBody.innerHTML = "<tr><td colspan=6>Erro ao carregar agendamentos.</td></tr>";
-      futureBody.innerHTML = "<tr><td colspan=6>Erro ao carregar agendamentos.</td></tr>";
+      todayBody.innerHTML = "<tr><td colspan=7>Erro ao carregar agendamentos.</td></tr>";
+      futureBody.innerHTML = "<tr><td colspan=7>Erro ao carregar agendamentos.</td></tr>";
     });
   }
 
@@ -877,33 +942,24 @@
 
   function renderAdminBookings() {
     var todayBody = $("tbody-admin-hoje");
-    var futureBody = $("tbody-admin-futuros");
-    if (!todayBody || !futureBody) return;
+    if (!todayBody) return;
     todayBody.innerHTML = "";
-    futureBody.innerHTML = "";
     apiGetBookings().then(function (bookings) {
       if (!bookings.length) {
         todayBody.innerHTML = "<tr><td colspan=6>Nenhum agendamento hoje.</td></tr>";
-        futureBody.innerHTML = "<tr><td colspan=6>Nenhum agendamento para os próximos dias.</td></tr>";
         return;
       }
       var now = Date.now();
       var today = new Date().toISOString().slice(0, 10);
       var todayBookings = [];
-      var futureBookings = [];
       bookings.forEach(function (booking) {
         var bookingDate = booking.date;
         var bookingTime = getBookingDateTime(booking);
         if (bookingDate === today && bookingTime.getTime() >= now) {
           todayBookings.push({ booking: booking, dateTime: bookingTime });
-        } else if (bookingTime.getTime() > now) {
-          futureBookings.push({ booking: booking, dateTime: bookingTime });
         }
       });
       todayBookings.sort(function (a, b) {
-        return a.dateTime - b.dateTime;
-      });
-      futureBookings.sort(function (a, b) {
         return a.dateTime - b.dateTime;
       });
       if (!todayBookings.length) {
@@ -934,42 +990,37 @@
           ]));
         });
       }
-      if (!futureBookings.length) {
-        futureBody.innerHTML = "<tr><td colspan=6>Nenhum agendamento para os próximos dias.</td></tr>";
-      } else {
-        futureBookings.forEach(function (item) {
-          var booking = item.booking;
-          var button = document.createElement("button");
-          button.type = "button";
-          button.className = "btn-icone";
-          button.textContent = "Cancelar";
-          button.addEventListener("click", function () {
-            apiCancelBooking(booking.id).then(function () {
-              renderAdminBookings();
-              renderMonthlyReport();
-              renderHomeAvailability();
-            }).catch(function (err) {
-              alert(err.message);
-            });
-          });
-          futureBody.appendChild(createTableRow([
-            formatDate(booking.date, booking.time),
-            booking.barberName || "-",
-            renderBookingServices(booking),
-            booking.clientName || "-",
-            formatCurrency(getBookingTotalValue(booking)),
-            button
-          ]));
-        });
-      }
     }).catch(function () {
       todayBody.innerHTML = "<tr><td colspan=6>Erro ao carregar agendamentos.</td></tr>";
-      futureBody.innerHTML = "<tr><td colspan=6>Erro ao carregar agendamentos.</td></tr>";
     });
   }
 
   function apiGetBookings() {
     return fetchJson(API_BASE + "/bookings");
+  }
+
+  function apiGetBarberEarnings(month, year) {
+    var query = buildQuery({ month: month, year: year });
+    return fetchJson(API_BASE + "/barber/earnings" + query);
+  }
+
+  function calculateServiceDuration() {
+    var select = $("ag-servico");
+    if (!select) return 0;
+    var selected = Array.from(select.selectedOptions || []);
+    return Math.max(30, selected.length * 30);
+  }
+
+  function formatDuration(minutes) {
+    if (minutes < 60) {
+      return minutes + " min";
+    }
+    var hours = Math.floor(minutes / 60);
+    var mins = minutes % 60;
+    if (mins === 0) {
+      return hours + " h";
+    }
+    return hours + " h " + mins + " min";
   }
 
   function updateAppointmentTotal() {
@@ -981,7 +1032,9 @@
       var price = Number(option.dataset.price || 0);
       return sum + (Number.isFinite(price) ? price : 0);
     }, 0);
-    totalContainer.textContent = "Total estimado: " + formatCurrency(total);
+    var duration = calculateServiceDuration();
+    var durationText = formatDuration(duration);
+    totalContainer.textContent = "Total estimado: " + formatCurrency(total) + " · Duração: " + durationText;
   }
 
   function setAdminReportMonth(month, year) {
@@ -1016,6 +1069,59 @@
     });
   }
 
+  function setAdminAttendancesMonth(month, year) {
+    adminAttendancesMonth = month;
+    adminAttendancesYear = year;
+    var label = $("admin-atendimentos-mes-ano");
+    if (label) {
+      var date = new Date(year, month, 1);
+      label.textContent = date.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    }
+    renderAdminAttendances();
+  }
+
+  function changeAdminAttendancesMonth(delta) {
+    var date = new Date(adminAttendancesYear, adminAttendancesMonth + delta, 1);
+    setAdminAttendancesMonth(date.getMonth(), date.getFullYear());
+  }
+
+  function renderAdminAttendances() {
+    var tbody = $("tbody-admin-atendimentos");
+    if (!tbody) return;
+    
+    apiGetBookings().then(function (bookings) {
+      var filteredBookings = bookings.filter(function (booking) {
+        var bookingDate = new Date(booking.date + "T" + booking.time + ":00");
+        return bookingDate.getMonth() === adminAttendancesMonth && 
+               bookingDate.getFullYear() === adminAttendancesYear;
+      });
+      
+      tbody.innerHTML = "";
+      filteredBookings.forEach(function (booking) {
+        var row = document.createElement("tr");
+        var servicesText = Array.isArray(booking.serviceItems) 
+          ? booking.serviceItems.map(function (item) { return item.name; }).join(", ")
+          : booking.serviceName || "N/A";
+        var totalValue = booking.totalValue || 0;
+        var status = booking.status || "agendado";
+        var statusClass = status === "realizado" ? "status-realizado" : 
+                         status === "cancelado" ? "status-cancelado" : "status-agendado";
+        
+        row.innerHTML = `
+          <td>${formatDateTime(booking.date, booking.time)}</td>
+          <td>${booking.barberName || "N/A"}</td>
+          <td>${servicesText}</td>
+          <td>${booking.clientName || "N/A"}</td>
+          <td>${formatCurrency(totalValue)}</td>
+          <td><span class="status-badge ${statusClass}">${status}</span></td>
+        `;
+        tbody.appendChild(row);
+      });
+    }).catch(function () {
+      tbody.innerHTML = "<tr><td colspan='6'>Erro ao carregar atendimentos</td></tr>";
+    });
+  }
+
   function loadAppointmentForm() {
     return Promise.all([apiGetBarbers(), apiGetServices()]).then(function (results) {
       renderOptions($("ag-barbeiro"), results[0], function (item) {
@@ -1030,92 +1136,103 @@
   }
 
   function renderCalendar() {
+    var today = new Date();
+    calendarState = { 
+      month: today.getMonth(), 
+      year: today.getFullYear()
+    };
+    
+    if (!calendarEventsInitialized) {
+      var calMesAnt = $("cal-mes-ant");
+      var calProxMes = $("cal-prox-mes");
+      if (calMesAnt) {
+        calMesAnt.addEventListener("click", function () {
+          calendarState.month -= 1;
+          if (calendarState.month < 0) {
+            calendarState.month = 11;
+            calendarState.year -= 1;
+          }
+          drawCalendar();
+        });
+      }
+      if (calProxMes) {
+        calProxMes.addEventListener("click", function () {
+          calendarState.month += 1;
+          if (calendarState.month > 11) {
+            calendarState.month = 0;
+            calendarState.year += 1;
+          }
+          drawCalendar();
+        });
+      }
+      calendarEventsInitialized = true;
+    }
+    
+    drawCalendar();
+  }
+
+  function drawCalendar() {
+    if (!calendarState) return;
+    
     var calTitulo = $("cal-titulo-mes");
     var calGrade = $("cal-grade");
     if (!calTitulo || !calGrade) return;
+    
     var today = new Date();
-    var currentMonth = today.getMonth();
-    var currentYear = today.getFullYear();
-    var state = { month: currentMonth, year: currentYear };
-
-    function draw() {
-      var firstDay = new Date(state.year, state.month, 1);
-      var lastDay = new Date(state.year, state.month + 1, 0).getDate();
-      var startWeek = firstDay.getDay();
-      calTitulo.textContent = firstDay.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
-      calGrade.innerHTML = "";
-      apiGetBookings().then(function (bookings) {
-        var markers = {};
-        bookings.forEach(function (booking) {
-          var date = new Date(booking.date + "T" + booking.time + ":00");
-          if (date.getFullYear() === state.year && date.getMonth() === state.month) {
-            markers[date.getDate()] = true;
-          }
-        });
-        for (var i = 0; i < startWeek; i += 1) {
-          calGrade.appendChild(createDisabledSquare());
-        }
-        for (var day = 1; day <= lastDay; day += 1) {
-          var date = new Date(state.year, state.month, day);
-          var isToday = date.toDateString() === today.toDateString();
-          calGrade.appendChild(createDaySquare(day, markers[day], isToday, state.year, state.month));
-        }
-      }).catch(function () {
-        for (var i = 0; i < startWeek; i += 1) {
-          calGrade.appendChild(createDisabledSquare());
-        }
-        for (var day = 1; day <= lastDay; day += 1) {
-          var date = new Date(state.year, state.month, day);
-          var isToday = date.toDateString() === today.toDateString();
-          calGrade.appendChild(createDaySquare(day, false, isToday, state.year, state.month));
+    var firstDay = new Date(calendarState.year, calendarState.month, 1);
+    var lastDay = new Date(calendarState.year, calendarState.month + 1, 0).getDate();
+    var startWeek = firstDay.getDay();
+    
+    calTitulo.textContent = firstDay.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    calGrade.innerHTML = "";
+    
+    apiGetBookings().then(function (bookings) {
+      var markers = {};
+      bookings.forEach(function (booking) {
+        var date = new Date(booking.date + "T" + booking.time + ":00");
+        if (date.getFullYear() === calendarState.year && date.getMonth() === calendarState.month) {
+          markers[date.getDate()] = true;
         }
       });
-    }
+      renderCalendarDays(startWeek, lastDay, today, markers);
+    }).catch(function () {
+      renderCalendarDays(startWeek, lastDay, today, {});
+    });
+  }
 
-    function createDisabledSquare() {
+  function renderCalendarDays(startWeek, lastDay, today, markers) {
+    var calGrade = $("cal-grade");
+    if (!calGrade || !calendarState) return;
+    
+    for (var i = 0; i < startWeek; i += 1) {
       var button = document.createElement("button");
       button.type = "button";
       button.className = "cal-dia fora";
       button.disabled = true;
       button.setAttribute("aria-hidden", "true");
-      return button;
+      calGrade.appendChild(button);
     }
-
-    function createDaySquare(day, hasBooking, isToday, year, month) {
+    
+    for (var day = 1; day <= lastDay; day += 1) {
+      var date = new Date(calendarState.year, calendarState.month, day);
+      var isToday = date.toDateString() === today.toDateString();
+      var hasBooking = markers[day];
+      
       var button = document.createElement("button");
       button.type = "button";
       button.className = "cal-dia";
       button.textContent = String(day);
       if (isToday) button.classList.add("hoje");
       if (hasBooking) button.classList.add("tem-evento");
-      button.addEventListener("click", function () {
+      button.addEventListener("click", function (event) {
+        var dayNum = parseInt(event.target.textContent);
         var dateInput = $("ag-data");
-        if (dateInput) {
-          dateInput.value = year + "-" + String(month + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
+        if (dateInput && !isNaN(dayNum)) {
+          dateInput.value = calendarState.year + "-" + String(calendarState.month + 1).padStart(2, "0") + "-" + String(dayNum).padStart(2, "0");
         }
       });
-      return button;
+      calGrade.appendChild(button);
     }
-
-    $("cal-mes-ant").addEventListener("click", function () {
-      state.month -= 1;
-      if (state.month < 0) {
-        state.month = 11;
-        state.year -= 1;
-      }
-      draw();
-    });
-
-    $("cal-prox-mes").addEventListener("click", function () {
-      state.month += 1;
-      if (state.month > 11) {
-        state.month = 0;
-        state.year += 1;
-      }
-      draw();
-    });
-
-    draw();
   }
 
   function bindEvents() {
@@ -1158,6 +1275,12 @@
     });
     $("btn-report-next")?.addEventListener("click", function () {
       changeAdminReportMonth(1);
+    });
+    $("btn-admin-atendimentos-prev")?.addEventListener("click", function () {
+      changeAdminAttendancesMonth(-1);
+    });
+    $("btn-admin-atendimentos-next")?.addEventListener("click", function () {
+      changeAdminAttendancesMonth(1);
     });
     $("btn-fechar-historico")?.addEventListener("click", function () {
       closeHistoryModal();
@@ -1271,7 +1394,10 @@
     });
 
     $("ag-barbeiro").addEventListener("change", renderAvailableTimes);
-    $("ag-servico").addEventListener("change", updateAppointmentTotal);
+    $("ag-servico").addEventListener("change", function () {
+      updateAppointmentTotal();
+      renderAvailableTimes();
+    });
     $("ag-data").addEventListener("change", renderAvailableTimes);
     $("ag-hora").addEventListener("input", function () {
       highlightSelectedTime($("ag-hora").value);
@@ -1297,6 +1423,14 @@
       }).catch(function (err) {
         showError("admin-servico-erro", err.message);
       });
+    });
+
+    $("btn-barbeiro-mes-ant")?.addEventListener("click", function () {
+      changeBarberReportMonth(-1);
+    });
+
+    $("btn-barbeiro-prox-mes")?.addEventListener("click", function () {
+      changeBarberReportMonth(1);
     });
   }
 

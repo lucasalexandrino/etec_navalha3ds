@@ -130,7 +130,7 @@
             <label>
               Serviço
               <select id="ag-servico" name="servico" multiple size="4"></select>
-              <small class="help-text">Segure Ctrl ou Shift para selecionar mais de um serviço.</small>
+              <small class="help-text">Segure Ctrl para selecionar mais de um serviço.</small>
             </label>
             <p id="ag-total-valor" class="help-text">Total estimado: R$ 0,00</p>
             <label>
@@ -197,6 +197,26 @@
       <div class="panel-toolbar">
         <button type="button" id="btn-barbeiro-historico" class="btn-sec">Ver atendimentos realizados</button>
       </div>
+      <div class="card card-earnings">
+        <div class="earnings-header">
+          <h3>Ganhos do mês</h3>
+          <div class="earnings-nav">
+            <button type="button" id="btn-barbeiro-mes-ant" class="btn-icon" aria-label="Mês anterior">←</button>
+            <span id="barbeiro-mes-ano-label" class="earnings-month-label">Abril 2026</span>
+            <button type="button" id="btn-barbeiro-prox-mes" class="btn-icon" aria-label="Próximo mês">→</button>
+          </div>
+        </div>
+        <div class="earnings-summary">
+          <div class="earnings-item">
+            <span class="earnings-label">Total:</span>
+            <span class="earnings-value" id="barbeiro-ganhos-total">R$ 0,00</span>
+          </div>
+          <div class="earnings-item">
+            <span class="earnings-label">Agendamentos:</span>
+            <span class="earnings-value" id="barbeiro-ganhos-count">0</span>
+          </div>
+        </div>
+      </div>
       <div class="card card-largo barber-card">
         <h3>Hoje</h3>
         <div class="tabela-wrap">
@@ -208,6 +228,7 @@
                 <th>WhatsApp</th>
                 <th>Serviços</th>
                 <th>Valor</th>
+                <th>Status</th>
                 <th></th>
               </tr>
             </thead>
@@ -226,7 +247,9 @@
                 <th>WhatsApp</th>
                 <th>Serviços</th>
                 <th>Valor</th>
+                <th>Status</th>
                 <th></th>
+              </tr>
             </thead>
             <tbody id="tbody-agendamentos-futuros"></tbody>
           </table>
@@ -333,10 +356,12 @@
         </div>
 
         <div class="card card-largo admin-block">
+          <h3>Atendimentos por mês</h3>
           <div class="panel-toolbar">
-            <button type="button" id="btn-admin-historico" class="btn-sec">Ver atendimentos realizados</button>
+            <button type="button" id="btn-admin-atendimentos-prev" class="btn-sec">◀</button>
+            <span id="admin-atendimentos-mes-ano">Abril/2026</span>
+            <button type="button" id="btn-admin-atendimentos-next" class="btn-sec">▶</button>
           </div>
-          <h3>Agendamentos de hoje</h3>
           <div class="tabela-wrap">
             <table class="tabela-ag">
               <thead>
@@ -346,28 +371,10 @@
                   <th>Serviços</th>
                   <th>Cliente</th>
                   <th>Valor</th>
-                  <th></th>
+                  <th>Status</th>
                 </tr>
               </thead>
-              <tbody id="tbody-admin-hoje"></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="card card-largo admin-block">
-          <h3>Próximos dias</h3>
-          <div class="tabela-wrap">
-            <table class="tabela-ag">
-              <thead>
-                <tr>
-                  <th>Data / hora</th>
-                  <th>Barbeiro</th>
-                  <th>Serviços</th>
-                  <th>Cliente</th>
-                  <th>Valor</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="tbody-admin-futuros"></tbody>
+              <tbody id="tbody-admin-atendimentos"></tbody>
             </table>
           </div>
         </div>

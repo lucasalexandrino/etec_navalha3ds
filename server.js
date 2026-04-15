@@ -94,8 +94,27 @@ function isValidTimeSlot(time) {
   return typeof time === "string" && /^([01]\d|2[0-3]):(00|30)$/.test(time);
 }
 
-function isBookingConflict(bookings, barberId, date, time) {
-  return bookings.some((item) => item.barberId === barberId && item.date === date && item.time === time);
+function isBookingConflict(bookings, barberId, date, time, durationMinutes) {
+  // If no duration specified, check only for exact time slot conflict
+  if (!durationMinutes) {
+    return bookings.some((item) => item.barberId === barberId && item.date === date && item.time === time);
+  }
+
+  // Parse the start time and calculate end time
+  const startDateTime = formatDateTime(date, time);
+  if (!startDateTime) return false;
+  const endDateTime = new Date(startDateTime.getTime() + durationMinutes * 60 * 1000);
+
+  // Check if any existing booking overlaps with the requested time period
+  return bookings.some((item) => {
+    if (item.barberId !== barberId || item.date !== date) return false;
+    const bookingStart = formatDateTime(item.date, item.time);
+    if (!bookingStart) return false;
+    const bookingDuration = item.durationMinutes || 30;
+    const bookingEnd = new Date(bookingStart.getTime() + bookingDuration * 60 * 1000);
+    // Overlap exists if one starts before the other ends
+    return startDateTime < bookingEnd && endDateTime > bookingStart;
+  });
 }
 
 function canCancelBooking(booking) {
@@ -132,20 +151,24 @@ function nextDates(days = 14) {
   return list;
 }
 
-function buildAvailability(date, barberId) {
+function buildAvailability(date, barberId, durationMinutes) {
   const data = loadData();
+  const duration = durationMinutes || 30; // Default 30 minutes
   if (date) {
     const slots = getValidSlotsForDate(date)
       .filter((slot) => {
         const slotDateTime = new Date(`${slot.date}T${slot.time}:00`);
         return slotDateTime.getTime() > Date.now();
       })
-      .map((slot) => ({
-        ...slot,
-        occupied: barberId
-          ? isBookingConflict(data.bookings, barberId, slot.date, slot.time)
-          : getActiveBarbers(data).every((barber) => isBookingConflict(data.bookings, barber.id, slot.date, slot.time))
-      }));
+      .map((slot) => {
+        const occupied = barberId
+          ? isBookingConflict(data.bookings, barberId, slot.date, slot.time, duration)
+          : getActiveBarbers(data).some((barber) => isBookingConflict(data.bookings, barber.id, slot.date, slot.time, duration));
+        // Also check if slot goes beyond business hours
+        const slotEnd = new Date(new Date(`${slot.date}T${slot.time}:00`).getTime() + duration * 60 * 1000);
+        const withinHours = isWithinBusinessHours(slotEnd);
+        return { ...slot, occupied: occupied || !withinHours };
+      });
     return { date, slots };
   }
   const dates = nextDates(14);
@@ -153,11 +176,14 @@ function buildAvailability(date, barberId) {
   dates.forEach((day) => {
     getValidSlotsForDate(day).forEach((slot) => {
       const free = barberId
-        ? !isBookingConflict(data.bookings, barberId, slot.date, slot.time)
-        : getActiveBarbers(data).some((barber) => !isBookingConflict(data.bookings, barber.id, slot.date, slot.time));
+        ? !isBookingConflict(data.bookings, barberId, slot.date, slot.time, duration)
+        : getActiveBarbers(data).some((barber) => !isBookingConflict(data.bookings, barber.id, slot.date, slot.time, duration));
       if (!free) return;
       const dateObj = new Date(`${slot.date}T${slot.time}:00`);
       if (dateObj.getTime() <= Date.now()) return;
+      // Check if slot end time is within business hours
+      const slotEnd = new Date(dateObj.getTime() + duration * 60 * 1000);
+      if (!isWithinBusinessHours(slotEnd)) return;
       output.push({
         date: slot.date,
         time: slot.time,
@@ -219,8 +245,9 @@ app.get("/api/barbers", (req, res) => {
 });
 
 app.get("/api/availability", (req, res) => {
-  const { date, barberId } = req.query;
-  const output = buildAvailability(date, barberId);
+  const { date, barberId, durationMinutes } = req.query;
+  const duration = durationMinutes ? Number(durationMinutes) : undefined;
+  const output = buildAvailability(date, barberId, duration);
   return res.json(output);
 });
 
@@ -425,6 +452,55 @@ app.get("/api/bookings", authMiddleware, (req, res) => {
   return res.status(403).json({ error: "Acesso negado." });
 });
 
+app.get("/api/barber/earnings", authMiddleware, barberMiddleware, (req, res) => {
+  const requestedMonth = Number(req.query.month);
+  const requestedYear = Number(req.query.year);
+  const data = loadData();
+  const barberId = req.auth.user.id;
+  
+  // Get current month and year if not specified
+  const today = new Date();
+  const month = Number.isFinite(requestedMonth) ? requestedMonth : today.getMonth();
+  const year = Number.isFinite(requestedYear) ? requestedYear : today.getFullYear();
+  
+  // Filter bookings for this barber and month
+  const bookings = (data.bookings || []).filter((booking) => {
+    if (booking.barberId !== barberId) return false;
+    const bookingDate = formatDateTime(booking.date, booking.time);
+    if (!bookingDate) return false;
+    return bookingDate.getMonth() === month && bookingDate.getFullYear() === year;
+  });
+  
+  // Calculate total earnings
+  let totalEarnings = 0;
+  let bookingsCount = 0;
+  
+  bookings.forEach((booking) => {
+    if (typeof booking.totalValue === "number") {
+      totalEarnings += booking.totalValue;
+      bookingsCount += 1;
+    }
+  });
+  
+  totalEarnings = Number(totalEarnings.toFixed(2));
+  
+  return res.json({
+    month,
+    year,
+    monthLabel: `${String(month + 1).padStart(2, "0")}/${year}`,
+    totalEarnings,
+    bookingsCount,
+    bookings: bookings.map((booking) => ({
+      id: booking.id,
+      date: booking.date,
+      time: booking.time,
+      clientName: booking.clientName,
+      serviceName: booking.serviceName,
+      totalValue: booking.totalValue
+    }))
+  });
+});
+
 app.post("/api/bookings", authMiddleware, clientMiddleware, (req, res) => {
   const { barberId, serviceId, serviceIds, date, time } = req.body;
   const selectedServiceIds = Array.isArray(serviceIds) ? serviceIds : serviceId ? [serviceId] : [];
@@ -451,8 +527,16 @@ app.post("/api/bookings", authMiddleware, clientMiddleware, (req, res) => {
   if (appointment.getTime() <= Date.now()) {
     return res.status(400).json({ error: "Não é possível agendar em horários passados." });
   }
-  if (isBookingConflict(data.bookings, barberId, date, time)) {
-    return res.status(409).json({ error: "Horário já ocupado." });
+  // Calculate total duration: 30 minutes per service
+  const durationMinutes = Math.max(30, selectedServiceIds.length * 30);
+  // Check if appointment end time is within business hours
+  const appointmentEnd = new Date(appointment.getTime() + durationMinutes * 60 * 1000);
+  if (!isWithinBusinessHours(appointmentEnd)) {
+    return res.status(400).json({ error: "O agendamento ultrapassaria o horário de fechamento. Escolha um horário anterior." });
+  }
+  // Check for conflicts during entire appointment duration
+  if (isBookingConflict(data.bookings, barberId, date, time, durationMinutes)) {
+    return res.status(409).json({ error: "Barbeiro indisponível neste horário (conflito com outro agendamento)." });
   }
   const serviceItems = services.map((service) => ({
     id: service.id,
@@ -471,6 +555,7 @@ app.post("/api/bookings", authMiddleware, clientMiddleware, (req, res) => {
     serviceIds: selectedServiceIds,
     serviceName: serviceItems.map((item) => item.name).join(", "),
     totalValue,
+    durationMinutes,
     date,
     time
   };
@@ -511,6 +596,51 @@ app.delete("/api/bookings/:id", authMiddleware, (req, res) => {
     return res.json({ success: true });
   }
   return res.status(403).json({ error: "Acesso negado." });
+});
+
+app.patch("/api/bookings/:id/status", authMiddleware, (req, res) => {
+  const bookingId = req.params.id;
+  const { status } = req.body;
+  
+  if (!status || !["agendado", "realizado", "cancelado"].includes(status)) {
+    return res.status(400).json({ error: "Status inválido. Use: agendado, realizado ou cancelado." });
+  }
+  
+  const data = loadData();
+  const booking = data.bookings.find((item) => item.id === bookingId);
+  
+  if (!booking) {
+    return res.status(404).json({ error: "Agendamento não encontrado." });
+  }
+  
+  // Verificar permissões
+  if (req.auth.role === "admin") {
+    // Admin pode alterar qualquer status
+  } else if (req.auth.role === "barber") {
+    if (booking.barberId !== req.auth.user.id) {
+      return res.status(403).json({ error: "Acesso negado. Você só pode alterar seus próprios agendamentos." });
+    }
+    // Barbeiro só pode marcar como realizado
+    if (status !== "realizado") {
+      return res.status(403).json({ error: "Barbeiro só pode marcar agendamentos como realizados." });
+    }
+  } else if (req.auth.role === "client") {
+    if (booking.clientId !== req.auth.user.id) {
+      return res.status(403).json({ error: "Acesso negado." });
+    }
+    // Cliente só pode cancelar
+    if (status !== "cancelado") {
+      return res.status(403).json({ error: "Cliente só pode cancelar agendamentos." });
+    }
+  } else {
+    return res.status(403).json({ error: "Acesso negado." });
+  }
+  
+  // Atualizar status
+  booking.status = status;
+  saveData(data);
+  
+  return res.json({ success: true, booking: booking });
 });
 
 app.get("*", (req, res) => {

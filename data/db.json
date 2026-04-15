@@ -20,6 +20,41 @@
       "email": "carlao@gmail.com",
       "whatsapp": "1436410722",
       "senha": "1234567"
+    },
+    {
+      "id": "cliente-1776206181809-5w578b",
+      "nome": "André Rosa",
+      "email": "andre@gmail.com",
+      "whatsapp": "14996586598",
+      "senha": "12345678"
+    },
+    {
+      "id": "cliente-1776214477607-5oum0i",
+      "nome": "José Antônio Gallo Junior",
+      "email": "gallo@gmail.com",
+      "whatsapp": "14996856982",
+      "senha": "12345678"
+    },
+    {
+      "id": "cliente-1776215221453-jllp9c",
+      "nome": "Ana Livia Borges da Silva",
+      "email": "ana@gmail.com",
+      "whatsapp": "14996857632",
+      "senha": "12345678"
+    },
+    {
+      "id": "cliente-1776215449415-srmf7n",
+      "nome": "Léo Castro",
+      "email": "lelo@gmail.com",
+      "whatsapp": "1436412925",
+      "senha": "12345678"
+    },
+    {
+      "id": "cliente-1776215723829-1gtdt7",
+      "nome": "Diego Fernando dos Santos Junior",
+      "email": "diego@gmail.com",
+      "whatsapp": "14663598265",
+      "senha": "12345678"
     }
   ],
   "barbers": [
@@ -40,6 +75,12 @@
       "name": "Henrique",
       "email": "henrique.silva@gmail.com",
       "password": "12345678"
+    },
+    {
+      "id": "barbeiro-1776205334791-ow6682",
+      "name": "Valdemir",
+      "email": "valdemir@gmail.com",
+      "password": "12345678"
     }
   ],
   "services": [
@@ -55,38 +96,31 @@
     },
     {
       "id": "servico-3",
-      "name": "Hidratação"
+      "name": "Hidratação",
+      "price": 100
     },
     {
       "id": "servico-4",
-      "name": "Sobrancelha"
+      "name": "Sobrancelha",
+      "price": 20
     },
     {
       "id": "servico-5",
-      "name": "Limpeza de pele"
+      "name": "Limpeza de pele",
+      "price": 30
     },
     {
       "id": "servico-6",
-      "name": "Descoloração"
+      "name": "Descoloração",
+      "price": 75
     },
     {
       "id": "servico-7",
-      "name": "Pintura de cabelo"
+      "name": "Pintura de cabelo",
+      "price": 60
     }
   ],
   "bookings": [
-    {
-      "id": "agendamento-1775946287098-4dfcn4",
-      "clientId": "cliente-1775944699991-76towv",
-      "clientName": "Aurélio Viana",
-      "whatsapp": "14991584796",
-      "barberId": "barbeiro-1",
-      "barberName": "Barbeiro Demo",
-      "serviceId": "servico-2",
-      "serviceName": "Barba",
-      "date": "2026-04-17",
-      "time": "15:00"
-    },
     {
       "id": "agendamento-1776025429620-ofz5nn",
       "clientId": "cliente-1776025418701-g0m6hv",
@@ -124,30 +158,6 @@
       "time": "09:30"
     },
     {
-      "id": "agendamento-1776125854670-92zhzh",
-      "clientId": "cliente-1776025418701-g0m6hv",
-      "clientName": "Daniela Conduta",
-      "whatsapp": "14996857895",
-      "barberId": "barbeiro-1776125712296-s83drz",
-      "barberName": "Henrique",
-      "serviceId": "servico-4",
-      "serviceName": "Sobrancelha",
-      "date": "2026-04-18",
-      "time": "12:00"
-    },
-    {
-      "id": "agendamento-1776126288229-6zx0oo",
-      "clientId": "cliente-1776126109516-gic4wy",
-      "clientName": "Carlão Guedes",
-      "whatsapp": "1436410722",
-      "barberId": "barbeiro-1776025980701-eovmtf",
-      "barberName": "Clovis",
-      "serviceId": "servico-1",
-      "serviceName": "Corte de cabelo",
-      "date": "2026-04-23",
-      "time": "15:30"
-    },
-    {
       "id": "agendamento-1776130422166-dch8dt",
       "clientId": "cliente-1775944699991-76towv",
       "clientName": "Aurélio Viana",
@@ -168,6 +178,365 @@
       "totalValue": 40,
       "date": "2026-04-22",
       "time": "11:30"
+    },
+    {
+      "id": "agendamento-1776206230877-6dgtcz",
+      "clientId": "cliente-1776206181809-5w578b",
+      "clientName": "André Rosa",
+      "whatsapp": "14996586598",
+      "barberId": "barbeiro-1776205334791-ow6682",
+      "barberName": "Valdemir",
+      "serviceItems": [
+        {
+          "id": "servico-1",
+          "name": "Corte de cabelo",
+          "price": 40
+        },
+        {
+          "id": "servico-2",
+          "name": "Barba",
+          "price": 30
+        },
+        {
+          "id": "servico-3",
+          "name": "Hidratação",
+          "price": 100
+        }
+      ],
+      "serviceIds": [
+        "servico-1",
+        "servico-2",
+        "servico-3"
+      ],
+      "serviceName": "Corte de cabelo, Barba, Hidratação",
+      "totalValue": 170,
+      "date": "2026-04-23",
+      "time": "15:00"
+    },
+    {
+      "id": "agendamento-1776207865977-2n5u9c",
+      "clientId": "cliente-1776025418701-g0m6hv",
+      "clientName": "Daniela Conduta",
+      "whatsapp": "14996857895",
+      "barberId": "barbeiro-1",
+      "barberName": "Barbeiro Demo",
+      "serviceItems": [
+        {
+          "id": "servico-3",
+          "name": "Hidratação",
+          "price": 100
+        },
+        {
+          "id": "servico-4",
+          "name": "Sobrancelha",
+          "price": 20
+        }
+      ],
+      "serviceIds": [
+        "servico-3",
+        "servico-4"
+      ],
+      "serviceName": "Hidratação, Sobrancelha",
+      "totalValue": 120,
+      "durationMinutes": 60,
+      "date": "2026-04-16",
+      "time": "17:00"
+    },
+    {
+      "id": "agendamento-1776214568309-z0n3gv",
+      "clientId": "cliente-1776214477607-5oum0i",
+      "clientName": "José Antônio Gallo Junior",
+      "whatsapp": "14996856982",
+      "barberId": "barbeiro-1",
+      "barberName": "Barbeiro Demo",
+      "serviceItems": [
+        {
+          "id": "servico-1",
+          "name": "Corte de cabelo",
+          "price": 40
+        },
+        {
+          "id": "servico-3",
+          "name": "Hidratação",
+          "price": 100
+        },
+        {
+          "id": "servico-6",
+          "name": "Descoloração",
+          "price": 75
+        },
+        {
+          "id": "servico-7",
+          "name": "Pintura de cabelo",
+          "price": 60
+        }
+      ],
+      "serviceIds": [
+        "servico-1",
+        "servico-3",
+        "servico-6",
+        "servico-7"
+      ],
+      "serviceName": "Corte de cabelo, Hidratação, Descoloração, Pintura de cabelo",
+      "totalValue": 275,
+      "durationMinutes": 120,
+      "date": "2026-04-18",
+      "time": "10:00"
+    },
+    {
+      "id": "agendamento-1776215106125-ody9ao",
+      "clientId": "cliente-1776126109516-gic4wy",
+      "clientName": "Carlão Guedes",
+      "whatsapp": "1436410722",
+      "barberId": "barbeiro-1",
+      "barberName": "Barbeiro Demo",
+      "serviceItems": [
+        {
+          "id": "servico-1",
+          "name": "Corte de cabelo",
+          "price": 40
+        },
+        {
+          "id": "servico-5",
+          "name": "Limpeza de pele",
+          "price": 30
+        },
+        {
+          "id": "servico-7",
+          "name": "Pintura de cabelo",
+          "price": 60
+        }
+      ],
+      "serviceIds": [
+        "servico-1",
+        "servico-5",
+        "servico-7"
+      ],
+      "serviceName": "Corte de cabelo, Limpeza de pele, Pintura de cabelo",
+      "totalValue": 130,
+      "durationMinutes": 90,
+      "date": "2026-05-14",
+      "time": "10:00"
+    },
+    {
+      "id": "agendamento-1776215276179-a5mg4m",
+      "clientId": "cliente-1776215221453-jllp9c",
+      "clientName": "Ana Livia Borges da Silva",
+      "whatsapp": "14996857632",
+      "barberId": "barbeiro-1776025980701-eovmtf",
+      "barberName": "Clovis",
+      "serviceItems": [
+        {
+          "id": "servico-3",
+          "name": "Hidratação",
+          "price": 100
+        },
+        {
+          "id": "servico-4",
+          "name": "Sobrancelha",
+          "price": 20
+        },
+        {
+          "id": "servico-5",
+          "name": "Limpeza de pele",
+          "price": 30
+        },
+        {
+          "id": "servico-7",
+          "name": "Pintura de cabelo",
+          "price": 60
+        }
+      ],
+      "serviceIds": [
+        "servico-3",
+        "servico-4",
+        "servico-5",
+        "servico-7"
+      ],
+      "serviceName": "Hidratação, Sobrancelha, Limpeza de pele, Pintura de cabelo",
+      "totalValue": 210,
+      "durationMinutes": 120,
+      "date": "2026-04-15",
+      "time": "13:30"
+    },
+    {
+      "id": "agendamento-1776215292700-l0ufyx",
+      "clientId": "cliente-1776215221453-jllp9c",
+      "clientName": "Ana Livia Borges da Silva",
+      "whatsapp": "14996857632",
+      "barberId": "barbeiro-1776025980701-eovmtf",
+      "barberName": "Clovis",
+      "serviceItems": [
+        {
+          "id": "servico-3",
+          "name": "Hidratação",
+          "price": 100
+        },
+        {
+          "id": "servico-4",
+          "name": "Sobrancelha",
+          "price": 20
+        },
+        {
+          "id": "servico-5",
+          "name": "Limpeza de pele",
+          "price": 30
+        },
+        {
+          "id": "servico-7",
+          "name": "Pintura de cabelo",
+          "price": 60
+        }
+      ],
+      "serviceIds": [
+        "servico-3",
+        "servico-4",
+        "servico-5",
+        "servico-7"
+      ],
+      "serviceName": "Hidratação, Sobrancelha, Limpeza de pele, Pintura de cabelo",
+      "totalValue": 210,
+      "durationMinutes": 120,
+      "date": "2026-05-14",
+      "time": "13:30"
+    },
+    {
+      "id": "agendamento-1776215508580-bcx5c7",
+      "clientId": "cliente-1776215449415-srmf7n",
+      "clientName": "Léo Castro",
+      "whatsapp": "1436412925",
+      "barberId": "barbeiro-1",
+      "barberName": "Barbeiro Demo",
+      "serviceItems": [
+        {
+          "id": "servico-2",
+          "name": "Barba",
+          "price": 30
+        }
+      ],
+      "serviceIds": [
+        "servico-2"
+      ],
+      "serviceName": "Barba",
+      "totalValue": 30,
+      "durationMinutes": 30,
+      "date": "2026-05-20",
+      "time": "15:00"
+    },
+    {
+      "id": "agendamento-1776215533931-bhgkiz",
+      "clientId": "cliente-1776215449415-srmf7n",
+      "clientName": "Léo Castro",
+      "whatsapp": "1436412925",
+      "barberId": "barbeiro-1",
+      "barberName": "Barbeiro Demo",
+      "serviceItems": [
+        {
+          "id": "servico-4",
+          "name": "Sobrancelha",
+          "price": 20
+        }
+      ],
+      "serviceIds": [
+        "servico-4"
+      ],
+      "serviceName": "Sobrancelha",
+      "totalValue": 20,
+      "durationMinutes": 30,
+      "date": "2026-04-28",
+      "time": "11:30"
+    },
+    {
+      "id": "agendamento-1776215740099-eixnfo",
+      "clientId": "cliente-1776215723829-1gtdt7",
+      "clientName": "Diego Fernando dos Santos Junior",
+      "whatsapp": "14663598265",
+      "barberId": "barbeiro-1776205334791-ow6682",
+      "barberName": "Valdemir",
+      "serviceItems": [
+        {
+          "id": "servico-1",
+          "name": "Corte de cabelo",
+          "price": 40
+        }
+      ],
+      "serviceIds": [
+        "servico-1"
+      ],
+      "serviceName": "Corte de cabelo",
+      "totalValue": 40,
+      "durationMinutes": 30,
+      "date": "2026-04-15",
+      "time": "10:00"
+    },
+    {
+      "id": "agendamento-1776215751747-domr3q",
+      "clientId": "cliente-1776215723829-1gtdt7",
+      "clientName": "Diego Fernando dos Santos Junior",
+      "whatsapp": "14663598265",
+      "barberId": "barbeiro-1776125712296-s83drz",
+      "barberName": "Henrique",
+      "serviceItems": [
+        {
+          "id": "servico-6",
+          "name": "Descoloração",
+          "price": 75
+        }
+      ],
+      "serviceIds": [
+        "servico-6"
+      ],
+      "serviceName": "Descoloração",
+      "totalValue": 75,
+      "durationMinutes": 30,
+      "date": "2026-04-16",
+      "time": "12:30"
+    },
+    {
+      "id": "agendamento-1776215765163-brw32w",
+      "clientId": "cliente-1776215723829-1gtdt7",
+      "clientName": "Diego Fernando dos Santos Junior",
+      "whatsapp": "14663598265",
+      "barberId": "barbeiro-1776125712296-s83drz",
+      "barberName": "Henrique",
+      "serviceItems": [
+        {
+          "id": "servico-7",
+          "name": "Pintura de cabelo",
+          "price": 60
+        }
+      ],
+      "serviceIds": [
+        "servico-7"
+      ],
+      "serviceName": "Pintura de cabelo",
+      "totalValue": 60,
+      "durationMinutes": 30,
+      "date": "2026-04-17",
+      "time": "13:30"
+    },
+    {
+      "id": "agendamento-1776215783235-a7lif8",
+      "clientId": "cliente-1776215723829-1gtdt7",
+      "clientName": "Diego Fernando dos Santos Junior",
+      "whatsapp": "14663598265",
+      "barberId": "barbeiro-1776025980701-eovmtf",
+      "barberName": "Clovis",
+      "serviceItems": [
+        {
+          "id": "servico-2",
+          "name": "Barba",
+          "price": 30
+        }
+      ],
+      "serviceIds": [
+        "servico-2"
+      ],
+      "serviceName": "Barba",
+      "totalValue": 30,
+      "durationMinutes": 30,
+      "date": "2026-04-18",
+      "time": "09:00"
     }
   ]
 }
