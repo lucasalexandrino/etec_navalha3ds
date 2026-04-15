@@ -17,7 +17,10 @@ export function renderCalendar(containerElement, monthElement) {
   
   const firstDay = new Date(year, month, 1).getDay();
   const lastDay = new Date(year, month + 1, 0).getDate();
-  const today = new Date();
+  
+  // Data de hoje padronizada com horário 12:00
+  const hoje = new Date();
+  const hojePadronizada = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 12, 0, 0);
   
   containerElement.innerHTML = '';
   
@@ -26,9 +29,10 @@ export function renderCalendar(containerElement, monthElement) {
   }
   
   for (let dia = 1; dia <= lastDay; dia++) {
-    const dataAtual = new Date(year, month, dia);
-    const isPast = dataAtual < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const isToday = dia === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+    // Data do dia padronizada com horário 12:00
+    const dataAtual = new Date(year, month, dia, 12, 0, 0);
+    const isPast = dataAtual < hojePadronizada;
+    const isToday = dia === hoje.getDate() && month === hoje.getMonth() && year === hoje.getFullYear();
     const isSelected = selectedDate === dia;
     const isFeriado = isFeriadoNacional(dataAtual);
     
