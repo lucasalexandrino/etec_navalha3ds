@@ -1064,17 +1064,13 @@ function validateData() {
     return false;
   }
   
-  // Parse da data selecionada
   const partes = data.split('-');
   const ano = parseInt(partes[0]);
   const mes = parseInt(partes[1]) - 1;
   const dia = parseInt(partes[2]);
   
-  // Data de hoje padronizada com horário 12:00
   const hoje = new Date();
   const hojePadronizada = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 12, 0, 0);
-  
-  // Data selecionada padronizada com horário 12:00
   const dataSelecionada = new Date(ano, mes, dia, 12, 0, 0);
   
   if (dataSelecionada < hojePadronizada) {
@@ -1086,6 +1082,13 @@ function validateData() {
   if (isFeriadoNacional(dataSelecionada)) {
     elements.agData.classList.add('is-invalid');
     document.getElementById('error-data').textContent = 'Não é permitido agendar em feriados nacionais';
+    return false;
+  }
+  
+  // Verifica se é domingo
+  if (dataSelecionada.getDay() === 0) {
+    elements.agData.classList.add('is-invalid');
+    document.getElementById('error-data').textContent = 'Não é permitido agendar aos domingos';
     return false;
   }
   
