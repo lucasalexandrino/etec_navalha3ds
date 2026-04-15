@@ -11,11 +11,12 @@ import {
 import {
   appointments, cancellations, loadAppointments, saveAppointments, saveCancellations,
   addAppointment, cancelAppointment, completeAppointment, clearUserCancellations,
-  clearAllCompleted, clearAllCancellations, ordenarAgendamentos, hasConflict
+  clearAllCancellations, ordenarAgendamentos, hasConflict,
+  getBarbeiroConcluidosLimpos, limparTodosConcluidosBarbeiro
 } from './modules/appointments.js';
 import { precosConfig, temposConfig, setPrecosConfig, setTemposConfig } from './modules/config.js';
 import { isFeriadoNacional } from './modules/feriados.js';
-import { initThemeToggle, refreshLogos } from './modules/theme.js';  // <-- ADICIONAR ESTA LINHA
+import { initThemeToggle, refreshLogos } from './modules/theme.js';
 
 // ========== ESTADO ==========
 let currentUser = null;
@@ -43,7 +44,7 @@ async function init() {
   checkSavedSession();
   setupAuthTabs();
   
-  initThemeToggle();  // <-- ADICIONAR ESTA LINHA
+  initThemeToggle();
 }
 
 async function loadPainelCliente() {
@@ -61,7 +62,6 @@ async function loadPainelCliente() {
     clienteContainer.classList.remove('hidden');
   }
 
-  // Criar estrutura de grid do cliente
   clienteContainer.innerHTML = `
     <div class="row g-4">
       <div class="col-12 col-lg-6" id="cliente-calendario"></div>
@@ -73,7 +73,6 @@ async function loadPainelCliente() {
     </div>
   `;
 
-  // Carregar componentes
   await loadComponent('components/cliente/calendario.html', 'cliente-calendario');
   await loadComponent('components/cliente/formulario-agendamento.html', 'cliente-formulario');
   await loadComponent('components/cliente/meus-agendamentos.html', 'cliente-meus-agendamentos');
@@ -81,7 +80,6 @@ async function loadPainelCliente() {
   await loadComponent('components/cliente/historico-cancelados.html', 'cliente-historico-cancelados');
   await loadComponent('components/cliente/excluir-conta.html', 'cliente-excluir-conta');
 
-  // Recachear elementos após carregar
   cacheDOM();
   bindEvents();
   setupEnderecoToggle();
@@ -95,11 +93,9 @@ async function loadPainelCliente() {
   renderMeusConcluidos();
   renderMeusCancelados();
 
-  // Botão excluir conta
   const btnExcluirConta = document.getElementById('btn-excluir-minha-conta');
   if (btnExcluirConta) btnExcluirConta.addEventListener('click', () => excluirMinhaConta());
 
-  // Fix para o nome do cliente no formulário
   if (currentUser && currentUser.role === 'cliente') {
     if (elements.agNome) {
       elements.agNome.value = currentUser.nome;
@@ -108,7 +104,6 @@ async function loadPainelCliente() {
     if (elements.agWhatsapp) elements.agWhatsapp.value = currentUser.whatsapp || '';
   }
 
-  // Forçar a estilização dos botões de toggle de senha
   setTimeout(() => {
     const toggleBtns = document.querySelectorAll('.toggle-password');
     toggleBtns.forEach(btn => {
@@ -116,10 +111,8 @@ async function loadPainelCliente() {
     });
   }, 100);
 
-  refreshLogos();  // <-- ADICIONAR ESTA LINHA
+  refreshLogos();
 }
-
-// Adicione estas funções no app.js
 
 function renderClientesList() {
   const tbody = document.getElementById('tbody-clientes');
@@ -177,31 +170,26 @@ function excluirClientePorId(id) {
 
   console.log('Cliente encontrado:', cliente);
 
-  // Remover todos os agendamentos do cliente
   const novosAppointments = appointments.filter(a => a.cliente !== cliente.nome);
   appointments.length = 0;
   appointments.push(...novosAppointments);
   saveAppointments();
 
-  // Remover cancelamentos relacionados
   const novosCancellations = cancellations.filter(c => c.cliente !== cliente.nome);
   cancellations.length = 0;
   cancellations.push(...novosCancellations);
   saveCancellations();
 
-  // Remover o usuário
   const novosUsers = users.filter(u => u.id !== id);
   Storage.setUsers(novosUsers);
 
   showToast(`Cliente "${cliente.nome}" excluído com sucesso!`, 'success');
 
-  // Recarregar listas
   renderClientesList();
   renderTodosAgendamentos();
   renderConcluidos();
   renderHistoricoCancelamentos();
 
-  // Se o cliente excluído era o usuário atual, fazer logout
   if (currentUser && currentUser.id === id) {
     setTimeout(() => {
       logout(() => location.reload());
@@ -209,12 +197,6 @@ function excluirClientePorId(id) {
   }
 }
 
-function formatarDataCadastro(userId) {
-  // Como não salvamos data de cadastro original, usamos uma aproximação
-  return `ID: ${userId}`;
-}
-
-// Função para cliente excluir a própria conta
 function excluirMinhaConta() {
   showConfirmModal(
     'Excluir Minha Conta',
@@ -222,28 +204,23 @@ function excluirMinhaConta() {
     () => {
       console.log('Excluindo conta do cliente:', currentUser);
 
-      // Remover todos os agendamentos do cliente
       const novosAppointments = appointments.filter(a => a.cliente !== currentUser.nome);
       appointments.length = 0;
       appointments.push(...novosAppointments);
       saveAppointments();
 
-      // Remover cancelamentos relacionados
       const novosCancellations = cancellations.filter(c => c.cliente !== currentUser.nome);
       cancellations.length = 0;
       cancellations.push(...novosCancellations);
       saveCancellations();
 
-      // Remover o usuário
       let users = Storage.getUsers();
       const novosUsers = users.filter(u => u.id !== currentUser.id);
       Storage.setUsers(novosUsers);
 
-      // Fazer logout
       Storage.clearCurrentUser();
       showToast('Sua conta foi excluída com sucesso!', 'success');
 
-      // Recarregar para tela de login
       setTimeout(() => location.reload(), 1500);
     }
   );
@@ -264,7 +241,6 @@ async function loadPainelBarbeiro() {
     barbeiroContainer.classList.remove('hidden');
   }
 
-  // Criar estrutura de grid do barbeiro
   barbeiroContainer.innerHTML = `
     <div class="row g-4">
       <div class="col-12 col-lg-5" id="barbeiro-configuracoes"></div>
@@ -272,7 +248,6 @@ async function loadPainelBarbeiro() {
     </div>
   `;
 
-  // Carregar componentes da coluna esquerda
   const configContainer = document.getElementById('barbeiro-configuracoes');
   configContainer.innerHTML = `
     <div id="barbeiro-config-servicos"></div>
@@ -282,7 +257,6 @@ async function loadPainelBarbeiro() {
   await loadComponent('components/barbeiro/config-servicos.html', 'barbeiro-config-servicos');
   await loadComponent('components/barbeiro/config-percentuais.html', 'barbeiro-config-percentuais');
 
-  // Carregar componentes da coluna direita
   const agendamentosContainer = document.getElementById('barbeiro-agendamentos');
   agendamentosContainer.innerHTML = `
     <div id="barbeiro-todos-agendamentos"></div>
@@ -296,7 +270,6 @@ async function loadPainelBarbeiro() {
   await loadComponent('components/barbeiro/historico-cancelamentos.html', 'barbeiro-historico-cancelamentos');
   await loadComponent('components/barbeiro/clientes.html', 'barbeiro-clientes');
 
-  // Recachear elementos após carregar
   cacheDOM();
   bindEvents();
   carregarConfiguracoesUI();
@@ -306,14 +279,12 @@ async function loadPainelBarbeiro() {
   renderHistoricoCancelamentos();
   renderClientesList();
 
-  // Após carregar os componentes, chamar:
   setupPasswordToggles();
 
-  refreshLogos();  // <-- ADICIONAR ESTA LINHA
+  refreshLogos();
 }
 
 function cacheDOM() {
-  // Login/Register
   elements.loginForm = document.getElementById('login-form');
   elements.loginEmail = document.getElementById('login-email');
   elements.loginPassword = document.getElementById('login-password');
@@ -328,19 +299,16 @@ function cacheDOM() {
   elements.regPassword = document.getElementById('reg-password');
   elements.regConfirmPassword = document.getElementById('reg-confirm-password');
 
-  // App
   elements.authScreen = document.getElementById('auth-screen');
   elements.appScreen = document.getElementById('app');
   elements.userDisplay = document.getElementById('user-display');
   elements.btnLogout = document.getElementById('btn-logout');
 
-  // Calendário
   elements.calGrade = document.getElementById('cal-grade');
   elements.calTitulo = document.getElementById('cal-titulo-mes');
   elements.calPrev = document.getElementById('cal-prev');
   elements.calNext = document.getElementById('cal-next');
 
-  // Formulário Agendamento
   elements.formAgendamento = document.getElementById('form-agendamento');
   elements.agNome = document.getElementById('ag-nome');
   elements.agWhatsapp = document.getElementById('ag-whatsapp');
@@ -357,7 +325,6 @@ function cacheDOM() {
   elements.agAcrescimo = document.getElementById('ag-acrescimo');
   elements.agValorFinal = document.getElementById('ag-valor-final');
 
-  // Admin
   elements.formServico = document.getElementById('form-servico');
   elements.svNome = document.getElementById('sv-nome');
   elements.svPreco = document.getElementById('sv-preco');
@@ -367,7 +334,6 @@ function cacheDOM() {
   elements.tbodyConcluidos = document.getElementById('tbody-concluidos');
   elements.tbodyCancelamentos = document.getElementById('tbody-cancelamentos');
 
-  // Cliente
   elements.tbodyMeusAgendamentos = document.getElementById('tbody-meus-agendamentos');
   elements.tbodyMeusConcluidos = document.getElementById('tbody-meus-concluidos');
   elements.tbodyMeusCancelados = document.getElementById('tbody-meus-cancelados');
@@ -453,42 +419,34 @@ function atualizarValores() {
 }
 
 function bindEvents() {
-  // Login/Register
   if (elements.loginForm) elements.loginForm.addEventListener('submit', handleLoginSubmit);
   if (elements.btnLogout) elements.btnLogout.addEventListener('click', () => logout(() => location.reload()));
   if (elements.registerForm) elements.registerForm.addEventListener('submit', handleRegisterSubmit);
 
-  // Calendário
   if (elements.calPrev) elements.calPrev.addEventListener('click', () => changeMonth(-1, elements.calGrade, elements.calTitulo));
   if (elements.calNext) elements.calNext.addEventListener('click', () => changeMonth(1, elements.calGrade, elements.calTitulo));
 
-  // Formulário Agendamento
   if (elements.formAgendamento) elements.formAgendamento.addEventListener('submit', handleAppointmentSubmit);
   if (elements.agServico) elements.agServico.addEventListener('change', () => atualizarValores());
   if (elements.agCondicao) elements.agCondicao.addEventListener('change', () => atualizarValores());
   if (elements.agDomicilio) elements.agDomicilio.addEventListener('change', () => atualizarValores());
 
-  // Validações
   if (elements.agNome) elements.agNome.addEventListener('input', () => validateNome());
   if (elements.agWhatsapp) elements.agWhatsapp.addEventListener('input', () => validateWhatsapp());
   if (elements.agData) elements.agData.addEventListener('change', () => validateData());
   if (elements.agHora) elements.agHora.addEventListener('change', () => validateHora());
 
-  // Admin
   if (elements.formServico) elements.formServico.addEventListener('submit', handleAddServiceSubmit);
 
-  // Botões de configuração
   const btnSalvarConfig = document.getElementById('btn-salvar-configuracoes');
   if (btnSalvarConfig) btnSalvarConfig.addEventListener('click', () => salvarConfiguracoes());
 
-  // Botões do cliente
   const btnLimparMeusConcluidos = document.getElementById('btn-limpar-meus-concluidos');
   if (btnLimparMeusConcluidos) btnLimparMeusConcluidos.addEventListener('click', () => limparMeusConcluidos());
 
   const btnLimparMeusCancelados = document.getElementById('btn-limpar-meus-cancelados');
   if (btnLimparMeusCancelados) btnLimparMeusCancelados.addEventListener('click', () => limparMeusCancelados());
 
-  // Botões do admin
   const btnLimparConcluidos = document.getElementById('btn-limpar-concluidos');
   if (btnLimparConcluidos) btnLimparConcluidos.addEventListener('click', () => limparConcluidos());
 
@@ -606,7 +564,7 @@ async function showApp() {
     await loadPainelCliente();
   }
   
-  refreshLogos();  // <-- ADICIONAR ESTA LINHA
+  refreshLogos();
 }
 
 function updateServiceSelect() {
@@ -655,7 +613,6 @@ function renderServicesList() {
 
     const modal = new bootstrap.Modal(modalElement);
 
-    // Remove eventos anteriores
     const newConfirmBtn = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
 
@@ -696,7 +653,6 @@ function renderServicesList() {
 }
 
 function setupPasswordToggles() {
-  // Usar event delegation para capturar cliques em botões que podem ser adicionados dinamicamente
   document.body.addEventListener('click', function (e) {
     const button = e.target.closest('.toggle-password');
     if (!button) return;
@@ -779,12 +735,18 @@ function renderTodosAgendamentos() {
 
 function renderConcluidos() {
   if (!elements.tbodyConcluidos) return;
-  const concluidos = appointments.filter(a => a.status === 'concluido');
-  if (concluidos.length === 0) {
+  
+  let concluidos = appointments.filter(a => a.status === 'concluido');
+  const idsLimpos = getBarbeiroConcluidosLimpos();
+  
+  const concluidosVisiveis = concluidos.filter(app => !idsLimpos.includes(app.id));
+  
+  if (concluidosVisiveis.length === 0) {
     elements.tbodyConcluidos.innerHTML = `<tr class="text-center"><td colspan="6" style="color: #aaaaaa;">Nenhum serviço concluído</td></tr>`;
     return;
   }
-  const sorted = ordenarAgendamentos(concluidos);
+  
+  const sorted = ordenarAgendamentos(concluidosVisiveis);
   elements.tbodyConcluidos.innerHTML = sorted.map(app => {
     const dataFormatada = formatDateToBR(app.data);
     const atendidoEm = app.concluidoEm ? formatDateToBR(app.concluidoEm.split('T')[0]) : '-';
@@ -848,11 +810,14 @@ function renderMeusAgendamentos() {
 
 function renderMeusConcluidos() {
   if (!elements.tbodyMeusConcluidos) return;
+  
   const meusConcluidos = appointments.filter(a => a.cliente === currentUser.nome && a.status === 'concluido');
+  
   if (meusConcluidos.length === 0) {
     elements.tbodyMeusConcluidos.innerHTML = `<tr class="text-center"><td colspan="5" style="color: #aaaaaa;">Nenhum serviço concluído</td></tr>`;
     return;
   }
+  
   const sorted = ordenarAgendamentos(meusConcluidos);
   elements.tbodyMeusConcluidos.innerHTML = sorted.map(app => {
     const dataFormatada = formatDateToBR(app.data);
@@ -979,18 +944,23 @@ function confirmCancelWithReason(motivo) {
   }
 }
 
+// ========== FUNÇÕES DE LIMPEZA ==========
+
 function limparMeusConcluidos() {
   const meusConcluidos = appointments.filter(a => a.cliente === currentUser.nome && a.status === 'concluido');
   if (meusConcluidos.length === 0) {
     showToast('Você não tem serviços concluídos para limpar', 'info');
     return;
   }
-  showConfirmModal('Limpar Concluídos', `Tem certeza que deseja remover ${meusConcluidos.length} serviço(s) concluído(s) do seu histórico?`, () => {
-    appointments = appointments.filter(a => !(a.cliente === currentUser.nome && a.status === 'concluido'));
-    saveAppointments();
-    renderMeusConcluidos();
-    showToast(`${meusConcluidos.length} serviço(s) concluído(s) removido(s)!`, 'success');
-  });
+  showConfirmModal('Limpar Meus Concluídos', 
+    `Tem certeza que deseja remover ${meusConcluidos.length} serviço(s) concluído(s) do seu histórico?`, 
+    () => {
+      appointments = appointments.filter(a => !(a.cliente === currentUser.nome && a.status === 'concluido'));
+      saveAppointments();
+      renderMeusConcluidos();
+      showToast(`${meusConcluidos.length} serviço(s) concluído(s) removido(s) do seu histórico!`, 'success');
+    }
+  );
 }
 
 function limparMeusCancelados() {
@@ -999,11 +969,15 @@ function limparMeusCancelados() {
     showToast('Você não tem agendamentos cancelados para limpar', 'info');
     return;
   }
-  showConfirmModal('Limpar Cancelados', `Tem certeza que deseja remover ${meusCancelados.length} agendamento(s) cancelado(s) do seu histórico?`, () => {
-    clearUserCancellations(currentUser.nome);
-    renderMeusCancelados();
-    showToast(`${meusCancelados.length} agendamento(s) cancelado(s) removido(s)!`, 'success');
-  });
+  showConfirmModal('Limpar Meus Cancelados', 
+    `Tem certeza que deseja remover seus ${meusCancelados.length} agendamento(s) cancelado(s) do seu histórico?`, 
+    () => {
+      appointments = appointments.filter(a => !(a.cliente === currentUser.nome && a.status === 'cancelado'));
+      saveAppointments();
+      renderMeusCancelados();
+      showToast(`${meusCancelados.length} agendamento(s) cancelado(s) removido(s) do seu histórico!`, 'success');
+    }
+  );
 }
 
 function limparConcluidos() {
@@ -1012,12 +986,15 @@ function limparConcluidos() {
     showToast('Não há serviços concluídos para limpar', 'info');
     return;
   }
-  showConfirmModal('Limpar Concluídos', `Tem certeza que deseja remover ${concluidos.length} serviço(s) concluído(s) do histórico?`, () => {
-    clearAllCompleted();
-    renderConcluidos();
-    renderMeusConcluidos();
-    showToast(`${concluidos.length} serviço(s) concluído(s) removido(s)!`, 'success');
-  });
+  
+  showConfirmModal('Limpar Meu Histórico de Concluídos', 
+    `Tem certeza que deseja LIMPAR ${concluidos.length} serviço(s) concluído(s) do SEU histórico?\n\n⚠️ Isso NÃO afetará o histórico dos clientes. Eles continuarão vendo os serviços deles normalmente.`, 
+    () => {
+      limparTodosConcluidosBarbeiro();
+      renderConcluidos();
+      showToast(`${concluidos.length} serviço(s) concluído(s) removido(s) do seu histórico!`, 'success');
+    }
+  );
 }
 
 function limparHistorico() {
@@ -1025,12 +1002,17 @@ function limparHistorico() {
     showToast('Não há cancelamentos para limpar', 'info');
     return;
   }
-  showConfirmModal('Limpar Histórico', 'Tem certeza que deseja limpar TODO o histórico de cancelamentos?', () => {
-    clearAllCancellations();
-    renderHistoricoCancelamentos();
-    showToast('Histórico de cancelamentos limpo!', 'success');
-  });
+  showConfirmModal('Limpar Histórico de Cancelamentos', 
+    `⚠️ ATENÇÃO! Você está prestes a limpar TODO o histórico de cancelamentos do sistema. Isso afetará TODOS os usuários. Tem certeza?`, 
+    () => {
+      clearAllCancellations();
+      renderHistoricoCancelamentos();
+      showToast('Histórico de cancelamentos limpo!', 'success');
+    }
+  );
 }
+
+// ========== VALIDAÇÕES ==========
 
 function validateNome() {
   const nome = elements.agNome.value.trim();
@@ -1063,35 +1045,25 @@ function validateData() {
     document.getElementById('error-data').textContent = 'Selecione uma data';
     return false;
   }
-  
-  const partes = data.split('-');
-  const ano = parseInt(partes[0]);
-  const mes = parseInt(partes[1]) - 1;
-  const dia = parseInt(partes[2]);
-  
   const hoje = new Date();
-  const hojePadronizada = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 12, 0, 0);
-  const dataSelecionada = new Date(ano, mes, dia, 12, 0, 0);
-  
-  if (dataSelecionada < hojePadronizada) {
+  hoje.setHours(0, 0, 0, 0);
+  const dataSelecionada = new Date(data);
+  dataSelecionada.setHours(0, 0, 0, 0);
+  if (dataSelecionada < hoje) {
     elements.agData.classList.add('is-invalid');
     document.getElementById('error-data').textContent = 'Não é permitido agendar em datas passadas';
     return false;
   }
-  
   if (isFeriadoNacional(dataSelecionada)) {
     elements.agData.classList.add('is-invalid');
     document.getElementById('error-data').textContent = 'Não é permitido agendar em feriados nacionais';
     return false;
   }
-  
-  // Verifica se é domingo
   if (dataSelecionada.getDay() === 0) {
     elements.agData.classList.add('is-invalid');
     document.getElementById('error-data').textContent = 'Não é permitido agendar aos domingos';
     return false;
   }
-  
   elements.agData.classList.remove('is-invalid');
   document.getElementById('error-data').textContent = '';
   return true;

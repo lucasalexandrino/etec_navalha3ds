@@ -6,7 +6,8 @@ const KEYS = {
   users: 'bb_users',
   currentUser: 'bb_current_user',
   precosConfig: 'bb_precos_config',
-  temposConfig: 'bb_tempos_config'
+  temposConfig: 'bb_tempos_config',
+  barbeiroConcluidosLimpos: 'bb_barbeiro_concluidos_limpos'
 };
 
 export const Storage = {
@@ -107,5 +108,24 @@ export const Storage = {
     const data = localStorage.getItem(KEYS.temposConfig);
     return data ? JSON.parse(data) : null;
   },
-  setTemposConfig(config) { localStorage.setItem(KEYS.temposConfig, JSON.stringify(config)); }
+  setTemposConfig(config) { localStorage.setItem(KEYS.temposConfig, JSON.stringify(config)); },
+
+  // Concluídos limpos pelo barbeiro
+  getBarbeiroConcluidosLimpos() {
+    const data = localStorage.getItem(KEYS.barbeiroConcluidosLimpos);
+    return data ? JSON.parse(data) : [];
+  },
+  setBarbeiroConcluidosLimpos(ids) {
+    localStorage.setItem(KEYS.barbeiroConcluidosLimpos, JSON.stringify(ids));
+  },
+  addBarbeiroConcluidoLimpo(id) {
+    const ids = this.getBarbeiroConcluidosLimpos();
+    if (!ids.includes(id)) {
+      ids.push(id);
+      this.setBarbeiroConcluidosLimpos(ids);
+    }
+  },
+  limparTodosConcluidosBarbeiro(ids) {
+    this.setBarbeiroConcluidosLimpos(ids);
+  }
 };

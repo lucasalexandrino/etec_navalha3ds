@@ -66,11 +66,6 @@ export function clearUserCancellations(userNome) {
   saveAppointments();
 }
 
-export function clearAllCompleted() {
-  appointments = appointments.filter(a => a.status !== 'concluido');
-  saveAppointments();
-}
-
 export function clearAllCancellations() {
   cancellations = [];
   saveCancellations();
@@ -85,4 +80,15 @@ export function ordenarAgendamentos(lista) {
 
 export function hasConflict(data, hora, excludeId = null) {
   return appointments.some(a => a.data === data && a.hora === hora && a.status === 'agendado' && (excludeId === null || a.id !== excludeId));
+}
+
+// ========== FUNÇÕES PARA BARBEIRO LIMPAR SEUS CONCLUÍDOS ==========
+export function getBarbeiroConcluidosLimpos() {
+  return Storage.getBarbeiroConcluidosLimpos();
+}
+
+export function limparTodosConcluidosBarbeiro() {
+  const concluidos = appointments.filter(a => a.status === 'concluido');
+  const ids = concluidos.map(a => a.id);
+  Storage.limparTodosConcluidosBarbeiro(ids);
 }
