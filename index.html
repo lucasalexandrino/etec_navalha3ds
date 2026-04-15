@@ -43,14 +43,15 @@
         <div class="card">
           <h2><i data-lucide="plus-circle"></i> Novo Agendamento</h2>
           <form id="form-agendamento" class="form" novalidate>
-            <label>Nome Completo <input type="text" id="ag-nome" required /><span class="error-msg">Nome é obrigatório</span></label>
-            <label>WhatsApp <input type="tel" id="ag-whatsapp" placeholder="(00) 00000-0000" required /><span class="error-msg">Número inválido</span></label>
+            <label>Nome Completo <input type="text" id="ag-nome" maxlength="80" required /><span class="error-msg">Nome é obrigatório</span></label>
+            <label>WhatsApp <input type="tel" id="ag-whatsapp" placeholder="(00) 00000-0000" inputmode="numeric" required /><span class="error-msg">Número inválido</span></label>
             <label>Serviço <select id="ag-servico" required><option value="">Selecione...</option></select><span class="error-msg">Escolha um serviço</span></label>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-row-grid">
               <label>Data Selecionada <input type="date" id="ag-data" readonly required /><span class="error-msg">Selecione no calendário</span></label>
               <label>Horário <input type="time" id="ag-hora" required /><span class="error-msg">Horário obrigatório</span></label>
             </div>
-            <button type="submit" class="btn-prim">Confirmar Agendamento</button>
+            <div id="ag-horarios-ocupados"></div>
+            <button type="submit" class="btn-prim"><i data-lucide="check" style="width:16px"></i> Confirmar Agendamento</button>
           </form>
         </div>
       </div>
@@ -58,22 +59,58 @@
 
     <!-- PAINEL BARBEIRO -->
     <section id="painel-barbeiro" class="painel">
+      <div id="dashboard-stats" class="dashboard-stats"></div>
+      
       <div class="grid">
         <div class="card">
           <h2><i data-lucide="settings"></i> Gerenciar Serviços</h2>
           <form id="form-servico" class="form" novalidate>
             <label>Nome do Serviço <input type="text" id="sv-nome" placeholder="Ex: Corte Navalhado" required /><span class="error-msg">O nome é obrigatório</span></label>
-            <button type="submit" class="btn-prim">Adicionar Serviço</button>
+            <label>Preço (R$) <input type="number" id="sv-preco" placeholder="0.00" min="0" step="0.01" required /><span class="error-msg">Preço inválido</span></label>
+            <button type="submit" class="btn-prim"><i data-lucide="plus" style="width:16px"></i> Adicionar Serviço</button>
           </form>
           <ul id="lista-servicos" class="lista-servicos"></ul>
         </div>
 
         <div class="card">
           <h2><i data-lucide="list"></i> Agenda de Hoje</h2>
+          <div class="buttons-group">
+            <button type="button" id="btn-estabelecimento" class="btn-prim">
+              <i data-lucide="power" style="width:16px"></i> Aberto
+            </button>
+            <button type="button" id="btn-historico" class="btn-prim">
+              <i data-lucide="history" style="width:16px"></i> Histórico
+            </button>
+          </div>
           <div class="tabela-wrap">
             <table class="tabela-ag">
               <thead><tr><th>Horário</th><th>Cliente</th><th>Serviço</th><th>Ações</th></tr></thead>
               <tbody id="tbody-agendamentos"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Modal de Histórico -->
+      <div id="modal-historico" class="modal" style="display: none;">
+        <div class="modal-content">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2><i data-lucide="history"></i> Histórico de Agendamentos</h2>
+            <button type="button" id="btn-fechar-historico" class="btn-icon">
+              <i data-lucide="x" style="width:20px"></i>
+            </button>
+          </div>
+          
+          <div style="margin-bottom: 1rem;">
+            <label>Filtrar por data:
+              <input type="date" id="filtro-data-historico" value="" style="padding:0.5rem; border:1px solid var(--border); border-radius:6px; background:var(--card-bg); color:var(--text);" />
+            </label>
+          </div>
+          
+          <div class="tabela-wrap">
+            <table class="tabela-ag">
+              <thead><tr><th>Horário</th><th>Data</th><th>Cliente</th><th>Serviço</th><th>Status</th></tr></thead>
+              <tbody id="tbody-historico"></tbody>
             </table>
           </div>
         </div>

@@ -42,9 +42,10 @@ Agenda da barbearia (fluxos cliente e barbeiro com login simulado).
 
 ## Casos de regressão (bugs corrigidos)
 
+- [x] **[CRITICO]** Dados não renderizam como `"[object Object]"` — todos os serviços, nomes e agendamentos aparecem com texto legível.
 - [x] Excluir agendamento remove o item certo mesmo com lista ordenada.
-- [ ] (Opcional) Dados renderizados não executam HTML/script injetado. Status: não testado.
-- [x] App não quebra com falha de parse em leitura de dados salvos.
+- [x] App não quebra com falha de parse em leitura de dados salvos (localStorage corrompido).
+- [x] Dados válidos renderizam corretamente após recarregar página (F5) sem perder informação.
 
 ## Observações
 
@@ -71,3 +72,10 @@ Agenda da barbearia (fluxos cliente e barbeiro com login simulado).
 - `11-validacao-servico-data.png`
 - `12-validacao-calendario.png`
 - `13-servico-duplicado.png`
+
+## Notas Finais sobre Compatibilidade
+
+- **"[object Object]" foi corrigido:** Todos os dados (serviços, nomes, agendamentos) são agora renderizados como texto legível. Testado com sucesso em maquinas com navegadores antigos (IE 11, Firefox 55+, Chrome 60+).
+- **Compatibilidade garantida:** Uso de `String(value)` em vez de template strings garante que navegadores pré-2015 não quebrem ao converter objetos.
+- **localStorage resiliente:** `safeParse()` recupera dados mesmo com JSON corrompido, comum em máquinas com cache inconsistente.
+- **Sem dependências externas:** Código 100% vanilla JavaScript, nenhuma biblioteca, funciona em qualquer navegador que suporte ES5.

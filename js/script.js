@@ -2,7 +2,13 @@
 const STORAGE_KEYS = {
   servicos: 'barbearia_servicos',
   agendamentos: 'barbearia_agendamentos',
-  sessao: 'barbearia_sessao'
+  sessao: 'barbearia_sessao',
+  estabelecimentoAberto: 'barbearia_estabelecimento_aberto',
+  horaFechamento: 'barbearia_hora_fechamento'
+};
+
+const CONFIG = {
+  horaLimiteAgendamento: '18:00'
 };
 
 const LOGIN_FIXO = {
@@ -34,11 +40,88 @@ function escapeHTML(value) {
   }[char]));
 }
 
+function normalizeServicoNome(item) {
+  if (typeof item === 'string') return { nome: item, preco: 0 };
+  if (item && typeof item === 'object') {
+    const nome =
+      (typeof item.nome === 'string' ? item.nome : null) ||
+      (typeof item.name === 'string' ? item.name : null) ||
+      (typeof item.servico === 'string' ? item.servico : null) ||
+      (typeof item.serviço === 'string' ? item.serviço : null) ||
+      (typeof item.titulo === 'string' ? item.titulo : null) ||
+      (typeof item.title === 'string' ? item.title : null) ||
+      (typeof item.descricao === 'string' ? item.descricao : null) ||
+      (typeof item.descrição === 'string' ? item.descrição : null) ||
+      (typeof item.label === 'string' ? item.label : null);
+    const preco = Number(item.preco) || 0;
+    if (typeof nome === 'string') return { nome: nome, preco: preco };
+  }
+  return null;
+}
+
+function normalizeAgendamento(ag) {
+  if (!ag || typeof ag !== 'object') return null;
+
+  var nome = String(ag.nome || '').trim();
+  var whatsapp = String(ag.whatsapp || '').trim();
+  var servico = String(ag.servico || '').trim();
+  var data = String(ag.data || '').trim();
+  var hora = String(ag.hora || '').trim();
+  var id = String(ag.id || generateId());
+  var valor = Number(ag.valor || 0);
+  var concluido = Boolean(ag.concluido || false);
+  var dataAgendamento;
+
+  try {
+    if (ag.dataAgendamento && typeof ag.dataAgendamento === 'string') {
+      dataAgendamento = new Date(ag.dataAgendamento);
+    } else {
+      dataAgendamento = new Date();
+    }
+  } catch (e) {
+    dataAgendamento = new Date();
+  }
+
+  if (!nome || !whatsapp || !servico || !data || !hora) {
+    return null;
+  }
+
+  return {
+    id: id,
+    nome: nome,
+    whatsapp: whatsapp,
+    servico: servico,
+    data: data,
+    hora: hora,
+    valor: valor,
+    concluido: concluido,
+    dataAgendamento: dataAgendamento.toISOString ? dataAgendamento.toISOString() : new Date().toISOString()
+  };
+}
+
 const DB = {
-  getServicos: () => safeParse(localStorage.getItem(STORAGE_KEYS.servicos), ['Corte Social', 'Barba', 'Combo']),
-  saveServico: (nome) => {
+  getServicos: () => {
+    const raw = safeParse(localStorage.getItem(STORAGE_KEYS.servicos), ['Corte Social', 'Barba', 'Combo']);
+    const lista = Array.isArray(raw) ? raw : ['Corte Social', 'Barba', 'Combo'];
+    let changed = false;
+
+    const normalized = lista
+      .map((item) => {
+        const servico = normalizeServicoNome(item);
+        if (!servico || !servico.nome) return null;
+        if (typeof item === 'string') changed = true;
+        return { nome: servico.nome.trim(), preco: Number(servico.preco) || 0 };
+      })
+      .filter(Boolean);
+
+    if (changed) {
+      localStorage.setItem(STORAGE_KEYS.servicos, JSON.stringify(normalized));
+    }
+    return normalized;
+  },
+  saveServico: (nome, preco) => {
     const s = DB.getServicos();
-    s.push(nome);
+    s.push({ nome: nome.trim(), preco: Number(preco) || 0 });
     localStorage.setItem(STORAGE_KEYS.servicos, JSON.stringify(s));
   },
   removeServico: (index) => {
@@ -49,24 +132,58 @@ const DB = {
   getAgendamentos: () => {
     const agendamentos = safeParse(localStorage.getItem(STORAGE_KEYS.agendamentos), []);
     let changed = false;
-    const normalized = agendamentos.map((ag) => {
-      if (ag.id) return ag;
-      changed = true;
-      return { ...ag, id: generateId() };
-    });
+
+    const normalized = agendamentos
+      .map((ag) => {
+        const normalized = normalizeAgendamento(ag);
+        if (!normalized) {
+          changed = true;
+          return null;
+        }
+        if (JSON.stringify(ag) !== JSON.stringify(normalized)) {
+          changed = true;
+        }
+        return normalized;
+      })
+      .filter(Boolean);
+
     if (changed) {
       localStorage.setItem(STORAGE_KEYS.agendamentos, JSON.stringify(normalized));
     }
     return normalized;
   },
   saveAgendamento: (ag) => {
+    const normalized = normalizeAgendamento(ag);
+    if (!normalized) return false;
+
     const a = DB.getAgendamentos();
-    a.push({ ...ag, id: ag.id || generateId() });
+    a.push(normalized);
     localStorage.setItem(STORAGE_KEYS.agendamentos, JSON.stringify(a));
+    return true;
   },
   removeAgendamentoById: (id) => {
-    const a = DB.getAgendamentos().filter((item) => item.id !== id);
+    const a = DB.getAgendamentos().filter((item) => item.id !== String(id));
     localStorage.setItem(STORAGE_KEYS.agendamentos, JSON.stringify(a));
+  },
+  markAgendamentoAsCompleted: (id) => {
+    const a = DB.getAgendamentos();
+    var idx = -1;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].id === String(id)) {
+        idx = i;
+        break;
+      }
+    }
+    if (idx >= 0) {
+      a[idx].concluido = true;
+    }
+    localStorage.setItem(STORAGE_KEYS.agendamentos, JSON.stringify(a));
+  },
+  getEstabelecimentoAberto: () => {
+    return safeParse(localStorage.getItem(STORAGE_KEYS.estabelecimentoAberto), true);
+  },
+  setEstabelecimentoAberto: (aberto) => {
+    localStorage.setItem(STORAGE_KEYS.estabelecimentoAberto, JSON.stringify(Boolean(aberto)));
   }
 };
 
@@ -83,6 +200,9 @@ const botoesPapel = document.querySelectorAll('.papel');
 let dataAtual = new Date();
 let sessaoAtual = null;
 
+// FIX (Bug 2): flag para evitar múltiplos registros de eventos do barbeiro
+let barbeiroEventosInicializados = false;
+
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
   setupLoginUI();
@@ -94,6 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderCalendar();
   aplicarSessao();
   lucide.createIcons();
+  setTimeout(() => lucide.createIcons(), 100);
 });
 
 // --- UI CONTROLS ---
@@ -101,7 +222,8 @@ function showToast(msg, type = 'success') {
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}"></i> <span>${escapeHTML(msg)}</span>`;
+  const mensagem = escapeHTML(String(msg || ''));
+  toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}"></i> <span>${mensagem}</span>`;
   container.appendChild(toast);
   lucide.createIcons();
   setTimeout(() => {
@@ -110,19 +232,64 @@ function showToast(msg, type = 'success') {
   }, 3000);
 }
 
+function showConfirmDialog(message, onConfirm, onCancel = null) {
+  const dialog = document.createElement('div');
+  dialog.className = 'confirm-modal';
+  const escapedMsg = escapeHTML(String(message || ''));
+  dialog.innerHTML = `
+    <div class="confirm-content">
+      <p>${escapedMsg}</p>
+      <div class="confirm-buttons">
+        <button class="btn-confirm" type="button">Confirmar</button>
+        <button class="btn-cancel" type="button">Cancelar</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(dialog);
+
+  const confirmBtn = dialog.querySelector('.btn-confirm');
+  const cancelBtn = dialog.querySelector('.btn-cancel');
+
+  function cleanup() {
+    dialog.remove();
+  }
+
+  confirmBtn.onclick = () => {
+    cleanup();
+    try {
+      onConfirm?.();
+    } catch (e) {
+      console.error('Erro em onConfirm:', e);
+      showToast('Erro ao processar ação.', 'error');
+    }
+  };
+
+  cancelBtn.onclick = () => {
+    cleanup();
+    onCancel?.();
+  };
+}
+
 function setFieldError(input, message) {
-  const error = input.nextElementSibling;
   input.classList.add('error');
+  const error = input.nextElementSibling;
   if (error) {
     error.style.display = 'block';
-    if (message) error.textContent = message;
+    if (error.classList.contains('error-msg')) {
+      error.textContent = message || 'Campo inválido';
+      error.classList.add('show');
+    }
   }
 }
 
 function clearFieldError(input) {
-  const error = input.nextElementSibling;
   input.classList.remove('error');
-  if (error) error.style.display = 'none';
+  const error = input.nextElementSibling;
+  if (error) {
+    error.style.display = 'none';
+    error.classList.remove('show');
+  }
 }
 
 function somenteDigitos(valor) {
@@ -130,7 +297,11 @@ function somenteDigitos(valor) {
 }
 
 function getDataHoje() {
-  return new Date().toISOString().split('T')[0];
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 function getSessao() {
@@ -243,12 +414,17 @@ function applyRoleAccess(papel) {
 
   document.querySelectorAll('.painel').forEach((p) => p.classList.remove('ativo'));
   document.getElementById(`painel-${papelPermitido}`).classList.add('ativo');
-  if (papelPermitido === 'barbeiro') updateBarbeiroView();
+  if (papelPermitido === 'barbeiro') {
+    updateBarbeiroView();
+    setupBarbeiroEvents(); // protegida pela flag interna
+  }
 }
 
 function logout() {
   clearSessao();
   sessaoAtual = null;
+  // FIX (Bug 2): resetar flag ao fazer logout para permitir novo setup se necessário
+  barbeiroEventosInicializados = false;
   aplicarSessao();
   showToast('Sessão encerrada.');
 }
@@ -266,8 +442,20 @@ function setupTabs() {
 function updateServicosSelect() {
   const select = document.getElementById('ag-servico');
   const servicos = DB.getServicos();
-  select.innerHTML = '<option value="">Selecione...</option>' +
-    servicos.map((s) => `<option value="${escapeHTML(s)}">${escapeHTML(s)}</option>`).join('');
+
+  try {
+    select.innerHTML = '<option value="" style="background-color: #2a2a2a; color: #ffffff;">Selecione...</option>' +
+      servicos.map((s) => {
+        const nome = String(s.nome || '');
+        const preco = Number(s.preco) || 0;
+        const descricao = `${escapeHTML(nome)} - R$ ${preco.toFixed(2)}`;
+        return `<option value="${escapeHTML(nome)}" data-preco="${preco}" style="background-color: #2a2a2a; color: #ffffff;">${escapeHTML(descricao)}</option>`;
+      }).join('');
+  } catch (e) {
+    console.error('Erro ao atualizar serviços select:', e);
+    showToast('Erro ao carregar serviços. Recarregue a página.', 'error');
+    select.innerHTML = '<option value="">Nenhum serviço disponível</option>';
+  }
 }
 
 // Calendar
@@ -282,7 +470,9 @@ function renderCalendar() {
   const diasNoMes = new Date(ano, mes + 1, 0).getDate();
 
   for (let i = 0; i < primeiroDia; i += 1) {
-    grade.appendChild(Object.assign(document.createElement('div'), { className: 'dia vazio' }));
+    var emptyDiv = document.createElement('div');
+    emptyDiv.className = 'dia vazio';
+    grade.appendChild(emptyDiv);
   }
 
   for (let dia = 1; dia <= diasNoMes; dia += 1) {
@@ -296,6 +486,7 @@ function renderCalendar() {
       div.classList.add('selecionado');
       document.getElementById('ag-data').value = fullDate;
       clearFieldError(document.getElementById('ag-data'));
+      renderHorariosOcupados(fullDate);
     };
     grade.appendChild(div);
   }
@@ -314,6 +505,33 @@ function setupCalendarEvents() {
 
 function hasConflitoHorario(data, hora) {
   return DB.getAgendamentos().some((ag) => ag.data === data && ag.hora === hora);
+}
+
+function renderHorariosOcupados(dataISO) {
+  const wrap = document.getElementById('ag-horarios-ocupados');
+  if (!wrap) return;
+  if (!dataISO) {
+    wrap.innerHTML = '';
+    return;
+  }
+
+  const horas = DB.getAgendamentos()
+    .filter((ag) => ag.data === dataISO && !ag.concluido)
+    .map((ag) => String(ag.hora || ''))
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b));
+
+  if (horas.length === 0) {
+    wrap.innerHTML = '<small style="color:var(--text-muted)">Nenhum horário agendado para esta data.</small>';
+    return;
+  }
+
+  wrap.innerHTML = `
+    <small style="color:var(--text-muted); display:block; margin-bottom:0.35rem;">Horários já agendados:</small>
+    <div style="display:flex; flex-wrap:wrap; gap:0.35rem;">
+      ${horas.map((h) => `<span class="badge">${escapeHTML(h)}</span>`).join('')}
+    </div>
+  `;
 }
 
 function validarAgendamento() {
@@ -354,9 +572,16 @@ function validarAgendamento() {
   if (!hora) {
     setFieldError(horaInput, 'Informe um horario.');
     valid = false;
+  } else if (hora >= CONFIG.horaLimiteAgendamento) {
+    setFieldError(horaInput, `Nao e permitido agendar depois de ${CONFIG.horaLimiteAgendamento}.`);
+    valid = false;
   }
   if (valid && hasConflitoHorario(data, hora)) {
     setFieldError(horaInput, 'Esse horario ja esta ocupado.');
+    valid = false;
+  }
+  if (valid && !DB.getEstabelecimentoAberto()) {
+    setFieldError(horaInput, 'Estabelecimento fechado. Nao e permitido agendar no momento.');
     valid = false;
   }
 
@@ -367,7 +592,12 @@ function validarAgendamento() {
       whatsapp,
       servico,
       data,
-      hora
+      hora,
+      valor: (() => {
+        const servicoObj = DB.getServicos().find((s) => s.nome === servico);
+        return servicoObj ? Number(servicoObj.preco) || 0 : 0;
+      })(),
+      concluido: false
     }
   };
 }
@@ -381,30 +611,51 @@ function setupFormEvents() {
       return;
     }
 
-    DB.saveAgendamento(agendamento);
-    showToast('Agendamento realizado com sucesso!');
-    this.reset();
-    document.querySelectorAll('.dia').forEach((d) => d.classList.remove('selecionado'));
+    if (DB.saveAgendamento(agendamento)) {
+      showToast(`✓ Agendamento confirmado para ${String(agendamento.nome).toUpperCase()}!`);
+      this.reset();
+      document.querySelectorAll('.dia').forEach((d) => d.classList.remove('selecionado'));
+      renderHorariosOcupados('');
+    } else {
+      showToast('Erro ao salvar agendamento. Tente novamente.', 'error');
+    }
   };
 
   formServico.onsubmit = function (e) {
     e.preventDefault();
-    const input = document.getElementById('sv-nome');
-    const nomeServico = input.value.trim();
-    clearFieldError(input);
-    if (!nomeServico) {
-      setFieldError(input, 'O nome do servico e obrigatorio');
+    const inputNome = document.getElementById('sv-nome');
+    const inputPreco = document.getElementById('sv-preco');
+    const nomeServico = String(inputNome.value || '').trim();
+    const precoServico = Number(inputPreco.value) || 0;
+
+    clearFieldError(inputNome);
+    clearFieldError(inputPreco);
+
+    if (!nomeServico || nomeServico.length < 2) {
+      setFieldError(inputNome, 'Nome deve ter pelo menos 2 caracteres');
       return;
     }
-    if (DB.getServicos().some((item) => item.toLowerCase() === nomeServico.toLowerCase())) {
-      setFieldError(input, 'Esse servico ja existe.');
+    if (precoServico < 0) {
+      setFieldError(inputPreco, 'O preço não pode ser negativo');
       return;
     }
-    DB.saveServico(nomeServico);
-    input.value = '';
+
+    const jaExiste = DB.getServicos().some((item) => {
+      var nome = String(item.nome || '').toLowerCase();
+      return nome === nomeServico.toLowerCase();
+    });
+
+    if (jaExiste) {
+      setFieldError(inputNome, 'Serviço já cadastrado');
+      return;
+    }
+
+    DB.saveServico(nomeServico, precoServico);
+    inputNome.value = '';
+    inputPreco.value = '';
     updateBarbeiroView();
     updateServicosSelect();
-    showToast('Novo servico cadastrado!');
+    showToast(`✓ Serviço "${nomeServico}" cadastrado com sucesso!`);
   };
 }
 
@@ -413,12 +664,64 @@ function formatarDataCurta(dataISO) {
   return dataISO.split('-').reverse().slice(0, 2).join('/');
 }
 
+function getDashboardEstatisticas() {
+  const hoje = getDataHoje();
+  const agendamentos = DB.getAgendamentos();
+
+  const agendadosHoje = agendamentos.filter(ag => ag.data === hoje && !ag.concluido).length;
+  const concluidosHoje = agendamentos.filter(ag => ag.data === hoje && ag.concluido).length;
+  const receitaHoje = agendamentos
+    .filter(ag => ag.concluido)
+    .reduce((sum, ag) => sum + (Number(ag.valor) || 0), 0);
+
+  return {
+    agendadosHoje,
+    concluidosHoje,
+    receitaHoje
+  };
+}
+
+function renderDashboardBarbeiro() {
+  const { agendadosHoje, concluidosHoje, receitaHoje } = getDashboardEstatisticas();
+  const container = document.getElementById('dashboard-stats');
+
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon"><i data-lucide="calendar"></i></div>
+      <div class="stat-info">
+        <div class="stat-value">${agendadosHoje}</div>
+        <div class="stat-label">Agendados hoje</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><i data-lucide="check-circle"></i></div>
+      <div class="stat-info">
+        <div class="stat-value">${concluidosHoje}</div>
+        <div class="stat-label">Concluídos hoje</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><i data-lucide="dollar-sign"></i></div>
+      <div class="stat-info">
+        <div class="stat-value">R$ ${receitaHoje.toFixed(2)}</div>
+        <div class="stat-label">Receita Total</div>
+      </div>
+    </div>
+  `;
+  lucide.createIcons();
+}
+
 function updateBarbeiroView() {
   // Lista de Servicos
   listaServicos.innerHTML = DB.getServicos().map((s, i) => `
     <li>
-      ${escapeHTML(s)}
-      <button class="btn-icon" data-servico-index="${i}" type="button">
+      <div>
+        <div>${escapeHTML(s.nome)}</div>
+        <small style="color: var(--text-muted); font-size: 0.75rem;">R$ ${Number(s.preco || 0).toFixed(2)}</small>
+      </div>
+      <button class="btn-icon btn-delete-servico" data-servico-index="${i}" type="button" title="Excluir serviço">
         <i data-lucide="trash-2" style="width:16px"></i>
       </button>
     </li>
@@ -427,7 +730,7 @@ function updateBarbeiroView() {
   // Tabela Agendamentos
   const ags = DB.getAgendamentos()
     .slice()
-    .map((ag) => ({ ...ag, id: ag.id || generateId() }))
+    .filter(ag => ag.data >= getDataHoje() && !ag.concluido)
     .sort((a, b) => (a.data + a.hora).localeCompare(b.data + b.hora));
 
   tbodyAgendamentos.innerHTML = ags.map((ag) => `
@@ -436,17 +739,124 @@ function updateBarbeiroView() {
       <td>${escapeHTML(ag.nome)}<br><small>${escapeHTML(ag.whatsapp)}</small></td>
       <td><span class="badge">${escapeHTML(ag.servico)}</span></td>
       <td>
-        <button class="btn-icon" data-agendamento-id="${escapeHTML(ag.id)}" type="button" style="color:var(--success)">
+        <button class="btn-icon btn-complete-agendamento" data-agendamento-id="${escapeHTML(ag.id)}" type="button" style="color:var(--success)" title="Concluir atendimento">
           <i data-lucide="check-circle" style="width:18px"></i>
+        </button>
+        <button class="btn-icon btn-cancel-agendamento" data-agendamento-id="${escapeHTML(ag.id)}" type="button" style="color:var(--error)" title="Cancelar agendamento">
+          <i data-lucide="x-circle" style="width:18px"></i>
         </button>
       </td>
     </tr>
   `).join('');
 
   if (ags.length === 0) {
-    tbodyAgendamentos.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted)">Nenhum agendamento.</td></tr>';
+    tbodyAgendamentos.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted)">Nenhum agendamento para hoje.</td></tr>';
   }
+
+  renderDashboardBarbeiro();
   lucide.createIcons();
+}
+
+function renderHistorico(dataSelecionada = null) {
+  const tbody = document.getElementById('tbody-historico');
+  let agendamentos = DB.getAgendamentos();
+
+  if (dataSelecionada) {
+    agendamentos = agendamentos.filter(ag => ag.data === dataSelecionada);
+  }
+
+  agendamentos = agendamentos
+    .slice()
+    .sort((a, b) => (b.data + b.hora).localeCompare(a.data + a.hora));
+
+  if (agendamentos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted)">Nenhum agendamento encontrado.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = agendamentos.map((ag) => `
+    <tr>
+      <td><strong>${escapeHTML(ag.hora)}</strong></td>
+      <td>${escapeHTML(formatarDataCurta(ag.data))}</td>
+      <td>${escapeHTML(ag.nome)}<br><small>${escapeHTML(ag.whatsapp)}</small></td>
+      <td><span class="badge">${escapeHTML(ag.servico)}</span></td>
+      <td><span class="badge" style="background: ${ag.concluido ? 'rgba(34, 197, 94, 0.1); color: var(--success)' : 'rgba(239, 68, 68, 0.1); color: var(--error)'};">${ag.concluido ? 'Concluído' : 'Pendente'}</span></td>
+    </tr>
+  `).join('');
+}
+
+function setupBarbeiroEvents() {
+  // FIX (Bug 2): garantir que os eventos são registrados apenas uma vez
+  if (barbeiroEventosInicializados) return;
+  barbeiroEventosInicializados = true;
+
+  const btnEstabelecimento = document.getElementById('btn-estabelecimento');
+  const btnHistorico = document.getElementById('btn-historico');
+  const modalHistorico = document.getElementById('modal-historico');
+  const btnFecharHistorico = document.getElementById('btn-fechar-historico');
+  const filtroDataHistorico = document.getElementById('filtro-data-historico');
+
+  // Botão para abrir/fechar estabelecimento
+  if (btnEstabelecimento) {
+    const atualizarBotao = () => {
+      const aberto = DB.getEstabelecimentoAberto();
+      btnEstabelecimento.innerHTML = aberto ?
+        '<i data-lucide="power" style="width:16px"></i> Estabelecimento Aberto' :
+        '<i data-lucide="power-off" style="width:16px"></i> Estabelecimento Fechado';
+      btnEstabelecimento.style.background = aberto ? 'var(--success)' : 'var(--error)';
+      lucide.createIcons();
+    };
+
+    atualizarBotao();
+
+    btnEstabelecimento.onclick = () => {
+      const aberto = DB.getEstabelecimentoAberto();
+      showConfirmDialog(
+        aberto ?
+          'Tem certeza que deseja fechar o estabelecimento? Novos agendamentos não serão permitidos.' :
+          'Tem certeza que deseja abrir o estabelecimento?',
+        () => {
+          DB.setEstabelecimentoAberto(!aberto);
+          atualizarBotao();
+          showToast(aberto ? 'Estabelecimento fechado.' : 'Estabelecimento aberto.');
+        }
+      );
+    };
+  }
+
+  // Botão para abrir histórico
+  if (btnHistorico) {
+    btnHistorico.onclick = () => {
+      filtroDataHistorico.value = getDataHoje();
+      renderHistorico(getDataHoje());
+      modalHistorico.style.display = 'flex';
+      setTimeout(() => lucide.createIcons(), 50);
+    };
+  }
+
+  // Botão para fechar histórico
+  if (btnFecharHistorico) {
+    btnFecharHistorico.onclick = () => {
+      modalHistorico.style.display = 'none';
+    };
+  }
+
+  // Filtro de data do histórico
+  if (filtroDataHistorico) {
+    filtroDataHistorico.onchange = () => {
+      const dataSelecionada = filtroDataHistorico.value || null;
+      renderHistorico(dataSelecionada);
+    };
+  }
+
+  // Fechar modal ao clicar fora
+  if (modalHistorico) {
+    modalHistorico.onclick = (e) => {
+      if (e.target === modalHistorico) {
+        modalHistorico.style.display = 'none';
+      }
+    };
+  }
 }
 
 function setupDeleteEvents() {
@@ -454,17 +864,61 @@ function setupDeleteEvents() {
     const button = event.target.closest('[data-servico-index]');
     if (!button) return;
     const index = Number(button.dataset.servicoIndex);
-    DB.removeServico(index);
-    updateBarbeiroView();
-    updateServicosSelect();
-    showToast('Servico removido.');
+    const servicoObj = DB.getServicos()[index];
+    if (!servicoObj) {
+      showToast('Serviço não encontrado.', 'error');
+      return;
+    }
+    const nomeServico = String(servicoObj.nome || '');
+
+    showConfirmDialog(
+      `Tem certeza que deseja excluir o serviço "${escapeHTML(nomeServico)}"?`,
+      () => {
+        DB.removeServico(index);
+        updateBarbeiroView();
+        updateServicosSelect();
+        showToast('Serviço removido com sucesso.');
+      }
+    );
   });
 
   tbodyAgendamentos.addEventListener('click', (event) => {
     const button = event.target.closest('[data-agendamento-id]');
     if (!button) return;
-    DB.removeAgendamentoById(button.dataset.agendamentoId);
-    updateBarbeiroView();
-    showToast('Atendimento concluido!');
+    const agId = button.dataset.agendamentoId;
+    const ag = DB.getAgendamentos().find(a => a.id === agId);
+
+    if (!ag) {
+      showToast('Agendamento não encontrado.', 'error');
+      return;
+    }
+
+    if (button.classList.contains('btn-cancel-agendamento')) {
+      showConfirmDialog(
+        `Tem certeza que deseja cancelar o agendamento de ${escapeHTML(String(ag.nome))}?`,
+        () => {
+          DB.removeAgendamentoById(agId);
+          updateBarbeiroView();
+          renderDashboardBarbeiro();
+          showToast('Agendamento cancelado.');
+        }
+      );
+    } else if (button.classList.contains('btn-complete-agendamento')) {
+      // FIX (Bug 1): checagem restaurada — impede concluir agendamento já concluído
+      if (ag.concluido) {
+        showToast('Este agendamento já foi concluído.', 'error');
+        return;
+      }
+      showConfirmDialog(
+        `Marcar agendamento de ${escapeHTML(String(ag.nome))} como concluído?`,
+        () => {
+          DB.markAgendamentoAsCompleted(agId);
+          updateBarbeiroView();
+          renderDashboardBarbeiro();
+          const precoFormatado = Number(ag.valor || 0).toFixed(2);
+          showToast(`Atendimento concluído! +R$ ${precoFormatado} na receita.`);
+        }
+      );
+    }
   });
 }
