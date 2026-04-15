@@ -506,9 +506,7 @@
     if (!session || session.role !== "barber") return;
     try {
       var bookings = await apiGetBookings("barber", { barberId: session.user.id });
-      bookings.sort(function (a, b) {
-        return new Date(a.date + "T" + a.time + ":00") - new Date(b.date + "T" + b.time + ":00");
-      });
+      bookings.sort(compareBookingsByDateTime);
       if (!bookings.length) {
         tbody.innerHTML = "<tr><td colspan=5>Nenhum agendamento encontrado.</td></tr>";
         return;
@@ -610,9 +608,7 @@
     tbody.innerHTML = "";
     try {
       var bookings = await apiGetBookings("admin", {});
-      bookings.sort(function (a, b) {
-        return new Date(a.date + "T" + a.time + ":00") - new Date(b.date + "T" + b.time + ":00");
-      });
+      bookings.sort(compareBookingsByDateTime);
       if (!bookings.length) {
         tbody.innerHTML = "<tr><td colspan=5>Nenhum agendamento registrado.</td></tr>";
         return;
@@ -653,6 +649,14 @@
       values[id] = input ? input.value.trim() : "";
     });
     return values;
+  }
+
+  function getBookingDateTime(booking) {
+    return new Date((booking.date || "") + "T" + (booking.time || "") + ":00");
+  }
+
+  function compareBookingsByDateTime(a, b) {
+    return getBookingDateTime(a) - getBookingDateTime(b);
   }
 
   function isValidTimeSlot(time) {

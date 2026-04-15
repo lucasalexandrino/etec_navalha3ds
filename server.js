@@ -70,6 +70,46 @@ function formatDateTime(date, time) {
   return Number.isNaN(dt.getTime()) ? null : dt;
 }
 
+function compareBookingsByDateTime(a, b) {
+  const first = formatDateTime(a.date, a.time);
+  const second = formatDateTime(b.date, b.time);
+  if (!first || !second) return 0;
+  return first.getTime() - second.getTime();
+}
+
+function normalizeBookingStatuses(data) {
+  var changed = false;
+  var now = Date.now();
+  (data.bookings || []).forEach(function (booking) {
+    if (!booking) return;
+    var appointment = formatDateTime(booking.date, booking.time);
+    var status = booking.status ? String(booking.status).toLowerCase() : "agendado";
+    if (status === "cancelado" || status === "realizado") {
+      booking.status = status;
+      return;
+    }
+    if (!appointment) {
+      if (booking.status !== "agendado") {
+        booking.status = "agendado";
+        changed = true;
+      }
+      return;
+    }
+    if (appointment.getTime() < now) {
+      if (status !== "realizado") {
+        booking.status = "realizado";
+        changed = true;
+      }
+    } else {
+      if (status !== "agendado") {
+        booking.status = "agendado";
+        changed = true;
+      }
+    }
+  });
+  return changed;
+}
+
 function getSlotMinutes(dt) {
   return dt.getHours() * 60 + dt.getMinutes();
 }
@@ -440,14 +480,19 @@ app.get("/api/admin/reports/monthly", authMiddleware, adminMiddleware, (req, res
 
 app.get("/api/bookings", authMiddleware, (req, res) => {
   const data = loadData();
+  const hasUpdatedStatuses = normalizeBookingStatuses(data);
+  if (hasUpdatedStatuses) {
+    saveData(data);
+  }
+  const sortedBookings = (data.bookings || []).slice().sort(compareBookingsByDateTime);
   if (req.auth.role === "admin") {
-    return res.json(data.bookings);
+    return res.json(sortedBookings);
   }
   if (req.auth.role === "client") {
-    return res.json(data.bookings.filter((booking) => booking.clientId === req.auth.user.id));
+    return res.json(sortedBookings.filter((booking) => booking.clientId === req.auth.user.id));
   }
   if (req.auth.role === "barber") {
-    return res.json(data.bookings.filter((booking) => booking.barberId === req.auth.user.id));
+    return res.json(sortedBookings.filter((booking) => booking.barberId === req.auth.user.id));
   }
   return res.status(403).json({ error: "Acesso negado." });
 });
@@ -557,7 +602,8 @@ app.post("/api/bookings", authMiddleware, clientMiddleware, (req, res) => {
     totalValue,
     durationMinutes,
     date,
-    time
+    time,
+    status: "agendado"
   };
   data.bookings.push(booking);
   saveData(data);

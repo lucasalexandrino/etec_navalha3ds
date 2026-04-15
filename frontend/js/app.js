@@ -422,8 +422,40 @@
     return new Date(booking.date + "T" + booking.time + ":00");
   }
 
+  function getBookingStatus(booking) {
+    if (!booking) return "agendado";
+    return String(booking.status || "agendado").toLowerCase();
+  }
+
+  function normalizeBookingStatus(booking) {
+    if (!booking) return "agendado";
+    var status = getBookingStatus(booking);
+    if (status === "cancelado" || status === "realizado") {
+      booking.status = status;
+      return status;
+    }
+    var appointment = getBookingDateTime(booking);
+    if (Number.isNaN(appointment.getTime()) || appointment.getTime() >= Date.now()) {
+      booking.status = "agendado";
+      return "agendado";
+    }
+    booking.status = "realizado";
+    return "realizado";
+  }
+
+  function createStatusBadge(status) {
+    var span = document.createElement("span");
+    span.className = "status-badge status-" + status;
+    span.textContent = status;
+    return span;
+  }
+
+  function compareBookingsByDateTime(a, b) {
+    return getBookingDateTime(a) - getBookingDateTime(b);
+  }
+
   function isBookingPast(booking) {
-    return getBookingDateTime(booking).getTime() <= Date.now();
+    return getBookingDateTime(booking).getTime() < Date.now();
   }
 
   function formatBookingDateTime(booking) {
@@ -695,38 +727,47 @@
         futureBody.innerHTML = "<tr><td colspan=7>Nenhum agendamento para os próximos dias.</td></tr>";
         return;
       }
+      bookings.forEach(normalizeBookingStatus);
+      bookings.sort(compareBookingsByDateTime);
       var now = Date.now();
       var today = new Date().toISOString().slice(0, 10);
-      var todayBookings = [];
-      var futureBookings = [];
+      var todayScheduled = [];
+      var todayRealized = [];
+      var futureScheduled = [];
+      var futureRealized = [];
+
       bookings.forEach(function (booking) {
         var bookingDateTime = getBookingDateTime(booking);
+        var status = getBookingStatus(booking);
         if (booking.date === today) {
-          todayBookings.push({ booking: booking, dateTime: bookingDateTime });
+          if (status === "realizado") {
+            todayRealized.push({ booking: booking, dateTime: bookingDateTime });
+          } else {
+            todayScheduled.push({ booking: booking, dateTime: bookingDateTime });
+          }
         } else if (bookingDateTime.getTime() > now) {
-          futureBookings.push({ booking: booking, dateTime: bookingDateTime });
+          if (status === "realizado") {
+            futureRealized.push({ booking: booking, dateTime: bookingDateTime });
+          } else {
+            futureScheduled.push({ booking: booking, dateTime: bookingDateTime });
+          }
         }
       });
-      todayBookings.sort(function (a, b) {
-        return a.dateTime - b.dateTime;
-      });
-      futureBookings.sort(function (a, b) {
-        return a.dateTime - b.dateTime;
-      });
-      if (!todayBookings.length) {
-        todayBody.innerHTML = "<tr><td colspan=7>Nenhum agendamento hoje.</td></tr>";
-      } else {
-        todayBookings.forEach(function (item) {
+
+      function renderList(items, container, emptyText) {
+        if (!items.length) {
+          container.innerHTML = emptyText;
+          return;
+        }
+        items.forEach(function (item) {
           var booking = item.booking;
-          var status = booking.status || "agendado";
-          var isPast = item.dateTime.getTime() <= now;
-          var statusBadge = `<span class="status-badge status-${status}">${status}</span>`;
+          var status = getBookingStatus(booking);
+          var isPast = item.dateTime.getTime() < now;
+          var statusBadge = createStatusBadge(status);
           var actionCell = document.createElement("td");
-          
+
           if (status === "realizado" || status === "cancelado") {
-            actionCell.innerHTML = "✓";
-          } else if (isPast) {
-            actionCell.innerHTML = "";
+            actionCell.textContent = "✓";
           } else {
             var cancelButton = document.createElement("button");
             cancelButton.type = "button";
@@ -742,7 +783,7 @@
             });
             actionCell.appendChild(cancelButton);
           }
-          
+
           var row = createTableRow([
             formatDate(booking.date, booking.time),
             booking.clientName || "-",
@@ -752,43 +793,16 @@
             statusBadge,
             actionCell
           ]);
+
           if (isPast && status !== "realizado") {
             row.classList.add("linha-passado");
           }
-          todayBody.appendChild(row);
+          container.appendChild(row);
         });
       }
-      if (!futureBookings.length) {
-        futureBody.innerHTML = "<tr><td colspan=7>Nenhum agendamento para os próximos dias.</td></tr>";
-      } else {
-        futureBookings.forEach(function (item) {
-          var booking = item.booking;
-          var status = booking.status || "agendado";
-          var statusBadge = `<span class="status-badge status-${status}">${status}</span>`;
-          var cancelButton = document.createElement("button");
-          cancelButton.type = "button";
-          cancelButton.className = "btn-icone";
-          cancelButton.textContent = "Cancelar";
-          cancelButton.addEventListener("click", function () {
-            apiCancelBooking(booking.id).then(function () {
-              renderBarberBookings();
-              renderHomeAvailability();
-            }).catch(function (err) {
-              alert(err.message);
-            });
-          });
-          
-          futureBody.appendChild(createTableRow([
-            formatDate(booking.date, booking.time),
-            booking.clientName || "-",
-            booking.whatsapp || "-",
-            renderBookingServices(booking),
-            formatCurrency(getBookingTotalValue(booking)),
-            statusBadge,
-            cancelButton
-          ]));
-        });
-      }
+
+      renderList(todayScheduled.concat(todayRealized), todayBody, "<tr><td colspan=7>Nenhum agendamento hoje.</td></tr>");
+      renderList(futureScheduled.concat(futureRealized), futureBody, "<tr><td colspan=7>Nenhum agendamento para os próximos dias.</td></tr>");
     }).catch(function () {
       todayBody.innerHTML = "<tr><td colspan=7>Erro ao carregar agendamentos.</td></tr>";
       futureBody.innerHTML = "<tr><td colspan=7>Erro ao carregar agendamentos.</td></tr>";
@@ -1090,12 +1104,14 @@
     if (!tbody) return;
     
     apiGetBookings().then(function (bookings) {
+      bookings.forEach(normalizeBookingStatus);
       var filteredBookings = bookings.filter(function (booking) {
-        var bookingDate = new Date(booking.date + "T" + booking.time + ":00");
+        var bookingDate = getBookingDateTime(booking);
         return bookingDate.getMonth() === adminAttendancesMonth && 
                bookingDate.getFullYear() === adminAttendancesYear;
       });
       
+      filteredBookings.sort(compareBookingsByDateTime);
       tbody.innerHTML = "";
       filteredBookings.forEach(function (booking) {
         var row = document.createElement("tr");
@@ -1103,7 +1119,7 @@
           ? booking.serviceItems.map(function (item) { return item.name; }).join(", ")
           : booking.serviceName || "N/A";
         var totalValue = booking.totalValue || 0;
-        var status = booking.status || "agendado";
+        var status = getBookingStatus(booking);
         var statusClass = status === "realizado" ? "status-realizado" : 
                          status === "cancelado" ? "status-cancelado" : "status-agendado";
         

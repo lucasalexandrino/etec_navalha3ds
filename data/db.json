@@ -122,42 +122,6 @@
   ],
   "bookings": [
     {
-      "id": "agendamento-1776025429620-ofz5nn",
-      "clientId": "cliente-1776025418701-g0m6hv",
-      "clientName": "Daniela Conduta",
-      "whatsapp": "14996857895",
-      "barberId": "barbeiro-1",
-      "barberName": "Barbeiro Demo",
-      "serviceId": "servico-1",
-      "serviceName": "Corte de cabelo",
-      "date": "2026-04-13",
-      "time": "18:00"
-    },
-    {
-      "id": "agendamento-1776027697300-9iq1ld",
-      "clientId": "cliente-1775944699991-76towv",
-      "clientName": "Aurélio Viana",
-      "whatsapp": "14991584796",
-      "barberId": "barbeiro-1",
-      "barberName": "Barbeiro Demo",
-      "serviceId": "servico-2",
-      "serviceName": "Barba",
-      "date": "2026-04-13",
-      "time": "09:00"
-    },
-    {
-      "id": "agendamento-1776027711507-8wxxuu",
-      "clientId": "cliente-1775944699991-76towv",
-      "clientName": "Aurélio Viana",
-      "whatsapp": "14991584796",
-      "barberId": "barbeiro-1",
-      "barberName": "Barbeiro Demo",
-      "serviceId": "servico-1",
-      "serviceName": "Corte de cabelo",
-      "date": "2026-04-13",
-      "time": "09:30"
-    },
-    {
       "id": "agendamento-1776130422166-dch8dt",
       "clientId": "cliente-1775944699991-76towv",
       "clientName": "Aurélio Viana",
@@ -212,35 +176,6 @@
       "totalValue": 170,
       "date": "2026-04-23",
       "time": "15:00"
-    },
-    {
-      "id": "agendamento-1776207865977-2n5u9c",
-      "clientId": "cliente-1776025418701-g0m6hv",
-      "clientName": "Daniela Conduta",
-      "whatsapp": "14996857895",
-      "barberId": "barbeiro-1",
-      "barberName": "Barbeiro Demo",
-      "serviceItems": [
-        {
-          "id": "servico-3",
-          "name": "Hidratação",
-          "price": 100
-        },
-        {
-          "id": "servico-4",
-          "name": "Sobrancelha",
-          "price": 20
-        }
-      ],
-      "serviceIds": [
-        "servico-3",
-        "servico-4"
-      ],
-      "serviceName": "Hidratação, Sobrancelha",
-      "totalValue": 120,
-      "durationMinutes": 60,
-      "date": "2026-04-16",
-      "time": "17:00"
     },
     {
       "id": "agendamento-1776214568309-z0n3gv",
@@ -537,6 +472,41 @@
       "durationMinutes": 30,
       "date": "2026-04-18",
       "time": "09:00"
+    },
+    {
+      "id": "agendamento-1776291980841-98k11x",
+      "clientId": "cliente-1776025418701-g0m6hv",
+      "clientName": "Daniela Conduta",
+      "whatsapp": "14996857895",
+      "barberId": "barbeiro-1",
+      "barberName": "Barbeiro Demo",
+      "serviceItems": [
+        {
+          "id": "servico-3",
+          "name": "Hidratação",
+          "price": 100
+        },
+        {
+          "id": "servico-5",
+          "name": "Limpeza de pele",
+          "price": 30
+        },
+        {
+          "id": "servico-7",
+          "name": "Pintura de cabelo",
+          "price": 60
+        }
+      ],
+      "serviceIds": [
+        "servico-3",
+        "servico-5",
+        "servico-7"
+      ],
+      "serviceName": "Hidratação, Limpeza de pele, Pintura de cabelo",
+      "totalValue": 190,
+      "durationMinutes": 90,
+      "date": "2026-04-16",
+      "time": "15:00"
     }
   ]
 }
