@@ -1,12 +1,29 @@
+/* ============================================================
+   Navalha Barbearia — Estilos principais
+   Correções aplicadas:
+   - Bug: arquivo era referenciado como "estilo.css" no HTML (corrigido para "estilos.css")
+   - Bug: --accentt (typo) corrigido para --accent
+   - Bug: --accent-hober (typo) corrigido para --accent-hover
+   - Bug: navegação do calendário estava invertida (próximo/anterior trocados)
+   - Melhoria: tela de login adicionada
+   - Melhoria: responsividade aprimorada para mobile
+   - Melhoria: acessibilidade com foco visível e contraste adequado
+   ============================================================ */
+
 :root {
-  --bg: #1a1b1e;
-  --card: #25262b;
-  --text: #e9e9ed;
-  --muted: #909296;
-  --accent: #c9a227;
-  --accent-hover: #ddb92e;
-  --border: #373a40;
+  --bg: #ffffff;              /* fundo branco */
+  --card: #f5f7fa;            /* cards mais claros (menos cinza pesado) */
+  --text: #0f172a;            /* quase preto (mais suave) */
+  --muted: #64748b;           /* cinza azulado */
+  
+  --accent: #0b1f3a;          /* azul marinho */
+  --accent-hover: #123a6b;    /* azul marinho mais claro no hover */
+  
+  --border: #d0d7e2;          /* borda leve */
+  
   --danger: #e03131;
+  --success: #2f9e44;
+  
   --radius: 10px;
   --font: "Segoe UI", system-ui, sans-serif;
 }
@@ -28,6 +45,76 @@ body {
   flex-direction: column;
 }
 
+/* ============================================================
+   TELA DE LOGIN
+   ============================================================ */
+
+#tela-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+#tela-login[hidden] {
+  display: none;
+}
+
+.login-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-logo {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.login-logo h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+
+.login-logo p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.login-card h2 {
+  margin: 0 0 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.aviso-seguranca {
+ 
+  border: 1px solid rgb(39 88 201 / 14%);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 1.5rem;
+  line-height: 1.5;
+}
+
+.aviso-seguranca strong {
+  color: var(--accent);
+}
+
+/* ============================================================
+   TOPO / HEADER
+   ============================================================ */
+
 .topo {
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--border);
@@ -41,34 +128,48 @@ body {
 .topo h1 {
   margin: 0;
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.03em;
 }
 
-.papeis {
+.topo-usuario {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
 }
 
-.papel {
-  padding: 0.45rem 1rem;
+.badge-papel {
+  padding: 0.2rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: rgb(39 88 201 / 14%);
+  color: var(--accent);
+  border: 1px solid rgba(5, 17, 46, 0.918);
+}
+
+.btn-logout {
+  padding: 0.35rem 0.85rem;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--card);
-  color: var(--text);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
   cursor: pointer;
   font: inherit;
+  font-size: 0.85rem;
+  transition: border-color 0.15s, color 0.15s;
 }
 
-.papel:hover {
-  border-color: var(--muted);
+.btn-logout:hover {
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
-.papel.ativo {
-  background: var(--accent);
-  color: #1a1a12;
-  border-color: var(--accentt);
-  font-weight: 600;
-}
+/* ============================================================
+   LAYOUT PRINCIPAL
+   ============================================================ */
 
 main {
   flex: 1;
@@ -110,6 +211,10 @@ main {
   }
 }
 
+/* ============================================================
+   CARDS
+   ============================================================ */
+
 .card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -124,6 +229,7 @@ main {
 .card h2 {
   margin: 0 0 1rem;
   font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .subtitulo {
@@ -132,6 +238,10 @@ main {
   color: var(--muted);
   font-weight: 600;
 }
+
+/* ============================================================
+   CALENDÁRIO
+   ============================================================ */
 
 .cal-nav {
   display: flex;
@@ -149,6 +259,7 @@ main {
   border-radius: 8px;
   cursor: pointer;
   font: inherit;
+  transition: border-color 0.15s, color 0.15s;
 }
 
 .cal-nav button:hover {
@@ -191,6 +302,7 @@ main {
   color: var(--text);
   font-size: 0.85rem;
   padding: 2px;
+  transition: border-color 0.15s;
 }
 
 .cal-dia:hover:not(:disabled) {
@@ -207,6 +319,11 @@ main {
   font-weight: 700;
 }
 
+.cal-dia.selecionado {
+  background: rgb(39 88 201 / 14%);
+  border-color: var(--accent);
+}
+
 .cal-dia.tem-evento::after {
   content: "";
   width: 4px;
@@ -216,10 +333,21 @@ main {
   margin-top: 2px;
 }
 
+.cal-dia.fechado {
+  background: rgba(224, 49, 49, 0.1);
+  border-color: var(--danger);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
 .cal-dia:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.4;
 }
+
+/* ============================================================
+   FORMULÁRIOS
+   ============================================================ */
 
 .form {
   display: flex;
@@ -242,13 +370,55 @@ main {
   background: var(--bg);
   color: var(--text);
   font: inherit;
+  transition: border-color 0.15s;
 }
 
 .form input:focus,
 .form select:focus {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
+  border-color: var(--accent);
 }
+
+/* Campos com erro */
+.form input.campo-erro,
+.form select.campo-erro {
+  border-color: var(--danger);
+  outline: none;
+}
+
+.msg-erro {
+  font-size: 0.78rem;
+  color: var(--danger);
+  margin-top: -0.4rem;
+}
+
+/* Mensagem de feedback (sucesso / erro geral) */
+.feedback {
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  display: none;
+}
+
+.feedback.sucesso {
+  background: rgba(47, 158, 68, 0.15);
+  border: 1px solid rgba(47, 158, 68, 0.4);
+  color: #69db7c;
+  display: block;
+}
+
+.feedback.erro {
+  background: rgba(224, 49, 49, 0.15);
+  border: 1px solid rgba(224, 49, 49, 0.4);
+  color: #ff8787;
+  display: block;
+}
+
+/* ============================================================
+   BOTÕES
+   ============================================================ */
 
 .btn-prim {
   margin-top: 0.25rem;
@@ -256,15 +426,30 @@ main {
   border: none;
   border-radius: 8px;
   background: var(--accent);
-  color: #1a1a12;
+  color: #ffffff;
   font: inherit;
   font-weight: 600;
   cursor: pointer;
+  transition: background 0.15s;
 }
 
 .btn-prim:hover {
-  background: var(--accent-hober);
+  background: var(--accent-hover);
 }
+
+.btn-prim:focus-visible {
+  outline: 2px solid var(--accent-hover);
+  outline-offset: 2px;
+}
+
+.btn-prim:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   LISTA DE SERVIÇOS
+   ============================================================ */
 
 .lista-servicos {
   list-style: none;
@@ -286,6 +471,16 @@ main {
   border-bottom: none;
 }
 
+.lista-servicos-vazia {
+  font-size: 0.88rem;
+  color: var(--muted);
+  padding: 0.5rem 0;
+}
+
+/* ============================================================
+   BOTÕES DE ÍCONE / AÇÃO
+   ============================================================ */
+
 .btn-icone {
   padding: 0.25rem 0.5rem;
   font-size: 0.8rem;
@@ -295,11 +490,63 @@ main {
   color: var(--danger);
   cursor: pointer;
   font: inherit;
+  transition: background 0.15s;
 }
 
 .btn-icone:hover {
   background: rgba(224, 49, 49, 0.15);
 }
+
+/* ============================================================
+   FILTRO DE AGENDAMENTOS
+   ============================================================ */
+
+.filtro-agendamentos {
+  margin-bottom: 1rem;
+}
+
+.filtro-agendamentos label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.filtro-agendamentos input[type="date"] {
+  padding: 0.4rem 0.6rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.filtro-agendamentos input[type="date"]:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.filtro-agendamentos .btn-sec {
+  padding: 0.4rem 0.8rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filtro-agendamentos .btn-sec:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+/* ============================================================
+   TABELA DE AGENDAMENTOS
+   ============================================================ */
 
 .tabela-wrap {
   overflow-x: auto;
@@ -321,4 +568,68 @@ main {
 .tabela-ag th {
   color: var(--muted);
   font-weight: 600;
+}
+
+.tabela-ag tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tabela-vazia {
+  font-size: 0.88rem;
+  color: var(--muted);
+  padding: 1rem 0;
+  text-align: center;
+}
+
+/* ============================================================
+   RODAPÉ
+   ============================================================ */
+
+footer {
+  border-top: 1px solid var(--border);
+  padding: 1rem 1.25rem;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+/* ============================================================
+   RESPONSIVIDADE — MOBILE
+   ============================================================ */
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .topo h1 {
+    font-size: 1.1rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  .tabela-ag th:nth-child(3),
+  .tabela-ag td:nth-child(3) {
+    display: none;
+  }
+}
+
+/* ============================================================
+   FOCO VISÍVEL (acessibilidade)
+   ============================================================ */
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
