@@ -189,6 +189,30 @@
     if (mudou) save(KEY_AG, ags);
   }
 
+  /** Alinha agendamentos antigos ao modelo atual (whatsapp, serviceId). */
+  function migrateAgendamentosCamposLegados() {
+    var ags = getAgendamentos();
+    var servicos = getServicos();
+    var mudou = false;
+    for (var i = 0; i < ags.length; i++) {
+      var a = ags[i];
+      if (!a.whatsapp && a.clientWhatsapp) {
+        a.whatsapp = String(a.clientWhatsapp).replace(/\D/g, "");
+        mudou = true;
+      }
+      if (!a.serviceId && a.serviceName && servicos.length) {
+        var svc = servicos.find(function (s) {
+          return s.name === a.serviceName;
+        });
+        if (svc) {
+          a.serviceId = svc.id;
+          mudou = true;
+        }
+      }
+    }
+    if (mudou) save(KEY_AG, ags);
+  }
+
   var BARBEIRO_CONTAS = [
     { email: "joao@navalha.com", password: "123456", barberId: "barber-1" },
     { email: "pedro@navalha.com", password: "123456", barberId: "barber-2" },
@@ -289,33 +313,6 @@
       return normalizeDate(addDays(start, 1));
     }
 
-    function randomChoice(arr) {
-      return arr[randomInt(0, arr.length - 1)];
-    }
-
-    function addDays(date, days) {
-      var clone = new Date(date.getTime());
-      clone.setDate(clone.getDate() + days);
-      return clone;
-    }
-
-    function normalizeDate(date) {
-      var d = new Date(date.getTime());
-      d.setHours(0, 0, 0, 0);
-      return d;
-    }
-
-    function randomBusinessDay() {
-      var attempts = 0;
-      while (attempts < 200) {
-        var dayOffset = randomInt(1, 90);
-        var date = addDays(new Date(), dayOffset);
-        if (isBusinessDay(date)) return normalizeDate(date);
-        attempts += 1;
-      }
-      return normalizeDate(addDays(new Date(), 1));
-    }
-
     function overlaps(startA, endA, startB, endB) {
       return startA < endB && startB < endA;
     }
@@ -388,7 +385,8 @@
           id: uid(),
           clientEmail: client.email,
           clientName: client.name,
-          clientWhatsapp: client.whatsapp,
+          whatsapp: String(client.whatsapp || "").replace(/\D/g, ""),
+          serviceId: service.id,
           serviceName: service.name,
           durationMinutes: service.durationMinutes,
           price: service.price,
@@ -2171,11 +2169,17 @@
   seedDemoAgendamentos();
   migrateAgendamentosBarberId();
   migratePagamentosCamposAntigos();
+  migrateAgendamentosCamposLegados();
   var sessao = getSessao();
   if (sessao && sessao.role === "cliente") {
     applyScreen("cliente");
     var nomeEl = document.getElementById("clienteNome");
-    if (nomeEl) nomeEl.textContent = (sessao.email || "").split("@")[0] || "Cliente";
+    if (nomeEl) {
+      nomeEl.textContent =
+        sessao.clientName ||
+        (sessao.email || "").split("@")[0] ||
+        "Cliente";
+    }
     initCliente();
   } else if (sessao && sessao.role === "barbeiro") {
     if (!sessao.barberId) {
