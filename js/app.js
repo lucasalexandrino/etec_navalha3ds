@@ -1644,8 +1644,9 @@
   function updateDashboard() {
     var sess = getSessao();
     if (!sess || sess.role !== "barbeiro") return;
+    var bid = sess.barberId;
     var ags = agendamentosDoBarbeiroLogado().filter(function (a) {
-      return a.status !== "cancelled";
+      return a.status !== "cancelled" && a.barberId === bid;
     });
     var hoje = new Date();
     var y = hoje.getFullYear();
@@ -1659,17 +1660,26 @@
     }).length;
     var fat = ags
       .filter(function (a) {
-        return statusAgendamentoLogico(a) === "completed";
+        return a.barberId === bid && statusAgendamentoLogico(a) === "completed";
       })
       .reduce(function (acc, a) {
         return acc + (Number(a.amountCharged != null ? a.amountCharged : a.price) || 0);
       }, 0);
+    var fatEsperado = ags
+      .filter(function (a) {
+        return a.barberId === bid && statusAgendamentoLogico(a) === "scheduled";
+      })
+      .reduce(function (acc, a) {
+        return acc + (Number(a.price) || 0);
+      }, 0);
     var totalEl = document.getElementById("totalAgendamentos");
     var hojeEl = document.getElementById("agendamentosHoje");
     var fatEl = document.getElementById("faturamentoTotal");
+    var fatEspEl = document.getElementById("faturamentoEsperado");
     if (totalEl) totalEl.textContent = String(ags.length);
     if (hojeEl) hojeEl.textContent = String(hojeCount);
     if (fatEl) fatEl.textContent = formatMoney(fat);
+    if (fatEspEl) fatEspEl.textContent = formatMoney(fatEsperado);
   }
 
   function renderHorariosBarbeiro() {
