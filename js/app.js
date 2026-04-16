@@ -231,6 +231,135 @@
     ]);
   }
 
+  function seedDemoAgendamentos() {
+    var ags = getAgendamentos();
+    if (ags.length) return;
+    var servicos = getServicos();
+    var barbeiros = getBarbeiros();
+    if (!servicos.length || !barbeiros.length) return;
+
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function randomChoice(arr) {
+      return arr[randomInt(0, arr.length - 1)];
+    }
+
+    function addDays(date, days) {
+      var clone = new Date(date.getTime());
+      clone.setDate(clone.getDate() + days);
+      return clone;
+    }
+
+    function normalizeDate(date) {
+      var d = new Date(date.getTime());
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
+
+    function randomBusinessDay() {
+      var attempts = 0;
+      while (attempts < 200) {
+        var dayOffset = randomInt(1, 90);
+        var date = addDays(new Date(), dayOffset);
+        if (isBusinessDay(date)) return normalizeDate(date);
+        attempts += 1;
+      }
+      return normalizeDate(addDays(new Date(), 1));
+    }
+
+    function overlaps(startA, endA, startB, endB) {
+      return startA < endB && startB < endA;
+    }
+
+    function hasConflict(start, end, barberId) {
+      for (var i = 0; i < ags.length; i++) {
+        var a = ags[i];
+        if (a.status === "cancelled") continue;
+        if (a.barberId !== barberId) continue;
+        var as = new Date(a.startIso);
+        var ae = new Date(a.endIso);
+        if (overlaps(start.getTime(), end.getTime(), as.getTime(), ae.getTime())) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function randomStartTime(date, durationMinutes, barberId) {
+      var bounds = getOpenCloseMinutes(date.getDay());
+      if (!bounds) return null;
+      var earliest = bounds.openMin;
+      var latest = bounds.closeMin - durationMinutes;
+      if (latest <= earliest) return null;
+      var tries = 0;
+      while (tries < 80) {
+        var minutes = randomInt(earliest / 15, latest / 15) * 15;
+        var start = new Date(date.getTime());
+        start.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
+        var end = endTime(start, durationMinutes);
+        if (!fitsBusinessHours(start, end)) {
+          tries += 1;
+          continue;
+        }
+        if (hasConflict(start, end, barberId)) {
+          tries += 1;
+          continue;
+        }
+        return start;
+      }
+      return null;
+    }
+
+    var paymentMethods = ["pix", "cartao", "dinheiro", "boleto"];
+    var paymentStatusMap = {
+      pix: "paid_simulated",
+      cartao: "paid_simulated",
+      dinheiro: "pending_cash",
+      boleto: "pending_boleto",
+    };
+
+    DEMO_CLIENTES.forEach(function (client) {
+      var servicesCount = randomInt(2, 5);
+      var added = 0;
+      var attempts = 0;
+      while (added < servicesCount && attempts < 150) {
+        var service = randomChoice(servicos);
+        var barber = randomChoice(barbeiros);
+        var date = randomBusinessDay();
+        var start = randomStartTime(date, service.durationMinutes, barber.id);
+        if (!start) {
+          attempts += 1;
+          continue;
+        }
+        var end = endTime(start, service.durationMinutes);
+        var method = randomChoice(paymentMethods);
+        var paymentStatus = paymentStatusMap[method] || "pending";
+        var status = paymentStatus.indexOf("paid") >= 0 ? "completed" : "scheduled";
+        ags.push({
+          id: uid(),
+          clientEmail: client.email,
+          clientName: client.name,
+          clientWhatsapp: client.whatsapp,
+          serviceName: service.name,
+          durationMinutes: service.durationMinutes,
+          price: service.price,
+          barberId: barber.id,
+          barberName: barber.name,
+          startIso: start.toISOString(),
+          endIso: end.toISOString(),
+          paymentMethod: method,
+          paymentStatus: paymentStatus,
+          amountCharged: service.price,
+          status: status,
+        });
+        added += 1;
+      }
+    });
+    save(KEY_AG, ags);
+  }
+
   function parseDateTimeLocal(dateStr, timeStr) {
     if (!dateStr || !timeStr) return null;
     var d = new Date(dateStr + "T" + timeStr + ":00");
@@ -467,10 +596,28 @@
   var loginPassword = document.getElementById("loginPassword");
   var userType = document.getElementById("userType");
 
-  var DEMO_CLIENTE = {
-    email: "cliente@email.com",
-    password: "123456",
-  };
+  var DEMO_CLIENTES = [
+    { email: "cliente@email.com", password: "123456", name: "Cliente Demonstração", whatsapp: "11999990000" },
+    { email: "ana.carvalho@navalha.com", password: "123456", name: "Ana Carvalho", whatsapp: "11987654321" },
+    { email: "bruno.moura@navalha.com", password: "123456", name: "Bruno Moura", whatsapp: "11985433210" },
+    { email: "carla.silva@navalha.com", password: "123456", name: "Carla Silva", whatsapp: "11981234567" },
+    { email: "david.santos@navalha.com", password: "123456", name: "David Santos", whatsapp: "11982345678" },
+    { email: "elisa.nogueira@navalha.com", password: "123456", name: "Elisa Nogueira", whatsapp: "11983456789" },
+    { email: "fernando.lima@navalha.com", password: "123456", name: "Fernando Lima", whatsapp: "11984567890" },
+    { email: "gisele.rodrigues@navalha.com", password: "123456", name: "Gisele Rodrigues", whatsapp: "11985678901" },
+    { email: "helena.martins@navalha.com", password: "123456", name: "Helena Martins", whatsapp: "11986789012" },
+    { email: "igor.andrade@navalha.com", password: "123456", name: "Igor Andrade", whatsapp: "11987890123" },
+    { email: "juliana.pereira@navalha.com", password: "123456", name: "Juliana Pereira", whatsapp: "11988901234" },
+  ];
+
+  function resolveClientLogin(email, pass) {
+    var e = String(email).trim().toLowerCase();
+    for (var i = 0; i < DEMO_CLIENTES.length; i++) {
+      var c = DEMO_CLIENTES[i];
+      if (c.email === e && c.password === pass) return c;
+    }
+    return null;
+  }
 
   function clearLoginError() {
     var el = document.getElementById("loginError");
@@ -501,15 +648,15 @@
       barbeiroScreen.classList.add("hidden");
       barbeiroScreen.setAttribute("aria-hidden", "true");
     }
-    if (role === "cliente" && clienteScreen) {
+    if (role === "login" && loginScreen) {
+      loginScreen.classList.remove("hidden");
+      loginScreen.removeAttribute("aria-hidden");
+    } else if (role === "cliente" && clienteScreen) {
       clienteScreen.classList.remove("hidden");
       clienteScreen.removeAttribute("aria-hidden");
     } else if (role === "barbeiro" && barbeiroScreen) {
       barbeiroScreen.classList.remove("hidden");
       barbeiroScreen.removeAttribute("aria-hidden");
-    } else if (loginScreen) {
-      loginScreen.classList.remove("hidden");
-      loginScreen.removeAttribute("aria-hidden");
     }
   }
 
@@ -525,14 +672,16 @@
     }
     var em = email.trim().toLowerCase();
     if (tipo === "cliente") {
-      if (em !== DEMO_CLIENTE.email || pass !== DEMO_CLIENTE.password) {
+      var conta = resolveClientLogin(email, pass);
+      if (!conta) {
         setLoginError("E-mail ou senha incorretos para cliente.");
         showToast("E-mail ou senha incorretos para cliente.", "error");
         return;
       }
       setSessao({
         role: "cliente",
-        email: em,
+        email: conta.email,
+        clientName: conta.name,
       });
     } else {
       var conta = resolveBarberLogin(email, pass);
@@ -559,7 +708,7 @@
     applyScreen(tipo);
     if (tipo === "cliente") {
       var nomeEl = document.getElementById("clienteNome");
-      if (nomeEl) nomeEl.textContent = email.split("@")[0] || "Cliente";
+      if (nomeEl) nomeEl.textContent = conta.name || "Cliente";
       initCliente();
     } else {
       initBarbeiro();
@@ -569,7 +718,7 @@
 
   function doLogout() {
     setSessao(null);
-    applyScreen(null);
+    applyScreen("login");
     clearLoginError();
     showToast("Sessão encerrada.", "success");
     if (loginEmail) {
@@ -1972,6 +2121,7 @@
   migrarSessaoLegadaLocalStorage();
   seedServicosSeVazio();
   seedBarbeiros();
+  seedDemoAgendamentos();
   migrateAgendamentosBarberId();
   migratePagamentosCamposAntigos();
   var sessao = getSessao();
@@ -1983,12 +2133,12 @@
   } else if (sessao && sessao.role === "barbeiro") {
     if (!sessao.barberId) {
       setSessao(null);
-      applyScreen(null);
+      applyScreen("login");
     } else {
       applyScreen("barbeiro");
       initBarbeiro();
     }
   } else {
-    applyScreen(null);
+    applyScreen("login");
   }
 })();
