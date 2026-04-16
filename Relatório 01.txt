@@ -67,3 +67,6 @@ Conforme solicitado no `Contexto.md`, priorizamos 3 melhorias de experiência do
 **Por quê**: Validações de formulário são essenciais para prevenir erros. Adicionamos mensagens claras e próximas aos campos, além de toast notifications para ações. Isso reduz frustração do usuário ao informar imediatamente sobre problemas (ex.: horário indisponível, dados inválidos).
 
 Essas melhorias foram implementadas sem comprometer a performance, mantendo o foco em acessibilidade básica (labels associados, contraste adequado).
+
+## Conclusão
+O sistema agora está funcional e pronto para entrega. O login simulado com papéis de cliente e barbeiro funciona corretamente, os agendamentos são validados no front-end, os dados são persistidos no navegador e o fluxo de logout retorna corretamente à tela de login. Ajustes de responsividade e usabilidade foram aplicados para melhorar a experiência em telas menores.

@@ -48,6 +48,11 @@ Sistema web para agendamento de serviços em barbearia, desenvolvido com HTML, C
 - Visualizar agendamentos do dia
 - Gerenciar status dos agendamentos (concluir/cancelar)
 
+### Conteúdo de demonstração
+- 10 clientes demo cadastrados
+- 3 barbeiros demo com agendas separadas
+- Agendamentos de exemplo gerados automaticamente no primeiro carregamento
+
 ## Autenticação
 
 Simulada para fins educacionais:
