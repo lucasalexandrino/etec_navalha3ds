@@ -49,9 +49,13 @@ Sistema web para agendamento de serviços em barbearia, desenvolvido com HTML, C
 - Gerenciar status dos agendamentos (concluir/cancelar)
 
 ### Conteúdo de demonstração
-- 10 clientes demo cadastrados
+- 10 clientes demo adicionais mais o cliente principal
 - 3 barbeiros demo com agendas separadas
+- 6 serviços iniciais disponíveis para escolha
 - Agendamentos de exemplo gerados automaticamente no primeiro carregamento
+  - cada cliente recebe de 3 a 5 agendamentos
+  - datas distribuídas entre hoje e 15 de julho de 2026
+  - métodos de pagamento aleatórios: PIX, cartão, dinheiro e boleto
 
 ## Autenticação
 

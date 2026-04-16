@@ -228,6 +228,24 @@
         price: 65,
         durationMinutes: 50,
       },
+      {
+        id: uid(),
+        name: "Corte degradê",
+        price: 75,
+        durationMinutes: 40,
+      },
+      {
+        id: uid(),
+        name: "Design de barba",
+        price: 35,
+        durationMinutes: 25,
+      },
+      {
+        id: uid(),
+        name: "Corte styling",
+        price: 85,
+        durationMinutes: 55,
+      },
     ]);
   }
 
@@ -240,6 +258,35 @@
 
     function randomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    function randomChoice(arr) {
+      return arr[randomInt(0, arr.length - 1)];
+    }
+    function addDays(date, days) {
+      var clone = new Date(date.getTime());
+      clone.setDate(clone.getDate() + days);
+      return clone;
+    }
+    function normalizeDate(date) {
+      var d = new Date(date.getTime());
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
+    function randomBusinessDay() {
+      var start = new Date();
+      var end = new Date("2026-07-15T00:00:00");
+      if (start.getTime() > end.getTime()) {
+        return normalizeDate(addDays(start, 1));
+      }
+      var totalDays = Math.floor((end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
+      var attempts = 0;
+      while (attempts < 500) {
+        var dayOffset = randomInt(0, totalDays);
+        var date = addDays(start, dayOffset);
+        if (isBusinessDay(date)) return normalizeDate(date);
+        attempts += 1;
+      }
+      return normalizeDate(addDays(start, 1));
     }
 
     function randomChoice(arr) {
@@ -321,7 +368,7 @@
     };
 
     DEMO_CLIENTES.forEach(function (client) {
-      var servicesCount = randomInt(2, 5);
+      var servicesCount = randomInt(3, 5);
       var added = 0;
       var attempts = 0;
       while (added < servicesCount && attempts < 150) {
