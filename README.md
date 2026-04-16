@@ -1,6 +1,6 @@
 # Navalha Barbearia
 
-Aplicacao ASP.NET Core MVC (.NET 8) para gestao de barbearia, com foco em separacao de responsabilidades, regras de negocio por perfil e fluxo de agendamento.
+Aplicacao ASP.NET Core MVC (.NET 9) para gestao de barbearia, com foco em separacao de responsabilidades, regras de negocio por perfil e fluxo de agendamento.
 
 ## Visao Geral
 
@@ -182,6 +182,10 @@ dotnet run
 
 3. Abrir no navegador pela URL exibida no terminal.
 
+### Observacao sobre framework
+
+O projeto esta configurado para `net9.0` no arquivo de projeto. Em ambientes que tenham apenas runtime `net8.0`, sera necessario instalar o runtime/SDK compativel ou ajustar o Target Framework conforme o ambiente.
+
 ## Credenciais de Desenvolvimento
 
 - admin@navalha.com / 123456 (Administrador)
@@ -196,7 +200,7 @@ Este projeto prioriza didatica e clareza de regra de negocio para estudo e evolu
 
 ## Arquivo de Index na Raiz
 
-Foi adicionado o arquivo `index.html` na raiz do projeto com uma pagina inicial simples de referencia.
+O arquivo `index.html` na raiz redireciona automaticamente para a home da aplicacao MVC (rota inicial), servindo como ponto de entrada simples para quem abre a raiz do projeto no navegador.
 
 PAQ -Padrão Ana Julia de Qualidade :D
 Revisado 13/04 15:20
