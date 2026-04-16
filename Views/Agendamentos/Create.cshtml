@@ -1,0 +1,255 @@
+@model Navalha_Barbearia.Models.ViewModels.AgendamentoCrudViewModel
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Novo agendamento";
+}
+
+<div class="container py-4">
+    <div class="card-soft p-4 p-md-5 mx-auto" style="max-width: 960px;">
+        <span class="eyebrow">Cadastro</span>
+        <h1 class="h3 mt-3 mb-4">Novo agendamento</h1>
+
+        <form asp-action="Create" method="post" class="row g-3">
+            @Html.AntiForgeryToken()
+
+            <input asp-for="Agendamento.StatusAgendamentoEnum" type="hidden" />
+            <input asp-for="Agendamento.DataHora" type="hidden" />
+
+            <div class="col-md-6">
+                <label asp-for="Agendamento.Cliente.CPF" class="form-label">CPF do cliente</label>
+                <input asp-for="Agendamento.Cliente.CPF" class="form-control" id="cliente-cpf" placeholder="000.000.000-00" />
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Agendamento.Cliente.NomeCompleto" class="form-label">Nome completo</label>
+                <input asp-for="Agendamento.Cliente.NomeCompleto" class="form-control" id="cliente-nome" list="clientes-nome-lista" autocomplete="off" />
+                <small class="text-muted">Digite o CPF para preencher automaticamente ou edite manualmente.</small>
+                <datalist id="clientes-nome-lista">
+                    @foreach (var cliente in Model.Clientes)
+                    {
+                        <option value="@cliente.NomeCompleto" data-cpf="@cliente.CPF">@cliente.CPF</option>
+                    }
+                </datalist>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Agendamento.Barbeiro.Id" class="form-label">Barbeiro</label>
+                @if (ViewBag.PodeEscolherBarbeiro is true)
+                {
+                    <select asp-for="Agendamento.Barbeiro.Id" class="form-select" id="barbeiro-select">
+                        <option value="">Selecione</option>
+                        @foreach (var barbeiro in Model.Barbeiros)
+                        {
+                            <option value="@barbeiro.Id">@barbeiro.NomeCompleto</option>
+                        }
+                    </select>
+                }
+                else
+                {
+                    var barbeiroLogado = Model.Barbeiros.FirstOrDefault();
+                    <input asp-for="Agendamento.Barbeiro.Id" type="hidden" id="barbeiro-select" value="@(barbeiroLogado?.Id ?? 0)" />
+                    <input class="form-control" value="@(barbeiroLogado?.NomeCompleto ?? "Nao identificado")" readonly />
+                }
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Agendamento.Procedimento" class="form-label">Procedimento</label>
+                <select asp-for="Agendamento.Procedimento" class="form-select" id="procedimento-select">
+                    <option value="">Selecione</option>
+                    @foreach (var procedimento in Model.Procedimentos)
+                    {
+                        <option value="@procedimento.Id">@procedimento.Nome</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="DataSelecionada" class="form-label">Data</label>
+                <input asp-for="DataSelecionada" type="date" class="form-control" id="data-select" />
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Agendamento.SlotHorarioId" class="form-label">Horario disponivel</label>
+                <select asp-for="Agendamento.SlotHorarioId" class="form-select" id="slot-select">
+                    <option value="">Selecione</option>
+                    @foreach (var slot in Model.SlotsDisponiveis.Where(x => x.StatusHorarioEnum == Navalha_Barbearia.Enums.StatusHorarioEnum.Livre))
+                    {
+                        <option value="@slot.Id">@slot.Inicio.ToString("HH:mm") - @slot.Fim.ToString("HH:mm")</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Agendamento.Preco" class="form-label">Preco</label>
+                <input asp-for="Agendamento.Preco" type="number" step="0.01" class="form-control" id="preco-input" readonly />
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Agendamento.Observacao" class="form-label">Observacao</label>
+                <textarea asp-for="Agendamento.Observacao" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="col-12 pt-2">
+                <button type="submit" class="btn btn-dark">Salvar</button>
+                <a class="btn btn-outline-dark" asp-action="Index">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const mapaPrecos = @Html.Raw(JsonSerializer.Serialize(Model.PrecosPorBarbeiroProcedimento));
+        const barbeiroSelect = document.getElementById("barbeiro-select");
+        const procedimentoSelect = document.getElementById("procedimento-select");
+        const precoInput = document.getElementById("preco-input");
+        const dataSelect = document.getElementById("data-select");
+        const slotSelect = document.getElementById("slot-select");
+        const cpfInput = document.getElementById("cliente-cpf");
+        const nomeInput = document.getElementById("cliente-nome");
+        const nomesLista = document.getElementById("clientes-nome-lista");
+
+        if (!barbeiroSelect || !procedimentoSelect || !precoInput || !dataSelect || !slotSelect) {
+            return;
+        }
+
+        function atualizarPreco() {
+            const barbeiroId = barbeiroSelect.value;
+            const procedimentoId = procedimentoSelect.value;
+
+            if (!barbeiroId || !procedimentoId) {
+                precoInput.value = "";
+                return;
+            }
+
+            const precosDoBarbeiro = mapaPrecos[barbeiroId] || {};
+            const preco = precosDoBarbeiro[procedimentoId];
+            precoInput.value = typeof preco === "number" ? preco.toFixed(2) : "";
+        }
+
+        // Carrega procedimentos do barbeiro selecionado
+        async function carregarProcedimentos() {
+            const barbeiroId = barbeiroSelect.value;
+            const procedimentoSelecionado = procedimentoSelect.value;
+            procedimentoSelect.innerHTML = '<option value="">Selecione</option>';
+
+            if (!barbeiroId) {
+                atualizarPreco();
+                return;
+            }
+
+            try {
+                const resposta = await fetch(`/Agendamentos/BuscarProcedimentosPorBarbeiro?barbeiroId=${encodeURIComponent(barbeiroId)}`);
+                if (!resposta.ok) {
+                    return;
+                }
+
+                const procedimentos = await resposta.json();
+                for (const proc of procedimentos) {
+                    const option = document.createElement("option");
+                    option.value = proc.id;
+                    option.textContent = proc.nome;
+                    option.selected = String(proc.id) === String(procedimentoSelecionado);
+                    procedimentoSelect.appendChild(option);
+                }
+                // Dispara mudança de procedimento para atualizar preço
+                atualizarPreco();
+            } catch {
+                // Mantemos comportamento silencioso para não interromper o preenchimento do restante do formulário.
+            }
+        }
+
+        barbeiroSelect.addEventListener("change", () => {
+            carregarProcedimentos();
+            atualizarPreco();
+        });
+        procedimentoSelect.addEventListener("change", atualizarPreco);
+        atualizarPreco();
+
+        async function carregarSlots() {
+            const barbeiroId = barbeiroSelect.value;
+            const data = dataSelect.value;
+            const slotSelecionado = slotSelect.value;
+
+            slotSelect.innerHTML = '<option value="">Selecione</option>';
+
+            if (!barbeiroId || !data) {
+                return;
+            }
+
+            try {
+                const resposta = await fetch(`/Agendamentos/ObterSlotsDisponiveis?barbeiroId=${encodeURIComponent(barbeiroId)}&data=${encodeURIComponent(data)}`);
+                if (!resposta.ok) {
+                    return;
+                }
+
+                const slots = await resposta.json();
+                for (const slot of slots) {
+                    const option = document.createElement("option");
+                    option.value = slot.id;
+                    option.textContent = `${slot.inicioFormatado} - ${slot.fimFormatado}`;
+                    option.selected = String(slot.id) === String(slotSelecionado);
+                    slotSelect.appendChild(option);
+                }
+            } catch {
+                // Mantemos comportamento silencioso para nao interromper o preenchimento do restante do formulario.
+            }
+        }
+
+        barbeiroSelect.addEventListener("change", carregarSlots);
+        dataSelect.addEventListener("change", carregarSlots);
+        carregarSlots();
+
+        async function preencherClientePorCpf() {
+            if (!cpfInput || !nomeInput) {
+                return;
+            }
+
+            const cpf = cpfInput.value?.trim();
+            if (!cpf) {
+                nomeInput.value = "";
+                return;
+            }
+
+            try {
+                const resposta = await fetch(`/Home/BuscarClientePorCpf?cpf=${encodeURIComponent(cpf)}`);
+                if (!resposta.ok) {
+                    nomeInput.value = "";
+                    return;
+                }
+
+                const cliente = await resposta.json();
+                nomeInput.value = cliente.encontrado ? (cliente.nomeCompleto || "") : "";
+            } catch {
+                nomeInput.value = "";
+            }
+        }
+
+        function preencherCpfPorNome() {
+            if (!cpfInput || !nomeInput || !nomesLista) {
+                return;
+            }
+
+            const nomeDigitado = nomeInput.value?.trim();
+            if (!nomeDigitado) {
+                return;
+            }
+
+            const opcaoCorrespondente = Array.from(nomesLista.options)
+                .find(x => x.value.trim().toLowerCase() === nomeDigitado.toLowerCase());
+
+            if (!opcaoCorrespondente) {
+                return;
+            }
+
+            const cpf = opcaoCorrespondente.dataset.cpf || "";
+            if (cpf) {
+                cpfInput.value = cpf;
+            }
+        }
+
+        cpfInput?.addEventListener("blur", preencherClientePorCpf);
+        nomeInput?.addEventListener("change", preencherCpfPorNome);
+    })();
+</script>

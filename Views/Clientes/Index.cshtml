@@ -1,0 +1,56 @@
+@model Navalha_Barbearia.Models.ViewModels.ClienteCrudViewModel
+
+@{
+    ViewData["Title"] = "Clientes";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <span class="eyebrow">Cadastro</span>
+            <h1 class="h3 mt-2 mb-0">Clientes</h1>
+        </div>
+        <div class="d-flex gap-2">
+            @if (ViewBag.PodeVerArquivados is true)
+            {
+                <a class="btn btn-outline-dark" asp-action="Arquivados">Clientes arquivados</a>
+            }
+            <a class="btn btn-dark" asp-action="Create">Novo cliente</a>
+        </div>
+    </div>
+
+    <div class="card-soft p-3 p-md-4">
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Nome</th>
+                        <th>Telefone</th>
+                        <th>Genero</th>
+                        <th>Ativo</th>
+                        <th class="text-end">Acoes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var cliente in Model.Clientes)
+                    {
+                        <tr>
+                            <td>@cliente.Id</td>
+                            <td>@cliente.NomeCompleto</td>
+                            <td>@cliente.Telefone</td>
+                            <td>@cliente.GeneroEnum.ToString()</td>
+                            <td>@(cliente.Ativo ? "Sim" : "Não")</td>
+                            <td class="text-end">
+                                @if (cliente.Ativo)
+                                {
+                                    <a class="btn btn-outline-dark btn-sm" asp-action="Details" asp-route-id="@cliente.Id">Detalhes</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
