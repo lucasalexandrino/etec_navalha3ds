@@ -1,14 +1,10 @@
 // ========== FERIADOS NACIONAIS DO BRASIL ==========
 export function isFeriadoNacional(date) {
-  // Criar uma data padronizada com horário 12:00 para evitar problemas de fuso
+  // Garantir que estamos comparando apenas a data (sem horas)
+  // A data já vem padronizada com horário 12:00 do calendário
   const ano = date.getFullYear();
-  const mes = date.getMonth();
+  const mes = date.getMonth() + 1;
   const dia = date.getDate();
-  const dataPadronizada = new Date(ano, mes, dia, 12, 0, 0);
-  
-  const anoNum = dataPadronizada.getFullYear();
-  const mesNum = dataPadronizada.getMonth() + 1;
-  const diaNum = dataPadronizada.getDate();
   
   // Feriados fixos
   const feriadosFixos = [
@@ -23,7 +19,7 @@ export function isFeriadoNacional(date) {
   ];
   
   for (const feriado of feriadosFixos) {
-    if (mesNum === feriado.mes && diaNum === feriado.dia) {
+    if (mes === feriado.mes && dia === feriado.dia) {
       return true;
     }
   }

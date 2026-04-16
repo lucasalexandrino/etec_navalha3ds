@@ -18,6 +18,7 @@ export function renderCalendar(containerElement, monthElement) {
   const firstDay = new Date(year, month, 1).getDay();
   const lastDay = new Date(year, month + 1, 0).getDate();
   
+  // Data de hoje padronizada com horário 12:00
   const hoje = new Date();
   const hojePadronizada = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 12, 0, 0);
   
@@ -28,6 +29,7 @@ export function renderCalendar(containerElement, monthElement) {
   }
   
   for (let dia = 1; dia <= lastDay; dia++) {
+    // Data do dia padronizada com horário 12:00
     const dataAtual = new Date(year, month, dia, 12, 0, 0);
     const isPast = dataAtual < hojePadronizada;
     const isToday = dia === hoje.getDate() && month === hoje.getMonth() && year === hoje.getFullYear();

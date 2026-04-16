@@ -130,13 +130,13 @@ function renderClientesList() {
   }
 
   tbody.innerHTML = clientes.map(cliente => {
-    const totalAgendamentos = appointments.filter(a => a.cliente === cliente.nome).length;
+    const totalAgendamentosAtivos = appointments.filter(a => a.cliente === cliente.nome && a.status === 'agendado').length;
     return `
       <tr>
         <td><strong>${escapeHtml(cliente.nome)}</strong></td>
         <td>${escapeHtml(cliente.email)}</td>
         <td>${escapeHtml(cliente.whatsapp || '-')}</td>
-        <td>${totalAgendamentos}</td>
+        <td>${totalAgendamentosAtivos}</td>
         <td>
           <button onclick="window.excluirCliente(${cliente.id}, '${escapeHtml(cliente.nome)}')" class="btn btn-sm btn-outline-danger" title="Excluir cliente">
             <i class="bi bi-trash"></i> Excluir
@@ -723,13 +723,14 @@ function renderTodosAgendamentos() {
   }).join('');
 
   window.marcarConcluido = (id) => {
-    if (completeAppointment(id)) {
-      renderTodosAgendamentos();
-      renderConcluidos();
-      renderMeusConcluidos();
-      showToast('Agendamento marcado como concluído!', 'success');
-    }
-  };
+  if (completeAppointment(id)) {
+    renderTodosAgendamentos();
+    renderConcluidos();
+    renderMeusConcluidos();
+    renderClientesList();
+    showToast('Agendamento marcado como concluído!', 'success');
+  }
+};
   window.prepareCancelAppointmentAdmin = (id) => { pendingCancelId = id; showCancelModal((motivo) => confirmCancelWithReason(motivo)); };
 }
 
@@ -917,7 +918,7 @@ function handleAppointmentSubmit(e) {
     document.querySelectorAll('.calendar-day.selected').forEach(d => d.classList.remove('selected'));
   }
 
-  if (currentUser.role === 'cliente') {
+    if (currentUser.role === 'cliente') {
     if (elements.agNome) {
       elements.agNome.value = currentUser.nome;
       elements.agNome.disabled = true;
@@ -925,7 +926,10 @@ function handleAppointmentSubmit(e) {
     if (elements.agWhatsapp) elements.agWhatsapp.value = currentUser.whatsapp || '';
   }
   renderMeusAgendamentos();
-  if (currentUser.role === 'barbeiro') renderTodosAgendamentos();
+  if (currentUser.role === 'barbeiro') {
+    renderTodosAgendamentos();
+    renderClientesList();
+  }
 }
 
 function confirmCancelWithReason(motivo) {
@@ -935,6 +939,7 @@ function confirmCancelWithReason(motivo) {
     if (currentUser?.role === 'barbeiro') {
       renderTodosAgendamentos();
       renderHistoricoCancelamentos();
+      renderClientesList();
     } else {
       renderMeusAgendamentos();
       renderMeusCancelados();
@@ -944,37 +949,89 @@ function confirmCancelWithReason(motivo) {
   }
 }
 
-// ========== FUNÇÕES DE LIMPEZA ==========
+// ========== FUNÇÕES DE LIMPEZA DO CLIENTE ==========
 
 function limparMeusConcluidos() {
+  console.log('🔍 Clique em Limpar Concluídos');
+  console.log('Usuário:', currentUser);
+  
+  if (!currentUser) {
+    showToast('Usuário não identificado', 'error');
+    return;
+  }
+  
   const meusConcluidos = appointments.filter(a => a.cliente === currentUser.nome && a.status === 'concluido');
+  console.log('Concluídos encontrados:', meusConcluidos.length);
+  
   if (meusConcluidos.length === 0) {
     showToast('Você não tem serviços concluídos para limpar', 'info');
     return;
   }
+  
   showConfirmModal('Limpar Meus Concluídos', 
     `Tem certeza que deseja remover ${meusConcluidos.length} serviço(s) concluído(s) do seu histórico?`, 
     () => {
-      appointments = appointments.filter(a => !(a.cliente === currentUser.nome && a.status === 'concluido'));
+      // Remove APENAS os concluídos do cliente atual
+      const novosAppointments = appointments.filter(a => !(a.cliente === currentUser.nome && a.status === 'concluido'));
+      
+      // Atualiza o array global
+      appointments.length = 0;
+      appointments.push(...novosAppointments);
+      
+      // Salva no localStorage
       saveAppointments();
+      
+      // Recarrega as tabelas
       renderMeusConcluidos();
+      
+      // Se for barbeiro, recarrega também a tabela dele
+      if (currentUser.role === 'barbeiro') {
+        renderConcluidos();
+      }
+      
       showToast(`${meusConcluidos.length} serviço(s) concluído(s) removido(s) do seu histórico!`, 'success');
     }
   );
 }
 
 function limparMeusCancelados() {
+  console.log('🔍 Clique em Limpar Cancelados');
+  console.log('Usuário:', currentUser);
+  
+  if (!currentUser) {
+    showToast('Usuário não identificado', 'error');
+    return;
+  }
+  
   const meusCancelados = appointments.filter(a => a.cliente === currentUser.nome && a.status === 'cancelado');
+  console.log('Cancelados encontrados:', meusCancelados.length);
+  
   if (meusCancelados.length === 0) {
     showToast('Você não tem agendamentos cancelados para limpar', 'info');
     return;
   }
+  
   showConfirmModal('Limpar Meus Cancelados', 
     `Tem certeza que deseja remover seus ${meusCancelados.length} agendamento(s) cancelado(s) do seu histórico?`, 
     () => {
-      appointments = appointments.filter(a => !(a.cliente === currentUser.nome && a.status === 'cancelado'));
+      // Remove APENAS os cancelados do cliente atual
+      const novosAppointments = appointments.filter(a => !(a.cliente === currentUser.nome && a.status === 'cancelado'));
+      
+      // Atualiza o array global
+      appointments.length = 0;
+      appointments.push(...novosAppointments);
+      
+      // Salva no localStorage
       saveAppointments();
+      
+      // Recarrega as tabelas
       renderMeusCancelados();
+      
+      // Se for barbeiro, recarrega também a tabela dele
+      if (currentUser.role === 'barbeiro') {
+        renderHistoricoCancelamentos();
+      }
+      
       showToast(`${meusCancelados.length} agendamento(s) cancelado(s) removido(s) do seu histórico!`, 'success');
     }
   );
@@ -1045,25 +1102,43 @@ function validateData() {
     document.getElementById('error-data').textContent = 'Selecione uma data';
     return false;
   }
+  
+  // Parse da data selecionada
+  const partes = data.split('-');
+  const ano = parseInt(partes[0]);
+  const mes = parseInt(partes[1]) - 1;
+  const dia = parseInt(partes[2]);
+  
+  // Data de hoje padronizada com horário 12:00 (meio-dia)
   const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-  const dataSelecionada = new Date(data);
-  dataSelecionada.setHours(0, 0, 0, 0);
-  if (dataSelecionada < hoje) {
+  const hojePadronizada = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 12, 0, 0);
+  
+  // Data selecionada padronizada com horário 12:00 (meio-dia)
+  const dataSelecionada = new Date(ano, mes, dia, 12, 0, 0);
+  
+  // Verifica se é data passada
+  if (dataSelecionada < hojePadronizada) {
     elements.agData.classList.add('is-invalid');
     document.getElementById('error-data').textContent = 'Não é permitido agendar em datas passadas';
     return false;
   }
+  
+  // Verifica se é feriado nacional
   if (isFeriadoNacional(dataSelecionada)) {
     elements.agData.classList.add('is-invalid');
     document.getElementById('error-data').textContent = 'Não é permitido agendar em feriados nacionais';
     return false;
   }
-  if (dataSelecionada.getDay() === 0) {
+  
+  // Verifica se é domingo (getDay() retorna 0 para domingo)
+  // IMPORTANTE: Usando a data padronizada com horário 12:00, o fuso não interfere
+  const diaSemana = dataSelecionada.getDay();
+  if (diaSemana === 0) {
     elements.agData.classList.add('is-invalid');
     document.getElementById('error-data').textContent = 'Não é permitido agendar aos domingos';
     return false;
   }
+  
   elements.agData.classList.remove('is-invalid');
   document.getElementById('error-data').textContent = '';
   return true;
