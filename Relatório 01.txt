@@ -68,5 +68,9 @@ Conforme solicitado no `Contexto.md`, priorizamos 3 melhorias de experiência do
 
 Essas melhorias foram implementadas sem comprometer a performance, mantendo o foco em acessibilidade básica (labels associados, contraste adequado).
 
+## Correção: status "Concluído" em agendamentos futuros (barbeiro)
+
+Na lista **Todos os Agendamentos**, alguns registros de demonstração apareciam como **concluídos** mesmo com data/hora **futura**, porque o seed antigo associava status `completed` ao pagamento simulado (PIX/cartão) em qualquer data. A regra correta é: **concluído** só faz sentido após o horário de início já ter passado (no demo) ou quando o barbeiro usa o botão **Concluir** após o atendimento. Foi ajustado o seed em `js/app.js`, criada migração para dados já salvos no `localStorage` (somente registros `completed` futuros **sem** `completedAt`, típicos do seed antigo) e a função `statusAgendamentoLogico` para exibição, cancelamento, conflitos de cliente e faturamento no dashboard. Se o barbeiro marcar **Concluir** antes do horário, o registro ganha `completedAt` e permanece concluído.
+
 ## Conclusão
 O sistema agora está funcional e pronto para entrega. O login simulado com papéis de cliente e barbeiro funciona corretamente, os agendamentos são validados no front-end, os dados são persistidos no navegador e o fluxo de logout retorna corretamente à tela de login. Ajustes de responsividade e usabilidade foram aplicados para melhorar a experiência em telas menores.

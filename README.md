@@ -56,6 +56,7 @@ Sistema web para agendamento de serviços em barbearia, desenvolvido com HTML, C
   - cada cliente recebe de 3 a 5 agendamentos
   - datas distribuídas entre hoje e 15 de julho de 2026
   - métodos de pagamento aleatórios: PIX, cartão, dinheiro e boleto
+  - **Status:** horários **futuros** ficam como **Agendado**; **Concluído** só aparece em agendamentos **já passados** em que o pagamento simulado era “pago” (o barbeiro ainda marca conclusão manual nos fluxos reais de atendimento).
 
 ## Autenticação
 
@@ -82,9 +83,14 @@ O código segue boas práticas:
 - Comentários em trechos complexos
 - Responsividade mobile-first
 
-## Limitações
+## Limitações / observações técnicas
 
-- Dados armazenados localmente (perdem ao limpar navegador)
-- Autenticação simulada (não segura)
-- Sem integração com backend real
-- Funciona apenas no mesmo dispositivo/navegador
+1. **Não é produção.** Credenciais de acesso e fluxos de **pagamento são fictícios** (simulação apenas na interface). Não há cobrança real nem validação de identidade em servidor. **Qualquer pessoa** com acesso ao **código-fonte** (por exemplo, contas demo declaradas em `js/app.js`) ou ao **armazenamento do navegador** (`localStorage` e `sessionStorage`, editáveis pelas DevTools) pode **ler, alterar ou apagar** dados como se fosse outro usuário. Em ambiente real, autenticação, regras de negócio sensíveis e integração com pagamento deveriam ficar em **backend** com segredos fora do front-end.
+
+2. **Persistência apenas local.** Serviços, agendamentos, logs simulados e demais registros são gravados com **`localStorage`** (e a sessão do login em **`sessionStorage`**), ou seja, **só naquele navegador e perfil**. Não existe servidor que centralize ou replique essas informações. Consequências práticas: **perda total** dos dados ao limpar dados do site, ao usar aba anônima sem migrar nada, ou ao trocar de máquina; **sem backup oficial** restaurável pela aplicação; **sem histórico único** se a mesma barbearia atender por mais de um computador. Um sistema real usaria banco de dados (ou serviço gerenciado), política de backup e, se necessário, exportação controlada.
+
+3. **Autenticação simulada.** O fluxo de login apenas **compara** e-mail e senha digitados com **arrays fixos em JavaScript** (`DEMO_CLIENTES`, `BARBEIRO_CONTAS` em `js/app.js`). Não há verificação em servidor, **token assinado**, expiração de sessão robusta, **proteção contra brute force**, recuperação de senha nem armazenamento de credenciais com **hash + salt**. Qualquer um que abra o código vê as senhas demo em texto. Em produção espera-se HTTPS, armazenamento seguro de segredos, políticas de senha e, no mínimo, validação e emissão de sessão **no backend**.
+
+4. **Sem backend.** Não há **API REST/GraphQL**, fila de mensagens, **banco relacional ou NoSQL** nem serviço de e-mail/SMS: regras de negócio (conflito de horários, cancelamento, “pagamento”) rodam **inteiras no cliente**. Isso impede **fonte única da verdade** compartilhada por todos os usuários, **integração** com ERP, gateway de pagamento real ou agenda Google, e **auditoria** confiável contra um administrador de sistema (o log em `localStorage` é facilmente apagado). Escalar para muitos barbeiros ou filiais exigiria arquitetura cliente-servidor ou BaaS.
+
+5. **Escopo por dispositivo/navegador.** Cada combinação **usuário do SO + navegador + perfil** mantém seu **próprio** `localStorage`. O barbeiro que agenda no Chrome do salão e o cliente que olha no celular **não veem o mesmo conjunto de dados** a menos que seja o mesmo aparelho e o mesmo armazenamento. Dois barbeiros em PCs diferentes teriam **agendas “paralelas”** fictícias, não uma agenda única da empresa. Colaboração real exigiria sincronização via servidor (ou P2P com conflitos resolvidos), não só armazenamento local.

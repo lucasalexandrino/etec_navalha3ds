@@ -17,6 +17,10 @@ Este arquivo contém o checklist de testes manuais executados conforme as instru
 - [x] Agendamento salva e aparece na lista do barbeiro.
   - Agendamentos criados pelo cliente aparecem na lista "Todos os Agendamentos" e "Agendamentos Hoje" do barbeiro correspondente.
 
+- [x] Status na lista do barbeiro obedece à regra de negócio (agendado × concluído).
+  - Agendamentos com **data/hora futura** aparecem como **agendado** (`scheduled`), nunca como concluído só por causa de pagamento simulado.
+  - **Concluído** exige horário de início já passado (dados demo) ou ação explícita **Concluir** pelo barbeiro após o atendimento.
+
 - [x] Excluir serviço / cancelar agendamento atualiza calendário e tabelas.
   - Exclusão de serviço remove do select do cliente.
   - Cancelamento de agendamento remove da lista do barbeiro e libera horário.
@@ -29,7 +33,7 @@ Este arquivo contém o checklist de testes manuais executados conforme as instru
 
 ## Observações de Bugs Encontrados
 
-Durante os testes, não foram identificados bugs críticos que impeçam o funcionamento básico da aplicação. A aplicação está funcional conforme os requisitos.
+Foi corrigido um bug de **dados de demonstração**: o seed gerava alguns agendamentos **futuros** com status `completed` quando o método de pagamento simulado era PIX/cartão, o que contradizia a regra (conclusão só após o horário ou após o barbeiro concluir). Ajustes em `js/app.js`: seed alinhado, migração `migrateStatusConcluidoInconsistente`, função `statusAgendamentoLogico` para exibição e faturamento.
 
 ### Pequenas Observações/ Melhorias Identificadas
 

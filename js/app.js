@@ -213,6 +213,29 @@
     if (mudou) save(KEY_AG, ags);
   }
 
+  /**
+   * Corrige registros onde status é "completed" mas o horário de início ainda é futuro
+   * (ex.: seed antigo ligava pagamento simulado a "concluído").
+   */
+  function migrateStatusConcluidoInconsistente() {
+    var ags = getAgendamentos();
+    var now = Date.now();
+    var mudou = false;
+    for (var i = 0; i < ags.length; i++) {
+      var a = ags[i];
+      if (a.status !== "completed") continue;
+      if (a.completedAt) continue;
+      var startMs = new Date(a.startIso).getTime();
+      if (isNaN(startMs) || startMs <= now) continue;
+      a.status = "scheduled";
+      delete a.completedAt;
+      delete a.completionNotes;
+      delete a.amountCharged;
+      mudou = true;
+    }
+    if (mudou) save(KEY_AG, ags);
+  }
+
   var BARBEIRO_CONTAS = [
     { email: "joao@navalha.com", password: "123456", barberId: "barber-1" },
     { email: "pedro@navalha.com", password: "123456", barberId: "barber-2" },
@@ -363,6 +386,7 @@
       dinheiro: "pending_cash",
       boleto: "pending_boleto",
     };
+    var nowSeed = new Date();
 
     DEMO_CLIENTES.forEach(function (client) {
       var servicesCount = randomInt(3, 5);
@@ -380,8 +404,13 @@
         var end = endTime(start, service.durationMinutes);
         var method = randomChoice(paymentMethods);
         var paymentStatus = paymentStatusMap[method] || "pending";
-        var status = paymentStatus.indexOf("paid") >= 0 ? "completed" : "scheduled";
-        ags.push({
+        var isFuture = start.getTime() > nowSeed.getTime();
+        var status = isFuture
+          ? "scheduled"
+          : paymentStatus.indexOf("paid") >= 0
+            ? "completed"
+            : "scheduled";
+        var row = {
           id: uid(),
           clientEmail: client.email,
           clientName: client.name,
@@ -396,9 +425,12 @@
           endIso: end.toISOString(),
           paymentMethod: method,
           paymentStatus: paymentStatus,
-          amountCharged: service.price,
           status: status,
-        });
+        };
+        if (!isFuture && status === "completed") {
+          row.amountCharged = service.price;
+        }
+        ags.push(row);
         added += 1;
       }
     });
@@ -459,6 +491,24 @@
     return a0 < b1 && b0 < a1;
   }
 
+  /**
+   * Concluído só após o horário de início ter passado e o registro estar completed.
+   * Horários futuros nunca são exibidos como concluídos.
+   */
+  function statusAgendamentoLogico(a, agoraOpt) {
+    if (!a) return "scheduled";
+    if (a.status === "cancelled") return "cancelled";
+    var now = agoraOpt != null ? agoraOpt.getTime() : Date.now();
+    var startMs = new Date(a.startIso).getTime();
+    if (a.status === "completed") {
+      if (a.completedAt) return "completed";
+      if (isNaN(startMs)) return "scheduled";
+      if (startMs > now) return "scheduled";
+      return "completed";
+    }
+    return "scheduled";
+  }
+
   function hasConflictForBarber(start, end, excludeId, barberId) {
     if (!barberId) return true;
     var buf = BUFFER_MS;
@@ -488,7 +538,7 @@
     for (var i = 0; i < ags.length; i++) {
       var a = ags[i];
       if (String(a.clientEmail || "").toLowerCase() !== em) continue;
-      if (a.status !== "scheduled") continue;
+      if (statusAgendamentoLogico(a) !== "scheduled") continue;
       if (excludeId && a.id === excludeId) continue;
       var as = new Date(a.startIso);
       var ae = new Date(a.endIso);
@@ -1464,11 +1514,13 @@
     ags.forEach(function (a) {
       var card = document.createElement("div");
       card.className = "agendamento-card";
+      var stCliente = statusAgendamentoLogico(a);
       if (a.status === "cancelled") card.classList.add("cancelado");
+      if (stCliente === "completed") card.classList.add("concluido");
       var statusLabel =
         a.status === "cancelled"
           ? "Cancelado"
-          : a.status === "completed"
+          : stCliente === "completed"
             ? "Concluído"
             : "Agendado";
       card.innerHTML =
@@ -1498,7 +1550,7 @@
         "</div>" +
         '<div class="agendamento-actions"></div>';
       var actions = card.querySelector(".agendamento-actions");
-      if (a.status === "scheduled") {
+      if (stCliente === "scheduled") {
         var btn = document.createElement("button");
         btn.type = "button";
         btn.className = "btn-small btn-danger";
@@ -1516,7 +1568,7 @@
     var ags = getAgendamentos();
     var a = ags.find(function (x) { return x.id === id; });
     if (!a) return;
-    if (a.status === "completed") {
+    if (statusAgendamentoLogico(a) === "completed") {
       showToast("Não é possível cancelar um atendimento já concluído.", "error");
       return;
     }
@@ -1558,6 +1610,8 @@
     seedBarbeiros();
     migrateAgendamentosBarberId();
     migratePagamentosCamposAntigos();
+    migrateAgendamentosCamposLegados();
+    migrateStatusConcluidoInconsistente();
     renderServicosGrid();
     popularSelectServicoCliente();
     popularBarbeiroSelectCliente();
@@ -1605,7 +1659,7 @@
     }).length;
     var fat = ags
       .filter(function (a) {
-        return a.status === "completed";
+        return statusAgendamentoLogico(a) === "completed";
       })
       .reduce(function (acc, a) {
         return acc + (Number(a.amountCharged != null ? a.amountCharged : a.price) || 0);
@@ -1653,7 +1707,7 @@
         " — " +
         escapeHtml(g.serviceName) +
         " — " +
-        escapeHtml(g.status) +
+        escapeHtml(statusAgendamentoLogico(g)) +
         "</li>";
     });
     lines += "</ul>";
@@ -1882,9 +1936,9 @@
   function cardAgendamentoBarbeiro(a, allowBarberCancel) {
     var card = document.createElement("div");
     card.className = "agendamento-card";
+    var st = statusAgendamentoLogico(a);
     if (a.status === "cancelled") card.classList.add("cancelado");
-    if (a.status === "completed") card.classList.add("concluido");
-    var st = a.status || "scheduled";
+    if (st === "completed") card.classList.add("concluido");
     card.innerHTML =
       '<div class="agendamento-servico">' +
       escapeHtml(a.serviceName) +
@@ -1916,7 +1970,7 @@
       barbearVerResumoCliente(a.clientEmail);
     });
     actions.appendChild(btnCl);
-    if (a.status === "scheduled") {
+    if (st === "scheduled") {
       var btnEd = document.createElement("button");
       btnEd.type = "button";
       btnEd.className = "btn-small btn-success";
@@ -1963,7 +2017,7 @@
       });
       actions.appendChild(btnDone);
     }
-    if (allowBarberCancel && a.status === "scheduled") {
+    if (allowBarberCancel && st === "scheduled") {
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className = "btn-small btn-warning";
@@ -2132,6 +2186,8 @@
     seedBarbeiros();
     migrateAgendamentosBarberId();
     migratePagamentosCamposAntigos();
+    migrateAgendamentosCamposLegados();
+    migrateStatusConcluidoInconsistente();
     var s = getSessao();
     var nd = document.getElementById("barbeiroNomeDisplay");
     if (nd && s && s.barberName) nd.textContent = s.barberName;
@@ -2170,6 +2226,7 @@
   migrateAgendamentosBarberId();
   migratePagamentosCamposAntigos();
   migrateAgendamentosCamposLegados();
+  migrateStatusConcluidoInconsistente();
   var sessao = getSessao();
   if (sessao && sessao.role === "cliente") {
     applyScreen("cliente");
