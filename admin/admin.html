@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Navalha • Painel Administrativo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+  <div class="admin-app">
+    <!-- Login Screen -->
+    <div class="admin-login" id="adminLogin">
+      <div class="login-card-admin">
+        <div class="login-brand">
+          <div class="brand-icon">
+            <i class="fas fa-crown"></i>
+          </div>
+          <h1>Navalha Admin</h1>
+          <p>Painel de controle da barbearia</p>
+        </div>
+        
+        <form id="adminLoginForm">
+          <div class="input-group">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="adminEmail" placeholder="E-mail" required>
+          </div>
+          <div class="input-group">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="adminSenha" placeholder="Senha" required>
+          </div>
+          <div class="login-error" id="adminLoginError"></div>
+          <button type="submit" class="btn-admin-primary">
+            <i class="fas fa-sign-in-alt"></i>
+            Entrar
+          </button>
+        </form>
+        
+        <div class="demo-hint">
+          <p>Demo: <strong>admin@navalha.com</strong> / <strong>1234</strong></p>
+          <button class="btn-demo-fill" id="btnFillDemo">
+            <i class="fas fa-robot"></i>
+            Preencher demo
+          </button>
+        </div>
+        
+        <a href="../index.html" class="back-link">
+          <i class="fas fa-arrow-left"></i>
+          Voltar ao site
+        </a>
+      </div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div class="admin-dashboard" id="adminDashboard" style="display: none;">
+      <!-- Sidebar -->
+      <aside class="admin-sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">
+            <i class="fas fa-cut"></i>
+            <span>Navalha</span>
+          </div>
+          <div class="sidebar-role">Administrador</div>
+        </div>
+        
+        <nav class="sidebar-nav">
+          <button class="nav-item active" data-tab="dashboard">
+            <i class="fas fa-chart-line"></i>
+            <span>Dashboard</span>
+          </button>
+          <button class="nav-item" data-tab="agenda">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Agenda</span>
+          </button>
+          <button class="nav-item" data-tab="servicos">
+            <i class="fas fa-scissors"></i>
+            <span>Serviços</span>
+          </button>
+          <button class="nav-item" data-tab="barbeiros">
+            <i class="fas fa-users"></i>
+            <span>Barbeiros</span>
+          </button>
+        </nav>
+        
+        <div class="sidebar-footer">
+          <button class="btn-logout-admin" id="adminLogout">
+            <i class="fas fa-sign-out-alt"></i>
+            Sair
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="admin-main">
+        <header class="admin-header">
+          <h1 id="pageTitle">Dashboard</h1>
+          <div class="admin-user">
+            <i class="fas fa-user-shield"></i>
+            <span id="adminUserName">Admin</span>
+          </div>
+        </header>
+
+        <!-- Dashboard Tab -->
+        <div class="tab-content" id="tabDashboard">
+          <!-- Filters -->
+          <div class="filters-bar">
+            <div class="filter-group">
+              <label>
+                <i class="fas fa-calendar"></i>
+                Data
+              </label>
+              <input type="date" id="filterData" class="filter-input">
+            </div>
+            <div class="filter-group">
+              <label>
+                <i class="fas fa-user-tie"></i>
+                Barbeiro
+              </label>
+              <select id="filterBarbeiro" class="filter-select">
+                <option value="todos">Todos</option>
+              </select>
+            </div>
+            <button class="btn-filter" id="btnHoje">
+              <i class="fas fa-sun"></i>
+              Hoje
+            </button>
+          </div>
+
+          <!-- KPIs -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-icon total">
+                <i class="fas fa-dollar-sign"></i>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">Faturamento Total</span>
+                <span class="kpi-value" id="kpiTotal">R$ 0,00</span>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon pix">
+                <i class="fab fa-pix"></i>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">Pix</span>
+                <span class="kpi-value" id="kpiPix">R$ 0,00</span>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon money">
+                <i class="fas fa-money-bill"></i>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">Dinheiro</span>
+                <span class="kpi-value" id="kpiDinheiro">R$ 0,00</span>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon card">
+                <i class="fas fa-credit-card"></i>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">Cartão</span>
+                <span class="kpi-value" id="kpiCartao">R$ 0,00</span>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon boleto">
+                <i class="fas fa-barcode"></i>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">Boleto</span>
+                <span class="kpi-value" id="kpiBoleto">R$ 0,00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pendências -->
+          <div class="card">
+            <div class="card-header">
+              <h3>
+                <i class="fas fa-clock"></i>
+                Pagamentos Pendentes
+              </h3>
+            </div>
+            <div class="pendentes-list" id="pendentesList"></div>
+          </div>
+        </div>
+
+        <!-- Agenda Tab -->
+        <div class="tab-content" id="tabAgenda" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <h3>
+                <i class="fas fa-list"></i>
+                Agendamentos do Dia
+              </h3>
+            </div>
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Hora</th>
+                    <th>Cliente</th>
+                    <th>Serviço</th>
+                    <th>Barbeiro</th>
+                    <th>Valor</th>
+                    <th>Pagamento</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="agendaTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Serviços Tab -->
+        <div class="tab-content" id="tabServicos" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <h3>
+                <i class="fas fa-scissors"></i>
+                Gerenciar Serviços
+              </h3>
+              <button class="btn-add" id="btnNovoServico">
+                <i class="fas fa-plus"></i>
+                Novo Serviço
+              </button>
+            </div>
+            
+            <form class="servico-form" id="servicoForm" style="display: none;">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Nome</label>
+                  <input type="text" id="servicoNome" placeholder="Ex: Corte Premium">
+                </div>
+                <div class="form-group">
+                  <label>Duração (min)</label>
+                  <input type="number" id="servicoDuracao" value="30" min="10" step="5">
+                </div>
+                <div class="form-group">
+                  <label>Preço (R$)</label>
+                  <input type="text" id="servicoPreco" placeholder="45,00">
+                </div>
+                <div class="form-group">
+                  <label>&nbsp;</label>
+                  <button type="submit" class="btn-save">Salvar</button>
+                  <button type="button" class="btn-cancel" id="btnCancelarServico">Cancelar</button>
+                </div>
+              </div>
+            </form>
+            
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Duração</th>
+                    <th>Preço</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="servicosTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barbeiros Tab -->
+        <div class="tab-content" id="tabBarbeiros" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <h3>
+                <i class="fas fa-users"></i>
+                Gerenciar Barbeiros
+              </h3>
+              <button class="btn-add" id="btnNovoBarbeiro">
+                <i class="fas fa-plus"></i>
+                Novo Barbeiro
+              </button>
+            </div>
+            
+            <form class="barbeiro-form" id="barbeiroForm" style="display: none;">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Nome</label>
+                  <input type="text" id="barbeiroNome" placeholder="Nome do barbeiro">
+                </div>
+                <div class="form-group">
+                  <label>&nbsp;</label>
+                  <button type="submit" class="btn-save">Salvar</button>
+                  <button type="button" class="btn-cancel" id="btnCancelarBarbeiro">Cancelar</button>
+                </div>
+              </div>
+            </form>
+            
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>ID</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="barbeirosTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmação -->
+  <dialog class="modal-confirm" id="modalConfirm">
+    <div class="modal-confirm-content">
+      <h3 id="confirmTitle">Confirmar</h3>
+      <p id="confirmMessage">Deseja realmente realizar esta ação?</p>
+      <div class="modal-confirm-actions">
+        <button class="btn-confirm-cancel" id="confirmCancel">Cancelar</button>
+        <button class="btn-confirm-ok" id="confirmOk">Confirmar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toasts-container" id="toastsContainer"></div>
+
+  <script type="module" src="admin.js"></script>
+</body>
+</html>

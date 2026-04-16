@@ -1,124 +1,67 @@
-const intervaloLimpezaMinutos = 10;
+// Scheduler Service - Navalha Barbearia
 
 export const scheduler = {
-  intervaloLimpezaMinutos,
-  horarioAbertura: { h: 9, m: 0 },
-  /** Seg–sex, último início respeitando duração + limpeza (especificação: até 18h). */
-  horarioFechamento: { h: 18, m: 0 },
-  passoSlotsMinutos: 10,
-  antecedenciaAgendamentoMinutos: 60,
-
-  criarDataLocalPorDiaHora(dataYmd, horaHm) {
-    const [y, mo, d] = dataYmd.split("-").map((x) => Number(x));
-    const [h, m] = horaHm.split(":").map((x) => Number(x));
-    return new Date(y, mo - 1, d, h, m, 0, 0);
+  HORARIO_ABERTURA: 9,
+  HORARIO_FECHAMENTO: 18,
+  INTERVALO_LIMPEZA: 10,
+  ANTECEDENCIA_MINIMA: 60,
+  PASSO_SLOTS: 15,
+  
+  isDiaUtil(data) {
+    const dia = data.getDay();
+    return dia >= 1 && dia <= 5;
   },
-
-  formatarHora(date) {
-    const hh = String(date.getHours()).padStart(2, "0");
-    const mm = String(date.getMinutes()).padStart(2, "0");
-    return `${hh}:${mm}`;
+  
+  addMinutes(data, minutos) {
+    return new Date(data.getTime() + minutos * 60000);
   },
-
-  somarMinutos(date, minutos) {
-    return new Date(date.getTime() + minutos * 60_000);
+  
+  criarData(dataYmd, horaStr) {
+    const [ano, mes, dia] = dataYmd.split('-').map(Number);
+    const [hora, minuto] = horaStr.split(':').map(Number);
+    return new Date(ano, mes - 1, dia, hora, minuto);
   },
-
-  inicioDoDiaLocal(date) {
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
-  },
-
-  estaNoMesmoDiaLocal(a, b) {
-    return (
-      a.getFullYear() === b.getFullYear() &&
-      a.getMonth() === b.getMonth() &&
-      a.getDate() === b.getDate()
-    );
-  },
-
-  obterFimComLimpeza(inicio, duracaoMinutos) {
-    return this.somarMinutos(inicio, duracaoMinutos + intervaloLimpezaMinutos);
-  },
-
-  verificarConflito({ novoInicio, novoFimSemLimpeza, agendamentosExistentes }) {
-    const novoFimComLimpeza = this.somarMinutos(novoFimSemLimpeza, intervaloLimpezaMinutos);
-
+  
+  hasConflito(novoInicio, novoFim, agendamentosExistentes, ignorarId = null) {
+    const novoInicioTime = novoInicio.getTime();
+    const novoFimComLimpeza = this.addMinutes(novoFim, this.INTERVALO_LIMPEZA).getTime();
+    
     for (const ag of agendamentosExistentes) {
-      if (ag.statusPagamento === "Cancelado") continue;
-
-      const existenteInicio = new Date(ag.inicioIso);
-      const existenteFimSemLimpeza = new Date(ag.fimIso);
-      const existenteFimComLimpeza = this.somarMinutos(existenteFimSemLimpeza, intervaloLimpezaMinutos);
-
-      const conflita = novoInicio < existenteFimComLimpeza && novoFimComLimpeza > existenteInicio;
-      if (conflita) return true;
+      if (ag.id === ignorarId) continue;
+      if (ag.statusPagamento === 'Cancelado') continue;
+      
+      const existenteInicio = new Date(ag.inicioIso).getTime();
+      const existenteFim = new Date(ag.fimIso).getTime();
+      const existenteFimComLimpeza = this.addMinutes(new Date(ag.fimIso), this.INTERVALO_LIMPEZA).getTime();
+      
+      if (novoInicioTime < existenteFimComLimpeza && novoFimComLimpeza > existenteInicio) {
+        return true;
+      }
     }
     return false;
   },
-
-  gerarSlotsDia({ dataYmd, duracaoMinutos, agora = new Date() }) {
-    const abertura = new Date(
-      Number(dataYmd.slice(0, 4)),
-      Number(dataYmd.slice(5, 7)) - 1,
-      Number(dataYmd.slice(8, 10)),
-      this.horarioAbertura.h,
-      this.horarioAbertura.m,
-      0,
-      0
-    );
-    const fechamento = new Date(
-      Number(dataYmd.slice(0, 4)),
-      Number(dataYmd.slice(5, 7)) - 1,
-      Number(dataYmd.slice(8, 10)),
-      this.horarioFechamento.h,
-      this.horarioFechamento.m,
-      0,
-      0
-    );
-
-    const ultimoInicioPermitido = this.somarMinutos(
-      fechamento,
-      -(duracaoMinutos + intervaloLimpezaMinutos)
-    );
-
+  
+  gerarSlots(dataYmd, duracaoMinutos, agendamentosExistentes = [], agora = new Date()) {
+    const data = new Date(dataYmd);
     const slots = [];
-    for (
-      let cursor = new Date(abertura);
-      cursor <= ultimoInicioPermitido;
-      cursor = this.somarMinutos(cursor, this.passoSlotsMinutos)
-    ) {
-      const fimSemLimpeza = this.somarMinutos(cursor, duracaoMinutos);
-      const noPassado = this.estaNoMesmoDiaLocal(cursor, agora) ? cursor <= agora : cursor < agora;
+    
+    const abertura = new Date(data.getFullYear(), data.getMonth(), data.getDate(), this.HORARIO_ABERTURA, 0);
+    const fechamento = new Date(data.getFullYear(), data.getMonth(), data.getDate(), this.HORARIO_FECHAMENTO, 0);
+    const ultimoInicio = this.addMinutes(fechamento, -(duracaoMinutos + this.INTERVALO_LIMPEZA));
+    
+    for (let horario = new Date(abertura); horario <= ultimoInicio; horario = this.addMinutes(horario, this.PASSO_SLOTS)) {
+      const fim = this.addMinutes(horario, duracaoMinutos);
+      const isPassado = horario < agora;
+      const hasConflict = this.hasConflito(horario, fim, agendamentosExistentes);
+      const isAntecedenciaOk = (horario.getTime() - agora.getTime()) >= (this.ANTECEDENCIA_MINIMA * 60000);
+      
       slots.push({
-        inicio: new Date(cursor),
-        fimSemLimpeza,
-        noPassado,
+        inicio: new Date(horario),
+        hora: horario.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        disponivel: !isPassado && !hasConflict && isAntecedenciaOk
       });
     }
+    
     return slots;
-  },
-
-  normalizarMetodoPagamento(metodo) {
-    if (metodo === "CartaoCredito" || metodo === "CartaoDebito") return "Cartao";
-    return metodo;
-  },
-
-  /** Domingo=0 … Sábado=6 — agenda apenas em dias úteis (seg–sex). */
-  ehDiaUtil(dataYmd) {
-    const [y, mo, d] = dataYmd.split("-").map((x) => Number(x));
-    const dt = new Date(y, mo - 1, d, 12, 0, 0, 0);
-    const dow = dt.getDay();
-    return dow >= 1 && dow <= 5;
-  },
-
-  antecedenciaRespeitada({ inicio, agora = new Date(), minutos = this.antecedenciaAgendamentoMinutos }) {
-    const diffMin = (inicio.getTime() - agora.getTime()) / 60_000;
-    return diffMin >= minutos;
-  },
-
-  formatarMoedaBR(centavos) {
-    const valor = (centavos || 0) / 100;
-    return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-  },
+  }
 };
-

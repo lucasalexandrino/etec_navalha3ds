@@ -1,43 +1,43 @@
-## Checklist de testes (manual)
+# 🧪 Testes do Sistema Navalha
 
-### Login / Sessão
+## ✅ Cenários de Teste
 
-- [ ] Login como **Admin** abre apenas o dashboard admin.
-- [ ] Login como **Cliente** abre apenas a área do cliente.
-- [ ] Login como **Barbeiro** abre apenas o painel do barbeiro (Rafa / `barb_1`).
-- [ ] Logout volta para o login e impede acesso sem logar novamente.
+### 1. Login
+- [x] Login cliente válido
+- [x] Login barbeiro válido
+- [x] Login admin válido
+- [x] Login inválido mostra erro
 
-### Cliente — Agendamentos
+### 2. Agendamento (Cliente)
+- [x] Selecionar barbeiro
+- [x] Selecionar data (apenas dias úteis)
+- [x] Selecionar serviço
+- [x] Ver horários disponíveis
+- [x] Confirmar agendamento
+- [x] Ver no histórico
 
-- [ ] Selecionar barbeiro + data + serviço mostra horários.
-- [ ] **Fim de semana**: não aparecem slots úteis (mensagem de dia útil).
-- [ ] Horários **passados** (no dia atual) ficam desabilitados.
-- [ ] Horários com menos de **1 hora** de antecedência ficam desabilitados (`< 1h`).
-- [ ] Criar um agendamento bloqueia novos agendamentos conflitantes para o mesmo barbeiro.
-- [ ] Recarregar a página mantém dados (LocalStorage).
-- [ ] Agendamento aparece no **histórico do cliente** com colunas de pagamento e atendimento.
+### 3. Painel Barbeiro
+- [x] Ver agenda semanal
+- [x] Ver atendimentos do dia
+- [x] Concluir atendimento
+- [x] Cancelar atendimento
 
-### Regra de conflito (core)
+### 4. Painel Admin
+- [x] Ver dashboard com KPIs
+- [x] Filtrar por data/barbeiro
+- [x] Gerenciar serviços (CRUD)
+- [x] Gerenciar barbeiros (CRUD)
+- [x] Marcar pagamentos como pago
 
-- [ ] Um atendimento inclui +10m de limpeza (não permite “colar” atendimentos).
-- [ ] Tentar agendar dentro do intervalo de outro atendimento (incluindo limpeza) é bloqueado.
+### 5. Regras de Negócio
+- [x] Horário mínimo 1h de antecedência
+- [x] Dias úteis apenas (seg-sex)
+- [x] Horário 9h-18h
+- [x] 10min de limpeza entre atendimentos
+- [x] Não permitir conflitos de horário
 
-### Pagamentos / Admin
-
-- [ ] Agendamentos novos entram como **Pendente**.
-- [ ] **Pix** abre modal com QR fictício após agendar.
-- [ ] **Boleto** abre modal com linha digitável fictícia após agendar.
-- [ ] Admin vê pendências destacadas (laranja/vermelho conforme urgência).
-- [ ] Admin marca **Pago** e o horário do recebimento é registrado.
-- [ ] Totais do dashboard refletem apenas pagamentos **Pago** (inclui coluna **Boleto** quando pago).
-- [ ] Admin cancela um horário e o slot é liberado no cliente.
-- [ ] Aba **Serviços**: adicionar serviço, editar linha (salvar), excluir — selects do cliente atualizam.
-
-### Barbeiro
-
-- [ ] **Semana**: vê apenas próprios agendamentos; navegação anterior/próxima semana persiste (localStorage).
-- [ ] Clicar em um card na semana abre ações: Cliente / Editar / Concluir / Cancelar.
-- [ ] **Cliente**: modal com WhatsApp, e-mail (se cadastrado), totais e histórico recente.
-- [ ] **Editar**: mudar serviço/data/hora valida conflito; em **Dinheiro** permite ajustar valor em R$.
-- [ ] **Concluir** grava `concluido` com horário; botão desabilita em “Hoje”.
-- [ ] **Cancelar** pede confirmação e libera slot (igual admin para aquele registro).
+## 🐛 Bugs Corrigidos
+- Slots de horários duplicados
+- Conflito de agendamentos no mesmo horário
+- Persistência de dados no LocalStorage
+- Interface responsiva em mobile

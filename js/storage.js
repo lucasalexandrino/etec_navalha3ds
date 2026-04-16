@@ -1,164 +1,91 @@
-const storagePrefix = "navalha_";
+// Storage Service - Navalha Barbearia
 
-function lerJson(chave, fallback) {
-  const bruto = localStorage.getItem(storagePrefix + chave);
-  if (!bruto) return fallback;
+const PREFIX = 'navalha_';
+
+function getItem(key, defaultValue = null) {
   try {
-    return JSON.parse(bruto);
+    const item = localStorage.getItem(PREFIX + key);
+    return item ? JSON.parse(item) : defaultValue;
   } catch {
-    return fallback;
+    return defaultValue;
   }
 }
 
-function salvarJson(chave, valor) {
-  localStorage.setItem(storagePrefix + chave, JSON.stringify(valor));
+function setItem(key, value) {
+  localStorage.setItem(PREFIX + key, JSON.stringify(value));
 }
 
-function gerarId(prefixo) {
-  const rnd = Math.random().toString(16).slice(2);
-  return `${prefixo}_${Date.now().toString(16)}_${rnd}`;
+function generateId(prefix = 'id') {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
-export const storage = {
-  lerSessao() {
-    return lerJson("sessao", null);
-  },
-  salvarSessao(sessao) {
-    salvarJson("sessao", sessao);
-  },
-  limparSessao() {
-    localStorage.removeItem(storagePrefix + "sessao");
-  },
-
-  lerUsuarios() {
-    return lerJson("usuarios", []);
-  },
-  salvarUsuarios(listaUsuarios) {
-    salvarJson("usuarios", listaUsuarios);
-  },
-
-  lerBarbeiros() {
-    return lerJson("barbeiros", []);
-  },
-  salvarBarbeiros(listaBarbeiros) {
-    salvarJson("barbeiros", listaBarbeiros);
-  },
-
-  lerServicos() {
-    return lerJson("servicos", []);
-  },
-  salvarServicos(listaServicos) {
-    salvarJson("servicos", listaServicos);
-  },
-
-  lerAgendamentos() {
-    return lerJson("agendamentos", []);
-  },
-  salvarAgendamentos(listaAgendamentos) {
-    salvarJson("agendamentos", listaAgendamentos);
-  },
-
-  gerarId,
-
-  garantirDadosIniciais() {
-    const usuarios = this.lerUsuarios();
-    const barbeiros = this.lerBarbeiros();
-    const servicos = this.lerServicos();
-
-    const precisaUsuarios = usuarios.length === 0;
-    const precisaBarbeiros = barbeiros.length === 0;
-    const precisaServicos = servicos.length === 0;
-
-    const garantirUsuario = (u) => {
-      const idx = usuarios.findIndex((x) => String(x.email || "").toLowerCase() === u.email.toLowerCase());
-      if (idx === -1) {
-        usuarios.push(u);
-        return;
-      }
-      usuarios[idx] = { ...usuarios[idx], ...u };
-    };
-
-    if (precisaUsuarios) {
-      usuarios.push(
-        {
-          id: "usr_admin",
-          nome: "Admin Navalha",
-          email: "admin@navalha.com",
-          whatsapp: "",
-          senha: "1234",
-          nivelAcesso: "Admin",
-          criadoEmIso: new Date().toISOString(),
-        },
-        {
-          id: "usr_usuario",
-          nome: "Usuário",
-          email: "usuario@navalha.com",
-          whatsapp: "11999999999",
-          senha: "1234",
-          nivelAcesso: "Cliente",
-          criadoEmIso: new Date().toISOString(),
-        },
-        {
-          id: "usr_barbeiro",
-          nome: "Rafa (Barbeiro)",
-          email: "barbeiro@navalha.com",
-          whatsapp: "11988887777",
-          senha: "1234",
-          nivelAcesso: "Barbeiro",
-          barbeiroId: "barb_1",
-          criadoEmIso: new Date().toISOString(),
-        }
-      );
-      this.salvarUsuarios(usuarios);
-    } else {
-      // Migração simples: garante as duas contas padrão e senha 1234
-      garantirUsuario({
-        id: "usr_admin",
-        nome: "Admin Navalha",
-        email: "admin@navalha.com",
-        whatsapp: "",
-        senha: "1234",
-        nivelAcesso: "Admin",
-      });
-      garantirUsuario({
-        id: "usr_usuario",
-        nome: "Usuário",
-        email: "usuario@navalha.com",
-        whatsapp: "11999999999",
-        senha: "1234",
-        nivelAcesso: "Cliente",
-      });
-      garantirUsuario({
-        id: "usr_barbeiro",
-        nome: "Rafa (Barbeiro)",
-        email: "barbeiro@navalha.com",
-        whatsapp: "11988887777",
-        senha: "1234",
-        nivelAcesso: "Barbeiro",
-        barbeiroId: "barb_1",
-      });
-      this.salvarUsuarios(usuarios);
+const DADOS_INICIAIS = {
+  usuarios: [
+    {
+      id: 'usr_cliente',
+      nome: 'João Silva',
+      email: 'cliente@navalha.com',
+      senha: '1234',
+      nivelAcesso: 'Cliente',
+      whatsapp: '11999999999',
+      criadoEm: new Date().toISOString()
+    },
+    {
+      id: 'usr_barbeiro',
+      nome: 'Rafael Souza',
+      email: 'barbeiro@navalha.com',
+      senha: '1234',
+      nivelAcesso: 'Barbeiro',
+      barbeiroId: 'barb_1',
+      whatsapp: '11988888888',
+      criadoEm: new Date().toISOString()
+    },
+    {
+      id: 'usr_admin',
+      nome: 'Administrador',
+      email: 'admin@navalha.com',
+      senha: '1234',
+      nivelAcesso: 'Admin',
+      whatsapp: '',
+      criadoEm: new Date().toISOString()
     }
-
-    if (precisaBarbeiros) {
-      this.salvarBarbeiros([
-        { id: "barb_1", nome: "Rafa" },
-        { id: "barb_2", nome: "Diego" },
-        { id: "barb_3", nome: "Bia" },
-      ]);
-    }
-
-    if (precisaServicos) {
-      this.salvarServicos([
-        { id: "srv_corte", nome: "Corte", duracaoMinutos: 30, precoCentavos: 3500 },
-        { id: "srv_barba", nome: "Barba", duracaoMinutos: 20, precoCentavos: 2500 },
-        { id: "srv_completo", nome: "Completo", duracaoMinutos: 50, precoCentavos: 5500 },
-      ]);
-    }
-
-    if (!lerJson("agendamentos", null)) {
-      this.salvarAgendamentos([]);
-    }
-  },
+  ],
+  barbeiros: [
+    { id: 'barb_1', nome: 'Rafael Souza' },
+    { id: 'barb_2', nome: 'Diego Santos' },
+    { id: 'barb_3', nome: 'Beatriz Lima' }
+  ],
+  servicos: [
+    { id: 'srv_1', nome: 'Corte Premium', duracaoMinutos: 40, precoCentavos: 5000 },
+    { id: 'srv_2', nome: 'Barba', duracaoMinutos: 25, precoCentavos: 3500 },
+    { id: 'srv_3', nome: 'Combo Completo', duracaoMinutos: 60, precoCentavos: 8000 },
+    { id: 'srv_4', nome: 'Platinado', duracaoMinutos: 90, precoCentavos: 12000 }
+  ]
 };
 
+export const storage = {
+  getSessao: () => getItem('sessao'),
+  setSessao: (sessao) => setItem('sessao', sessao),
+  clearSessao: () => localStorage.removeItem(PREFIX + 'sessao'),
+  
+  getUsuarios: () => getItem('usuarios', DADOS_INICIAIS.usuarios),
+  setUsuarios: (usuarios) => setItem('usuarios', usuarios),
+  
+  getBarbeiros: () => getItem('barbeiros', DADOS_INICIAIS.barbeiros),
+  setBarbeiros: (barbeiros) => setItem('barbeiros', barbeiros),
+  
+  getServicos: () => getItem('servicos', DADOS_INICIAIS.servicos),
+  setServicos: (servicos) => setItem('servicos', servicos),
+  
+  getAgendamentos: () => getItem('agendamentos', []),
+  setAgendamentos: (agendamentos) => setItem('agendamentos', agendamentos),
+  
+  generateId,
+  
+  garantirDadosIniciais() {
+    if (!getItem('usuarios')) setItem('usuarios', DADOS_INICIAIS.usuarios);
+    if (!getItem('barbeiros')) setItem('barbeiros', DADOS_INICIAIS.barbeiros);
+    if (!getItem('servicos')) setItem('servicos', DADOS_INICIAIS.servicos);
+    if (!getItem('agendamentos')) setItem('agendamentos', []);
+  }
+};
