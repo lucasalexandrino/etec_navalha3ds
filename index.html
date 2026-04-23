@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barbearia Navalha</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/estilos.css" />
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body>
+
+  <!-- ===================== TELA DE LOGIN ===================== -->
+  <div id="tela-login" class="tela-login">
+    <div class="login-formulario">
+      <div class="login-caixa">
+        <div class="login-cabecalho">
+          <span class="logo-texto"><span class="logo-icone">✂</span> Barbearia Navalha</span>
+          <p class="login-instrucao">Entre com suas credenciais para continuar</p>
+        </div>
+
+        <!-- Erro de login -->
+        <div id="login-erro" class="alerta alerta-erro" role="alert" hidden></div>
+
+        <form id="form-login" class="form" novalidate>
+          <label for="login-usuario">
+            Usuário
+            <input
+              type="text"
+              id="login-usuario"
+              name="usuario"
+              autocomplete="username"
+              placeholder="cliente ou barbeiro"
+              required
+            />
+            <span class="campo-erro" id="erro-login-usuario"></span>
+          </label>
+
+          <label for="login-senha">
+            Senha
+            <input
+              type="password"
+              id="login-senha"
+              name="senha"
+              autocomplete="current-password"
+              placeholder="••••••••"
+              required
+            />
+            <span class="campo-erro" id="erro-login-senha"></span>
+          </label>
+
+          <button type="submit" class="btn-prim btn-bloco">Entrar</button>
+        </form>
+
+        <div class="login-dica">
+          <p class="dica-titulo">Credenciais de demonstração</p>
+          <div class="dica-credenciais">
+            <div>
+              <strong>Cliente:</strong>
+              <code>cliente</code> / <code>cliente123</code>
+            </div>
+            <div>
+              <strong>Barbeiro:</strong>
+              <code>barbeiro</code> / <code>barbeiro123</code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== APLICAÇÃO PRINCIPAL ===================== -->
+  <div id="app" hidden>
+
+    <!-- CABEÇALHO -->
+    <header class="cabecalho" role="banner">
+      <div class="cabecalho-interno">
+        <div class="cabecalho-marca">
+          <span class="cabecalho-icone">✂</span>
+          <span class="cabecalho-nome">Barbearia Navalha</span>
+        </div>
+        <div class="cabecalho-usuario">
+          <span id="info-usuario" class="info-usuario"></span>
+          <button type="button" id="btn-logout" class="btn-logout" aria-label="Sair da conta">
+            Sair
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="conteudo-principal" role="main">
+
+      <!-- ==================== PAINEL CLIENTE ==================== -->
+      <section id="painel-cliente" class="painel" aria-label="Área do cliente" hidden>
+
+        <!-- Boas-vindas -->
+        <div class="cliente-boas-vindas">
+          <h1 class="bv-titulo">Bem-vindo à <span class="destaque">Barbearia Navalha</span></h1>
+          <p class="bv-subtitulo">Faça seu agendamento de forma rápida e prática.</p>
+        </div>
+
+        <div class="grade-cliente">
+
+          <!-- Coluna Esquerda: Calendário + Meus Agendamentos -->
+          <div class="coluna-esquerda">
+            <!-- Calendário -->
+            <div class="card">
+              <h2 class="card-titulo">Calendário</h2>
+              <div class="cal-nav" role="navigation" aria-label="Navegação do calendário">
+                <button type="button" id="cal-mes-ant" class="cal-btn-nav" aria-label="Mês anterior">&#9664;</button>
+                <span id="cal-titulo-mes" class="cal-titulo" aria-live="polite"></span>
+                <button type="button" id="cal-prox-mes" class="cal-btn-nav" aria-label="Próximo mês">&#9654;</button>
+              </div>
+              <div class="cal-semanas" role="row" aria-label="Dias da semana">
+                <span>Dom</span><span>Seg</span><span>Ter</span>
+                <span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+              </div>
+              <div id="cal-grade" class="cal-grade" role="grid" aria-label="Dias do mês"></div>
+            </div>
+
+            <!-- Meus Agendamentos -->
+            <div class="card">
+              <h2 class="card-titulo">Meus Agendamentos</h2>
+              <div id="lista-meus-ag" class="lista-meus-ag" aria-live="polite">
+                <p class="texto-vazio">Nenhum agendamento encontrado.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Coluna Direita: Formulário de Agendamento -->
+          <div class="card">
+            <h2 class="card-titulo">Novo Agendamento</h2>
+
+            <div id="aviso-sem-servicos" class="alerta alerta-info" role="status" hidden>
+              ⚠️ Nenhum serviço cadastrado pelo barbeiro. Aguarde para realizar um agendamento.
+            </div>
+
+            <form id="form-agendamento" class="form" novalidate aria-label="Formulário de agendamento">
+
+              <label for="ag-nome">
+                Nome completo
+                <input
+                  type="text"
+                  id="ag-nome"
+                  name="nome"
+                  autocomplete="name"
+                  placeholder="Seu nome completo"
+                  maxlength="80"
+                />
+                <span class="campo-erro" id="erro-ag-nome" role="alert"></span>
+              </label>
+
+              <label for="ag-whatsapp">
+                WhatsApp
+                <input
+                  type="tel"
+                  id="ag-whatsapp"
+                  name="whatsapp"
+                  inputmode="numeric"
+                  placeholder="(11) 99999-9999"
+                  maxlength="20"
+                />
+                <span class="campo-erro" id="erro-ag-whatsapp" role="alert"></span>
+              </label>
+
+              <!-- Seleção de Serviços (visual) -->
+              <div class="campo-grupo">
+                <span class="campo-label">Serviços</span>
+                <div id="grade-servicos" class="grade-servicos" role="group" aria-label="Selecione os serviços"></div>
+                <span class="campo-erro" id="erro-ag-servico" role="alert"></span>
+                <div id="total-servicos" class="total-servicos" hidden>
+                  Total: <strong id="valor-total">R$ 0,00</strong>
+                </div>
+              </div>
+
+              <!-- Data (preenchida pelo calendário) -->
+              <label for="ag-data">
+                Data selecionada
+                <input
+                  type="date"
+                  id="ag-data"
+                  name="data"
+                  readonly
+                  placeholder="Selecione no calendário"
+                />
+                <span class="campo-erro" id="erro-ag-data" role="alert"></span>
+              </label>
+
+              <!-- Horários -->
+              <div class="campo-grupo">
+                <span class="campo-label">Horário</span>
+                <div class="horario-filtros" role="group" aria-label="Filtrar horários">
+                  <button type="button" class="filtro-periodo ativo" data-periodo="todos">Todos</button>
+                  <button type="button" class="filtro-periodo" data-periodo="manha">Manhã</button>
+                  <button type="button" class="filtro-periodo" data-periodo="tarde">Tarde</button>
+                </div>
+                <div id="grade-horarios" class="grade-horarios" role="group" aria-label="Selecione um horário"></div>
+                <input type="hidden" id="ag-hora" name="hora" />
+                <span class="campo-erro" id="erro-ag-hora" role="alert"></span>
+              </div>
+
+              <button type="submit" class="btn-prim btn-bloco">Confirmar Agendamento</button>
+            </form>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ==================== PAINEL BARBEIRO ==================== -->
+      <section id="painel-barbeiro" class="painel" aria-label="Área do barbeiro" hidden>
+
+        <!-- Cards de Estatísticas -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icone">💰</div>
+            <div class="stat-info">
+              <span class="stat-valor" id="stat-faturamento">R$ 0,00</span>
+              <span class="stat-label">Faturamento</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icone">✅</div>
+            <div class="stat-info">
+              <span class="stat-valor" id="stat-concluidos">0</span>
+              <span class="stat-label">Agendamentos Concluídos</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icone">📅</div>
+            <div class="stat-info">
+              <span class="stat-valor" id="stat-marcados">0</span>
+              <span class="stat-label">Agendamentos Marcados</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icone">✂</div>
+            <div class="stat-info">
+              <span class="stat-valor" id="stat-servicos">0</span>
+              <span class="stat-label">Serviços Cadastrados</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Abas -->
+        <div class="abas-container">
+          <div class="abas-nav" role="tablist">
+            <button class="aba-btn ativa" data-aba="agendamentos" role="tab" aria-selected="true">Agendamentos</button>
+            <button class="aba-btn" data-aba="concluidos" role="tab" aria-selected="false">Concluídos</button>
+            <button class="aba-btn" data-aba="servicos" role="tab" aria-selected="false">Serviços</button>
+          </div>
+
+          <!-- ABA: Agendamentos (pendentes) -->
+          <div id="aba-agendamentos" class="aba-conteudo ativa">
+            <div class="card">
+              <div class="card-titulo-linha">
+                <h2 class="card-titulo">Agendamentos</h2>
+                <div class="filtros" role="group" aria-label="Filtros de agendamentos">
+                  <label for="filtro-data" class="label-inline">
+                    Data:
+                    <input type="date" id="filtro-data" class="input-pequeno" aria-label="Filtrar por data" />
+                  </label>
+                  <button type="button" class="btn-sec btn-pequeno" id="btn-limpar-filtro">Limpar</button>
+                </div>
+              </div>
+
+              <div class="tabela-wrap" role="region" aria-label="Tabela de agendamentos" tabindex="0">
+                <table class="tabela-ag" aria-label="Agendamentos pendentes">
+                  <thead>
+                    <tr>
+                      <th scope="col">Data / Hora</th>
+                      <th scope="col">Cliente</th>
+                      <th scope="col">WhatsApp</th>
+                      <th scope="col">Serviços</th>
+                      <th scope="col">Valor</th>
+                      <th scope="col"><span class="sr-only">Ações</span></th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbody-agendamentos" aria-live="polite"></tbody>
+                </table>
+              </div>
+
+              <div id="resumo-barbeiro" class="resumo" aria-live="polite"></div>
+            </div>
+          </div>
+
+          <!-- ABA: Agendamentos Concluídos -->
+          <div id="aba-concluidos" class="aba-conteudo">
+            <div class="card">
+              <h2 class="card-titulo">Agendamentos Concluídos</h2>
+
+              <div class="tabela-wrap" role="region" aria-label="Tabela de concluídos" tabindex="0">
+                <table class="tabela-ag" aria-label="Agendamentos concluídos">
+                  <thead>
+                    <tr>
+                      <th scope="col">Data / Hora</th>
+                      <th scope="col">Cliente</th>
+                      <th scope="col">WhatsApp</th>
+                      <th scope="col">Serviços</th>
+                      <th scope="col">Valor</th>
+                      <th scope="col"><span class="sr-only">Ações</span></th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbody-concluidos" aria-live="polite"></tbody>
+                </table>
+              </div>
+
+              <div id="resumo-concluidos" class="resumo" aria-live="polite"></div>
+            </div>
+          </div>
+
+          <!-- ABA: Serviços -->
+          <div id="aba-servicos" class="aba-conteudo">
+            <div class="card">
+              <h2 class="card-titulo">Cadastrar Serviço</h2>
+              <form id="form-servico" class="form" novalidate aria-label="Cadastro de serviço">
+                <div class="form-linha">
+                  <label for="sv-nome" class="form-campo-flex">
+                    Nome do serviço
+                    <input
+                      type="text"
+                      id="sv-nome"
+                      name="nome"
+                      placeholder="Ex: Corte simples"
+                      maxlength="60"
+                    />
+                    <span class="campo-erro" id="erro-sv-nome" role="alert"></span>
+                  </label>
+                  <label for="sv-preco" class="form-campo-flex">
+                    Preço (R$)
+                    <input
+                      type="number"
+                      id="sv-preco"
+                      name="preco"
+                      placeholder="35,00"
+                      min="0"
+                      step="0.01"
+                      required
+                    />
+                    <span class="campo-erro" id="erro-sv-preco" role="alert"></span>
+                  </label>
+                  <label for="sv-duracao" class="form-campo-flex">
+                    Duração (min)
+                    <input
+                      type="number"
+                      id="sv-duracao"
+                      name="duracao"
+                      placeholder="30"
+                      min="5"
+                      max="480"
+                      required
+                    />
+                    <span class="campo-erro" id="erro-sv-duracao" role="alert"></span>
+                  </label>
+                </div>
+                <div>
+                  <button type="submit" class="btn-prim">Adicionar Serviço</button>
+                </div>
+              </form>
+
+              <div class="separador"></div>
+              <h3 class="subtitulo">Serviços cadastrados</h3>
+              <div class="tabela-wrap">
+                <table class="tabela-ag tabela-servicos" aria-label="Serviços cadastrados">
+                  <thead>
+                    <tr>
+                      <th scope="col">Nome</th>
+                      <th scope="col">Preço</th>
+                      <th scope="col">Duração</th>
+                      <th scope="col"><span class="sr-only">Ações</span></th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbody-servicos" aria-live="polite"></tbody>
+                </table>
+              </div>
+              <div id="texto-sem-servicos" class="texto-vazio" style="display:none;padding:0.75rem 0">Nenhum serviço cadastrado.</div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- RODAPÉ -->
+    <footer class="rodape" role="contentinfo">
+      <div class="rodape-interno">
+        <span>© 2025 Navalha Barbearia · Todos os direitos reservados</span>
+        <a href="#politica-privacidade" class="link-rodape" id="link-politica">Política de Privacidade</a>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- MODAL POLÍTICA DE PRIVACIDADE -->
+  <div id="modal-politica" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+    <div class="modal-caixa">
+      <div class="modal-cabecalho">
+        <h2 id="modal-titulo">Política de Privacidade</h2>
+        <button type="button" class="modal-fechar" id="btn-fechar-modal" aria-label="Fechar">&#10005;</button>
+      </div>
+      <div class="modal-corpo">
+        <p>Esta política descreve como a <strong>Navalha Barbearia</strong> coleta e utiliza dados pessoais dos seus clientes.</p>
+        <h3>Dados coletados</h3>
+        <p>Coletamos apenas nome e número de WhatsApp para fins de agendamento. Nenhum dado é compartilhado com terceiros.</p>
+        <h3>Armazenamento</h3>
+        <p>Todos os dados são armazenados localmente no seu navegador (localStorage) e não são enviados para servidores externos.</p>
+        <h3>Exclusão de dados</h3>
+        <p>Você pode solicitar a exclusão dos seus dados a qualquer momento entrando em contato com a barbearia ou limpando os dados do navegador.</p>
+        <h3>Contato</h3>
+        <p>Para dúvidas, entre em contato: <strong>contato@navalha.com.br</strong></p>
+        <p><em>Última atualização: janeiro de 2025. (Dados fictícios para fins de demonstração.)</em></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTAINER DE TOASTS -->
+  <div id="toast-container" class="toast-container" role="region" aria-label="Notificações" aria-live="polite"></div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/calendario.js"></script>
+  <script src="js/validacao.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
