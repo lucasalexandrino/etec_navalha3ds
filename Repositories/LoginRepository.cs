@@ -41,11 +41,19 @@ namespace Navalha_Barbearia.Repositories
 
         public LoginModel? ObterPorIdentificadorSenha(string identificador, string senha)
         {
+            identificador = identificador.Trim();
+            if (string.IsNullOrWhiteSpace(identificador))
+            {
+                return null;
+            }
+
             var identificadorNormalizado = NormalizarIdentificador(identificador);
+            var identificadorEhEmail = identificador.Contains('@');
 
             return _logins.FirstOrDefault(x => x.Senha == senha && (
                 x.Email.Equals(identificador, StringComparison.OrdinalIgnoreCase) ||
-                NormalizarIdentificador(x.Email) == identificadorNormalizado));
+                (!identificadorEhEmail && identificadorNormalizado.Length > 0 &&
+                 NormalizarIdentificador(x.Email) == identificadorNormalizado)));
         }
 
         public LoginModel? ObterPorBarbeiroId(int idBarbeiro)
