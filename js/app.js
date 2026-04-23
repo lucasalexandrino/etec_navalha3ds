@@ -896,14 +896,17 @@
         '<div class="empty-state">Nenhum serviço cadastrado. O barbeiro precisa cadastrar serviços.</div>';
       return;
     }
-    servicos.forEach(function (s) {
+    servicos.forEach(function (s, index) {
+      var imgNum = (index % 6) + 1;
       var card = document.createElement("div");
       card.className = "servico-card";
       card.innerHTML =
         '<div class="servico-nome">' +
         escapeHtml(s.name) +
         "</div>" +
-        '<div class="servico-illustration" aria-hidden="true"></div>' +
+        '<div class="servico-illustration" aria-hidden="true">' +
+        '<img src="img/' + imgNum + '.png" alt="' + escapeHtml(s.name) + '" />' +
+        "</div>" +
         '<div class="servico-preco">' +
         formatMoney(s.price || 0) +
         "</div>" +
