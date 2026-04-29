@@ -24,7 +24,7 @@ const DADOS_INICIAIS = {
     {
       id: 'usr_cliente',
       nome: 'João Silva',
-      email: 'cliente@navalha.com',
+      email: 'usuario@navalha',
       senha: '1234',
       nivelAcesso: 'Cliente',
       whatsapp: '11999999999',
@@ -33,7 +33,7 @@ const DADOS_INICIAIS = {
     {
       id: 'usr_barbeiro',
       nome: 'Rafael Souza',
-      email: 'barbeiro@navalha.com',
+      email: 'barbeiro@navalha',
       senha: '1234',
       nivelAcesso: 'Barbeiro',
       barbeiroId: 'barb_1',
@@ -43,7 +43,7 @@ const DADOS_INICIAIS = {
     {
       id: 'usr_admin',
       nome: 'Administrador',
-      email: 'admin@navalha.com',
+      email: 'admin@navalha',
       senha: '1234',
       nivelAcesso: 'Admin',
       whatsapp: '',
@@ -83,7 +83,30 @@ export const storage = {
   generateId,
   
   garantirDadosIniciais() {
-    if (!getItem('usuarios')) setItem('usuarios', DADOS_INICIAIS.usuarios);
+    const usuariosAtuais = getItem('usuarios');
+    if (!usuariosAtuais) {
+      setItem('usuarios', DADOS_INICIAIS.usuarios);
+    } else {
+      // Migração: garantir que os logins demo estejam atualizados
+      let mudou = false;
+      const novosUsuarios = usuariosAtuais.map(u => {
+        if (u.id === 'usr_cliente' && u.email === 'cliente@navalha.com') {
+          u.email = 'usuario@navalha';
+          mudou = true;
+        }
+        if (u.id === 'usr_admin' && u.email === 'admin@navalha.com') {
+          u.email = 'admin@navalha';
+          mudou = true;
+        }
+        if (u.id === 'usr_barbeiro' && u.email === 'barbeiro@navalha.com') {
+          u.email = 'barbeiro@navalha';
+          mudou = true;
+        }
+        return u;
+      });
+      if (mudou) setItem('usuarios', novosUsuarios);
+    }
+    
     if (!getItem('barbeiros')) setItem('barbeiros', DADOS_INICIAIS.barbeiros);
     if (!getItem('servicos')) setItem('servicos', DADOS_INICIAIS.servicos);
     if (!getItem('agendamentos')) setItem('agendamentos', []);

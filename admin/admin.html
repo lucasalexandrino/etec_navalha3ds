@@ -28,7 +28,7 @@
         <form id="adminLoginForm">
           <div class="input-group">
             <i class="fas fa-envelope"></i>
-            <input type="email" id="adminEmail" placeholder="E-mail" required>
+            <input type="text" id="adminEmail" placeholder="E-mail" required>
           </div>
           <div class="input-group">
             <i class="fas fa-lock"></i>
@@ -42,7 +42,7 @@
         </form>
         
         <div class="demo-hint">
-          <p>Demo: <strong>admin@navalha.com</strong> / <strong>1234</strong></p>
+          <p>Demo: <strong>admin@navalha</strong> / <strong>1234</strong></p>
           <button class="btn-demo-fill" id="btnFillDemo">
             <i class="fas fa-robot"></i>
             Preencher demo
@@ -71,7 +71,7 @@
         <nav class="sidebar-nav">
           <button class="nav-item active" data-tab="dashboard">
             <i class="fas fa-chart-line"></i>
-            <span>Dashboard</span>
+            <span>Visão Geral</span>
           </button>
           <button class="nav-item" data-tab="agenda">
             <i class="fas fa-calendar-alt"></i>
@@ -98,16 +98,16 @@
       <!-- Main Content -->
       <main class="admin-main">
         <header class="admin-header">
-          <h1 id="pageTitle">Dashboard</h1>
+          <h1 id="pageTitle">Visão Geral</h1>
           <div class="admin-user">
             <i class="fas fa-user-shield"></i>
             <span id="adminUserName">Admin</span>
           </div>
         </header>
 
-        <!-- Dashboard Tab -->
+        <!-- Indicadores -->
         <div class="tab-content" id="tabDashboard">
-          <!-- Filters -->
+          <!-- Filtros -->
           <div class="filters-bar">
             <div class="filter-group">
               <label>
@@ -131,7 +131,7 @@
             </button>
           </div>
 
-          <!-- KPIs -->
+          <!-- Indicadores de Desempenho -->
           <div class="kpi-grid">
             <div class="kpi-card">
               <div class="kpi-icon total">
@@ -306,7 +306,6 @@
                 <thead>
                   <tr>
                     <th>Nome</th>
-                    <th>ID</th>
                     <th>Ações</th>
                   </tr>
                 </thead>

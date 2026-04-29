@@ -7,11 +7,11 @@ storage.garantirDadosIniciais();
 
 // Estado da aplicação
 let state = {
-  sessao: storage.lerSessao(),
-  usuarios: storage.lerUsuarios(),
-  barbeiros: storage.lerBarbeiros(),
-  servicos: storage.lerServicos(),
-  agendamentos: storage.lerAgendamentos(),
+  sessao: storage.getSessao(),
+  usuarios: storage.getUsuarios(),
+  barbeiros: storage.getBarbeiros(),
+  servicos: storage.getServicos(),
+  agendamentos: storage.getAgendamentos(),
   currentTab: 'dashboard'
 };
 
@@ -61,12 +61,20 @@ function showToast(message, type = 'success') {
   const container = document.getElementById('toastsContainer');
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
+  
+  const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+  
   toast.innerHTML = `
-    <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+    <i class="fas ${icon}"></i>
     <span>${message}</span>
   `;
   container.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+  
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(20px)';
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
 }
 
 function formatCurrency(centavos) {
@@ -147,10 +155,10 @@ function setSessao(usuario) {
       nivelAcesso: usuario.nivelAcesso,
       criadoEmIso: new Date().toISOString()
     };
-    storage.salvarSessao(state.sessao);
+    storage.setSessao(state.sessao);
   } else {
     state.sessao = null;
-    storage.limparSessao();
+    storage.clearSessao();
   }
 }
 
@@ -160,10 +168,10 @@ function getUsuarioAtual() {
 }
 
 function recarregarDados() {
-  state.usuarios = storage.lerUsuarios();
-  state.barbeiros = storage.lerBarbeiros();
-  state.servicos = storage.lerServicos();
-  state.agendamentos = storage.lerAgendamentos();
+  state.usuarios = storage.getUsuarios();
+  state.barbeiros = storage.getBarbeiros();
+  state.servicos = storage.getServicos();
+  state.agendamentos = storage.getAgendamentos();
 }
 
 // Renderização
@@ -283,7 +291,6 @@ function renderBarbeiros() {
   elements.barbeirosTableBody.innerHTML = state.barbeiros.map(b => `
     <tr>
       <td>${b.nome}</td>
-      <td><code>${b.id}</code></td>
       <td>
         <button class="btn-action" onclick="window.editarBarbeiro('${b.id}')">
           <i class="fas fa-edit"></i> Editar
@@ -306,7 +313,7 @@ function carregarFiltros() {
   state.barbeiros.forEach(b => {
     const option = document.createElement('option');
     option.value = b.id;
-    option.textContent = b.name || b.nome;
+    option.textContent = b.nome;
     elements.filterBarbeiro.appendChild(option);
   });
 }
@@ -337,7 +344,7 @@ function mudarTab(tab) {
   
   // Atualizar título
   const titles = {
-    dashboard: 'Dashboard',
+    dashboard: 'Visão Geral',
     agenda: 'Agenda',
     servicos: 'Serviços',
     barbeiros: 'Barbeiros'
@@ -361,7 +368,7 @@ async function marcarPago(agendamentoId) {
   
   ag.statusPagamento = 'Pago';
   ag.pagoEmIso = new Date().toISOString();
-  storage.salvarAgendamentos(state.agendamentos);
+  storage.setAgendamentos(state.agendamentos);
   
   showToast(`Pagamento de ${ag.clienteNome} confirmado!`, 'success');
   recarregarDados();
@@ -378,7 +385,7 @@ async function cancelarAgendamento(agendamentoId) {
   
   ag.statusPagamento = 'Cancelado';
   ag.canceladoEmIso = new Date().toISOString();
-  storage.salvarAgendamentos(state.agendamentos);
+  storage.setAgendamentos(state.agendamentos);
   
   showToast(`Agendamento de ${ag.clienteNome} cancelado!`, 'warning');
   recarregarDados();
@@ -394,7 +401,7 @@ async function excluirServico(servicoId) {
   if (!confirmado) return;
   
   state.servicos = state.servicos.filter(s => s.id !== servicoId);
-  storage.salvarServicos(state.servicos);
+  storage.setServicos(state.servicos);
   
   showToast(`Serviço "${servico.nome}" excluído!`, 'success');
   recarregarDados();
@@ -409,7 +416,7 @@ async function excluirBarbeiro(barbeiroId) {
   if (!confirmado) return;
   
   state.barbeiros = state.barbeiros.filter(b => b.id !== barbeiroId);
-  storage.salvarBarbeiros(state.barbeiros);
+  storage.setBarbeiros(state.barbeiros);
   
   showToast(`Barbeiro "${barbeiro.nome}" excluído!`, 'success');
   recarregarDados();
@@ -431,28 +438,41 @@ function editarServico(servicoId) {
   const oldSubmit = form.onsubmit;
   form.onsubmit = (e) => {
     e.preventDefault();
+    
+    // Limpar erros anteriores
+    elements.servicoNome.classList.remove('input-error');
+    elements.servicoDuracao.classList.remove('input-error');
+    elements.servicoPreco.classList.remove('input-error');
+
     const nome = elements.servicoNome.value.trim();
     const duracao = parseInt(elements.servicoDuracao.value);
     const precoStr = elements.servicoPreco.value.replace(',', '.');
     const preco = parseFloat(precoStr);
     
+    let hasError = false;
+
     if (!nome) {
+      elements.servicoNome.classList.add('input-error');
       showToast('Digite o nome do serviço', 'error');
-      return;
+      hasError = true;
     }
     if (isNaN(duracao) || duracao < 10) {
+      elements.servicoDuracao.classList.add('input-error');
       showToast('Duração mínima de 10 minutos', 'error');
-      return;
+      hasError = true;
     }
     if (isNaN(preco) || preco <= 0) {
+      elements.servicoPreco.classList.add('input-error');
       showToast('Digite um preço válido', 'error');
-      return;
+      hasError = true;
     }
+    
+    if (hasError) return;
     
     servico.nome = nome;
     servico.duracaoMinutos = duracao;
     servico.precoCentavos = Math.round(preco * 100);
-    storage.salvarServicos(state.servicos);
+    storage.setServicos(state.servicos);
     
     showToast('Serviço atualizado!', 'success');
     elements.servicoForm.style.display = 'none';
@@ -476,14 +496,19 @@ function editarBarbeiro(barbeiroId) {
   const oldSubmit = form.onsubmit;
   form.onsubmit = (e) => {
     e.preventDefault();
+    
+    // Limpar erros anteriores
+    elements.barbeiroNome.classList.remove('input-error');
+
     const nome = elements.barbeiroNome.value.trim();
     if (!nome) {
+      elements.barbeiroNome.classList.add('input-error');
       showToast('Digite o nome do barbeiro', 'error');
       return;
     }
     
     barbeiro.nome = nome;
-    storage.salvarBarbeiros(state.barbeiros);
+    storage.setBarbeiros(state.barbeiros);
     
     showToast('Barbeiro atualizado!', 'success');
     elements.barbeiroForm.style.display = 'none';
@@ -497,23 +522,36 @@ function editarBarbeiro(barbeiroId) {
 
 function adicionarServico(e) {
   e.preventDefault();
+  
+  // Limpar erros anteriores
+  elements.servicoNome.classList.remove('input-error');
+  elements.servicoDuracao.classList.remove('input-error');
+  elements.servicoPreco.classList.remove('input-error');
+
   const nome = elements.servicoNome.value.trim();
   const duracao = parseInt(elements.servicoDuracao.value);
   const precoStr = elements.servicoPreco.value.replace(',', '.');
   const preco = parseFloat(precoStr);
   
+  let hasError = false;
+
   if (!nome) {
+    elements.servicoNome.classList.add('input-error');
     showToast('Digite o nome do serviço', 'error');
-    return;
+    hasError = true;
   }
   if (isNaN(duracao) || duracao < 10) {
+    elements.servicoDuracao.classList.add('input-error');
     showToast('Duração mínima de 10 minutos', 'error');
-    return;
+    hasError = true;
   }
   if (isNaN(preco) || preco <= 0) {
+    elements.servicoPreco.classList.add('input-error');
     showToast('Digite um preço válido', 'error');
-    return;
+    hasError = true;
   }
+  
+  if (hasError) return;
   
   const novoServico = {
     id: storage.gerarId('srv'),
@@ -523,7 +561,7 @@ function adicionarServico(e) {
   };
   
   state.servicos.push(novoServico);
-  storage.salvarServicos(state.servicos);
+  storage.setServicos(state.servicos);
   
   showToast(`Serviço "${nome}" adicionado!`, 'success');
   elements.servicoForm.style.display = 'none';
@@ -536,8 +574,13 @@ function adicionarServico(e) {
 
 function adicionarBarbeiro(e) {
   e.preventDefault();
+  
+  // Limpar erros anteriores
+  elements.barbeiroNome.classList.remove('input-error');
+
   const nome = elements.barbeiroNome.value.trim();
   if (!nome) {
+    elements.barbeiroNome.classList.add('input-error');
     showToast('Digite o nome do barbeiro', 'error');
     return;
   }
@@ -548,7 +591,7 @@ function adicionarBarbeiro(e) {
   };
   
   state.barbeiros.push(novoBarbeiro);
-  storage.salvarBarbeiros(state.barbeiros);
+  storage.setBarbeiros(state.barbeiros);
   
   showToast(`Barbeiro "${nome}" adicionado!`, 'success');
   elements.barbeiroForm.style.display = 'none';
@@ -561,12 +604,33 @@ function adicionarBarbeiro(e) {
 // Login
 function fazerLogin(e) {
   e.preventDefault();
-  const email = elements.adminEmail.value;
+  
+  // Limpar erros anteriores
+  elements.adminEmail.classList.remove('input-error');
+  elements.adminSenha.classList.remove('input-error');
+  elements.adminLoginError.textContent = '';
+  
+  const email = elements.adminEmail.value.trim();
   const senha = elements.adminSenha.value;
+  
+  if (!email) {
+    elements.adminEmail.classList.add('input-error');
+    showToast('Por favor, insira seu e-mail', 'error');
+    return;
+  }
+  
+  if (!senha) {
+    elements.adminSenha.classList.add('input-error');
+    showToast('Por favor, insira sua senha', 'error');
+    return;
+  }
   
   const usuario = validarLogin(email, senha);
   if (!usuario) {
+    elements.adminEmail.classList.add('input-error');
+    elements.adminSenha.classList.add('input-error');
     elements.adminLoginError.textContent = 'E-mail ou senha inválidos';
+    showToast('Acesso negado. Verifique suas credenciais.', 'error');
     return;
   }
   
@@ -594,7 +658,7 @@ function logout() {
 function setupEventListeners() {
   elements.adminLoginForm.addEventListener('submit', fazerLogin);
   elements.btnFillDemo.addEventListener('click', () => {
-    elements.adminEmail.value = 'admin@navalha.com';
+    elements.adminEmail.value = 'admin@navalha';
     elements.adminSenha.value = '1234';
   });
   elements.adminLogout.addEventListener('click', logout);

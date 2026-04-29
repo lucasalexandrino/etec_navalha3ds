@@ -88,12 +88,19 @@ function showToast(message, type = 'success') {
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
+  
+  const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+  
   toast.innerHTML = `
-    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+    <i class="fas ${icon}"></i>
     <span>${message}</span>
   `;
   container.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(20px)';
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
 }
 
 function getUsuarioAtual() {
@@ -132,8 +139,8 @@ function salvarAgendamentos() {
 
 window.preencherLogin = (role) => {
   const credentials = {
-    cliente: { email: 'cliente@navalha.com', senha: '1234' },
-    barbeiro: { email: 'barbeiro@navalha.com', senha: '1234' }
+    cliente: { email: 'usuario@navalha', senha: '1234' },
+    barbeiro: { email: 'barbeiro@navalha', senha: '1234' }
   };
   
   const cred = credentials[role];
@@ -145,17 +152,35 @@ window.preencherLogin = (role) => {
 };
 
 function fazerLogin(email, senha) {
+  // Resetar erros
+  elements.loginEmail.classList.remove('input-error');
+  elements.loginSenha.classList.remove('input-error');
+
+  if (!email) {
+    elements.loginEmail.classList.add('input-error');
+    showToast('Por favor, insira um e-mail válido', 'error');
+    return false;
+  }
+  
+  if (!senha) {
+    elements.loginSenha.classList.add('input-error');
+    showToast('Por favor, insira sua senha', 'error');
+    return false;
+  }
+
   const usuario = state.usuarios.find(
     u => u.email.toLowerCase() === email.toLowerCase() && u.senha === senha
   );
   
   if (!usuario) {
-    showToast('E-mail ou senha inválidos', 'error');
+    elements.loginEmail.classList.add('input-error');
+    elements.loginSenha.classList.add('input-error');
+    showToast('E-mail ou senha incorretos. Verifique os dados e tente novamente.', 'error');
     return false;
   }
   
   setSessao(usuario);
-  showToast(`Bem-vindo, ${usuario.nome}!`, 'success');
+  showToast(`Bem-vindo de volta, ${usuario.nome}!`, 'success');
   
   // Esconder login e mostrar área correta
   elements.loginWrapper.style.display = 'none';
@@ -174,11 +199,13 @@ function fazerLogin(email, senha) {
 }
 
 function logout() {
-  setSessao(null);
-  elements.loginWrapper.style.display = 'flex';
-  elements.clienteWrapper.style.display = 'none';
-  elements.barbeiroWrapper.style.display = 'none';
-  showToast('Logout realizado com sucesso', 'success');
+  if (confirm('Tem certeza que deseja sair?')) {
+    setSessao(null);
+    elements.loginWrapper.style.display = 'flex';
+    elements.clienteWrapper.style.display = 'none';
+    elements.barbeiroWrapper.style.display = 'none';
+    showToast('Até logo! Esperamos você em breve.', 'success');
+  }
 }
 
 // ============================================
@@ -283,11 +310,14 @@ function atualizarResumo() {
 function carregarSlots() {
   const { barbeiroId, dataYmd, servicoId } = state.clienteSelecionado;
   
+  // Limpar erros ao recarregar
+  document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+
   if (!barbeiroId || !dataYmd || !servicoId) {
     elements.slotsContainer.innerHTML = `
       <div class="slots-empty">
         <i class="fas fa-calendar-day"></i>
-        <p>Selecione barbeiro, data e serviço</p>
+        <p>Selecione barbeiro, data e serviço para ver os horários</p>
       </div>
     `;
     elements.btnConfirmar.disabled = true;
@@ -302,7 +332,7 @@ function carregarSlots() {
     elements.slotsContainer.innerHTML = `
       <div class="slots-empty">
         <i class="fas fa-calendar-times"></i>
-        <p>Apenas dias úteis (segunda a sexta)</p>
+        <p>Atendemos apenas em dias úteis (segunda a sexta)</p>
       </div>
     `;
     elements.btnConfirmar.disabled = true;
@@ -321,7 +351,7 @@ function carregarSlots() {
     elements.slotsContainer.innerHTML = `
       <div class="slots-empty">
         <i class="fas fa-clock"></i>
-        <p>Nenhum horário disponível</p>
+        <p>Desculpe, não há horários disponíveis para este dia</p>
       </div>
     `;
     elements.btnConfirmar.disabled = true;
@@ -342,6 +372,9 @@ function carregarSlots() {
         btn.classList.add('selected');
         state.clienteSelecionado.horario = slot.hora;
         elements.btnConfirmar.disabled = false;
+        
+        // Feedback visual imediato
+        showToast(`Horário das ${slot.hora} selecionado`, 'info');
       };
     }
     
@@ -355,8 +388,29 @@ async function confirmarAgendamento() {
   
   const { barbeiroId, dataYmd, servicoId, horario, pagamento } = state.clienteSelecionado;
   
-  if (!barbeiroId || !dataYmd || !servicoId || !horario) {
-    showToast('Preencha todos os campos', 'error');
+  // Validação com feedback visual (Heurística 9)
+  let temErro = false;
+  document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+
+  if (!barbeiroId) {
+    elements.clienteBarbeiro.classList.add('input-error');
+    temErro = true;
+  }
+  if (!dataYmd) {
+    elements.clienteData.classList.add('input-error');
+    temErro = true;
+  }
+  if (!servicoId) {
+    elements.clienteServico.classList.add('input-error');
+    temErro = true;
+  }
+  if (!horario) {
+    elements.slotsContainer.classList.add('input-error');
+    temErro = true;
+  }
+
+  if (temErro) {
+    showToast('Por favor, preencha os campos destacados em vermelho', 'error');
     return;
   }
   
@@ -368,7 +422,7 @@ async function confirmarAgendamento() {
   const inicio = scheduler.criarData(dataYmd, horario);
   const fim = scheduler.addMinutes(inicio, servico.duracaoMinutos);
   
-  // Verificar conflito
+  // Verificar conflito (Heurística 5 - Prevenção de erros)
   const agendamentosDia = state.agendamentos.filter(a =>
     a.barbeiroId === barbeiroId &&
     a.dataYmd === dataYmd &&
@@ -376,7 +430,7 @@ async function confirmarAgendamento() {
   );
   
   if (scheduler.hasConflito(inicio, fim, agendamentosDia)) {
-    showToast('Este horário não está mais disponível', 'error');
+    showToast('Ops! Este horário acabou de ser ocupado. Por favor, escolha outro.', 'error');
     carregarSlots();
     return;
   }
@@ -403,7 +457,7 @@ async function confirmarAgendamento() {
   state.agendamentos.push(novoAgendamento);
   salvarAgendamentos();
   
-  showToast('Agendamento realizado com sucesso!', 'success');
+  showToast('Agendamento confirmado com sucesso!', 'success');
   
   // Limpar seleção
   state.clienteSelecionado.horario = null;
@@ -457,6 +511,19 @@ function desenharQRCode() {
   }
 }
 
+function cancelarAgendamento(agId) {
+  if (!confirm('Deseja realmente cancelar este agendamento?')) return;
+  
+  const ag = state.agendamentos.find(a => a.id === agId);
+  if (ag) {
+    ag.statusPagamento = 'Cancelado';
+    salvarAgendamentos();
+    showToast('Agendamento cancelado com sucesso', 'success');
+    carregarHistorico();
+    carregarSlots();
+  }
+}
+
 function carregarHistorico() {
   const usuario = getUsuarioAtual();
   if (!usuario) return;
@@ -475,24 +542,38 @@ function carregarHistorico() {
     return;
   }
   
-  elements.historicoContainer.innerHTML = meusAgendamentos.map(ag => `
-    <div class="historico-card">
-      <div class="historico-info">
-        <div class="historico-data">
-          <span><i class="fas fa-calendar"></i> ${formatarData(ag.dataYmd)}</span>
-          <span><i class="fas fa-clock"></i> ${formatarHora(ag.inicioIso)}</span>
+  elements.historicoContainer.innerHTML = meusAgendamentos.map(ag => {
+    const isCancelable = ag.statusPagamento !== 'Cancelado' && new Date(ag.inicioIso) > new Date();
+    
+    return `
+      <div class="historico-card">
+        <div class="historico-info">
+          <div class="historico-data">
+            <span><i class="fas fa-calendar"></i> ${formatarData(ag.dataYmd)}</span>
+            <span><i class="fas fa-clock"></i> ${formatarHora(ag.inicioIso)}</span>
+          </div>
+          <div class="historico-servico">${ag.servicoNome}</div>
+          <div class="historico-detalhes">
+            ${ag.barbeiroNome} • ${formatarMoeda(ag.valorCentavos)} • ${ag.metodoPagamento}
+          </div>
         </div>
-        <div class="historico-servico">${ag.servicoNome}</div>
-        <div class="historico-detalhes">
-          ${ag.barbeiroNome} • ${formatarMoeda(ag.valorCentavos)} • ${ag.metodoPagamento}
+        <div class="historico-actions">
+          <div class="status-pill ${ag.statusPagamento === 'Pago' ? 'status-pago' : ag.statusPagamento === 'Cancelado' ? 'status-cancelado' : 'status-pendente'}">
+            ${ag.statusPagamento || 'Pendente'}
+          </div>
+          ${isCancelable ? `
+            <button class="btn-cancel-agendamento" onclick="window.cancelarAgendamento('${ag.id}')">
+              <i class="fas fa-times"></i> Cancelar
+            </button>
+          ` : ''}
         </div>
       </div>
-      <div class="status-pill ${ag.statusPagamento === 'Pago' ? 'status-pago' : ag.statusPagamento === 'Cancelado' ? 'status-cancelado' : 'status-pendente'}">
-        ${ag.statusPagamento || 'Pendente'}
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
+
+// Tornar global para o onclick
+window.cancelarAgendamento = cancelarAgendamento;
 
 // ============================================
 // FUNÇÕES DO BARBEIRO
