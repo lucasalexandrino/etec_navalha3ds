@@ -1,0 +1,8 @@
+1. Nos campos falta mensagens de erro e a mensagem visual por cores
+* Preencher CPF errado no agendamento rapido(em todos os campos dos formularios de cadastro) -> mensagem de erro em vermelho
+* No Agendamento rapido o usuario deveria ser informado quais campos ele deve preencher para prosseguir. Atualmente nao acontece nada(em todos formularios de cadastro)
+* Na tela de agendamentos do funcionario cada Status do agendamento poderia ter uma cor para identificação
+* Poderia ter um alert avisando que o agendamento foi realizado ou nao
+* Ao cadastrar novo barbeiro, nao exibir o tipoPerfil.CLiente. Somente Funcionario ou ADMIN
+* Padronizar a area do cliente logado igual do barbeiro
+* O status do agendamento ate tem cor mas ta feio
